@@ -1,0 +1,15 @@
+# Node & Vite
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/
+
+# Java & Spring Boot
+backend/target/
+backend/.mvn/
+backend/build/
+
+# IDE & OS
+.DS_Store
+.idea/
+*.iml
+.vscode/
