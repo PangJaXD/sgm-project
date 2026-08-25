@@ -4,6 +4,7 @@ import ViewGuardModal from "./ViewGuardModal";
 import ViewEventModal from "./ViewEventModal";
 import ViewRequestModal from "./ViewRequestModal";
 import AssignTaskModal from "./AssignTaskModal";
+import ViewAssignmentModal from "./ViewAssignmentModal"; // 🌟 Import เพิ่มเติม
 import {
   Users,
   CalendarDays,
@@ -33,13 +34,15 @@ function HeadGuardDashboard() {
   const [isViewEventModalOpen, setIsViewEventModalOpen] = useState(false);
   const [isViewRequestModalOpen, setIsViewRequestModalOpen] = useState(false);
   const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
+  const [isViewAssignmentModalOpen, setIsViewAssignmentModalOpen] =
+    useState(false); // 🌟 State ใหม่
 
   const [selectedGuard, setSelectedGuard] = useState(null);
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [selectedRequest, setSelectedRequest] = useState(null);
   const [selectedAssignment, setSelectedAssignment] = useState(null);
+  const [selectedViewAssignment, setSelectedViewAssignment] = useState(null); // 🌟 State สำหรับเก็บข้อมูลที่จะ View
 
-  // 🌟 1. เปลี่ยนจาก Mock เป็น State ว่างๆ เพื่อรอรับ API
   const [assignmentsList, setAssignmentsList] = useState([]);
 
   const userJson = localStorage.getItem("user");
@@ -145,7 +148,6 @@ function HeadGuardDashboard() {
     req.report_type?.toLowerCase().includes(search.toLowerCase()),
   );
 
-  // 🌟 2. ฟังก์ชันดึงรายชื่อ รปภ. ที่ถูกมอบหมายในกะนั้นๆ
   const fetchAssignments = useCallback(async (shiftId) => {
     try {
       const response = await axios.get(
@@ -155,8 +157,11 @@ function HeadGuardDashboard() {
         id: a.assignment_id,
         guardId: `G-${(a.guard_id || 0).toString().padStart(3, "0")}`,
         guardName: a.guard_name || "ไม่ระบุ",
-        status: a.assignment_status, // "RESERVE", "ACTUAL", "ASSIGNED"
+        status: a.assignment_status,
         time: a.time_range || "08:00 - 18:00 น.",
+        latitude: a.latitude, // 🌟 เพิ่มฟิลด์เหล่านี้ให้ ViewModal นำไปใช้ได้
+        longitude: a.longitude,
+        description: a.description,
       }));
       setAssignmentsList(formattedList);
     } catch (error) {
@@ -168,11 +173,9 @@ function HeadGuardDashboard() {
     setSelectedEvent(eventData);
     setSelectedShiftDetail(shiftData);
     setIsViewEventModalOpen(false);
-    // 🌟 โหลดข้อมูลพนักงานทันทีที่เข้าหน้ารายละเอียดกะ
     fetchAssignments(shiftData.shift_id);
   };
 
-  // 🌟 3. ฟังก์ชันอัปเดตตัวสำรอง -> ตัวจริง ผ่าน API
   const moveToActual = async (assignmentId) => {
     try {
       await axios.put(
@@ -181,7 +184,6 @@ function HeadGuardDashboard() {
           status: "ACTUAL",
         },
       );
-      // รีเฟรชตารางหลังอัปเดตสำเร็จ
       fetchAssignments(selectedShiftDetail.shift_id);
     } catch (error) {
       console.error("Error updating status:", error);
@@ -189,7 +191,6 @@ function HeadGuardDashboard() {
     }
   };
 
-  // 🌟 4. ฟังก์ชันบันทึกการมอบหมายงาน (พร้อมพิกัด) ผ่าน API
   const handleSaveAssignment = async (updatedData) => {
     try {
       await axios.put(
@@ -202,7 +203,6 @@ function HeadGuardDashboard() {
         },
       );
       setIsAssignModalOpen(false);
-      // รีเฟรชตารางหลังมอบหมายงานเสร็จ
       fetchAssignments(selectedShiftDetail.shift_id);
       alert("บันทึกการมอบหมายงานเรียบร้อยแล้ว");
     } catch (error) {
@@ -359,7 +359,14 @@ function HeadGuardDashboard() {
                               มอบหมายงาน
                             </button>
                           ) : (
-                            <button className="text-gray-400 hover:text-blue-600 transition">
+                            // 🌟 ปุ่ม View พร้อมฟังก์ชัน onClick
+                            <button
+                              onClick={() => {
+                                setSelectedViewAssignment(item);
+                                setIsViewAssignmentModalOpen(true);
+                              }}
+                              className="text-gray-400 hover:text-blue-600 transition"
+                            >
                               <Eye size={18} />
                             </button>
                           )}
@@ -717,6 +724,13 @@ function HeadGuardDashboard() {
         onClose={() => setIsAssignModalOpen(false)}
         assignmentData={selectedAssignment}
         onSave={handleSaveAssignment}
+      />
+
+      {/* 🌟 แสดงหน้าต่าง ViewAssignmentModal */}
+      <ViewAssignmentModal
+        isOpen={isViewAssignmentModalOpen}
+        onClose={() => setIsViewAssignmentModalOpen(false)}
+        assignmentData={selectedViewAssignment}
       />
 
       <ViewRequestModal
