@@ -1,5 +1,6 @@
 package org.sgm_project.demo.Model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -54,7 +55,22 @@ public class Events {
     private Set<String> provided_tools;
     @Column(nullable = false)
     private Integer required_guards;
-    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
-    @JoinColumn(name = "event_id")
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, mappedBy = "event")
     private Set<ShiftTime> shift_times;
 }
+
+//this annotation is crazy btw
+//i know u see some of these before
+//but wtf is @ElementCollection
+//this is useful when you make some table that has to join itself
+/*
+this is a great example
+    @ElementCollection
+    @CollectionTable(
+            name = "events_required_tools",
+            joinColumns = @JoinColumn(name = "event_id")
+    )
+cus it is required tool it belongs to the event and event needs many tools
+ElementCollection is for list
+CollectionTable is for making a table that support the attribute
+ */

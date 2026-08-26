@@ -1,13 +1,19 @@
 package org.sgm_project.demo.Service;
 
+import org.sgm_project.demo.DTO.ShiftTimeDashboardResponse;
 import org.sgm_project.demo.Model.*;
 import org.sgm_project.demo.Repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
+
+//sry i did not take to gemini very well
+//he creates this madness to fuck up my brain
 @Service
 public class HeadGuardDashboardService {
 
@@ -26,7 +32,6 @@ public class HeadGuardDashboardService {
     @Autowired
     private ShiftTimeRepository shiftTimeRepository;
 
-    // 🌟 เพิ่ม AssignmentsRepository
     @Autowired
     private AssignmentRepository assignmentsRepository;
 
@@ -43,15 +48,13 @@ public class HeadGuardDashboardService {
     }
 
     // ==========================================
-    // 🌟 3 เมธอดใหม่สำหรับจัดการ Assignments
+    // 🌟 จัดการ Assignments
     // ==========================================
 
-    // 1. ดึงข้อมูล Assignments พร้อมชื่อ รปภ. ในกะนั้นๆ
     public List<Map<String, Object>> getAssignmentsByShift(Integer shiftId) {
         return assignmentsRepository.findAssignmentDetailsByShiftId(shiftId);
     }
 
-    // 2. อัปเดตสถานะ (เช่น ย้ายตัวสำรองเป็น ACTUAL)
     public void updateAssignmentStatus(Integer assignmentId, String status) {
         Assignments assignment = assignmentsRepository.findById(assignmentId)
                 .orElseThrow(() -> new RuntimeException("Assignment not found"));
@@ -59,7 +62,6 @@ public class HeadGuardDashboardService {
         assignmentsRepository.save(assignment);
     }
 
-    // 3. บันทึกรายละเอียดการมอบหมายงาน (พร้อมพิกัด)
     public void updateAssignmentDetail(Integer assignmentId, String status, String latitude, String longitude, String description) {
         Assignments assignment = assignmentsRepository.findById(assignmentId)
                 .orElseThrow(() -> new RuntimeException("Assignment not found"));
@@ -71,15 +73,14 @@ public class HeadGuardDashboardService {
     }
 
     public void createAssignment(org.sgm_project.demo.DTO.AssignmentRequest request) {
-
-        // 1. ดึงตัวแม่ทั้งสองตัวขึ้นมาก่อน
+        //first we gonna get ids from mobile side
         ShiftTime shift = shiftTimeRepository.findById(request.getShift_id())
                 .orElseThrow(() -> new RuntimeException("Shift not found"));
 
         Guards guard = guardRepository.findById(request.getGuard_id())
                 .orElseThrow(() -> new RuntimeException("Guard not found"));
 
-        // 2. สร้างตัวลูก
+        //second we inject the request to assignment
         Assignments newAssignment = new Assignments();
         newAssignment.setAssignment_status(request.getAssignment_status());
         newAssignment.setRequest_date(java.time.LocalDateTime.now());
@@ -87,11 +88,55 @@ public class HeadGuardDashboardService {
         newAssignment.setLongitude(request.getLongitude());
         newAssignment.setDescription(request.getDescription());
 
-        // 🌟 3. ผูกความสัมพันธ์โดยตรงที่ตัวลูก
         newAssignment.setShift(shift);
         newAssignment.setGuard(guard);
 
-        // 4. Save ลูกครั้งเดียวจบ! Database จะมี guard_id และ shift_id ลงไปทันที
         assignmentsRepository.save(newAssignment);
+    }
+
+    public List<ShiftTimeDashboardResponse> getDashboardShifts(Integer headGuardId) {
+        List<ShiftTime> shifts = shiftTimeRepository.findByHeadGuardId(headGuardId);
+
+        return shifts.stream().map(shift -> {
+            DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+            DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("HH:mm");
+
+            // Format เวลาทำงาน (Start - End)
+            String workTimeFormatted = (shift.getStart_time() != null && shift.getEnd_time() != null)
+                    ? shift.getStart_time().format(timeFormatter) + " - " + shift.getEnd_time().format(timeFormatter) + " น."
+                    : "ไม่ระบุเวลา";
+
+            // นับจำนวน รปภ. ในกะนี้
+            int assignedGuardsCount = assignmentsRepository.countByShiftId(shift.getShift_id());
+
+            // 🌟 รวมชื่อ-นามสกุลของ HeadGuard (ดึงจาก first_name และ last_name ในคลาส Users)
+            String headFullName = "ยังไม่ระบุหัวหน้า";
+            if (shift.getHeadGuard() != null) {
+                String fName = shift.getHeadGuard().getFirst_name() != null ? shift.getHeadGuard().getFirst_name() : "";
+                String lName = shift.getHeadGuard().getLast_name() != null ? shift.getHeadGuard().getLast_name() : "";
+                headFullName = (fName + " " + lName).trim();
+            }
+
+            // ข้อมูล Event ที่ผูกกับ Shift
+            Events event = shift.getEvent();
+            String eventName = event != null ? event.getEvent_name() : "ไม่ระบุชื่องาน";
+            String location = event != null ? event.getLocation() : "ไม่ระบุสถานที่";
+            String startDate = (event != null && event.getStart_date() != null) ? event.getStart_date().format(dateFormatter) : "-";
+            String endDate = (event != null && event.getEnd_date() != null) ? event.getEnd_date().format(dateFormatter) : "-";
+            String status = event != null ? event.getStatus() : "PENDING";
+
+            return ShiftTimeDashboardResponse.builder()
+                    .shiftId(Long.valueOf(shift.getShift_id()))
+                    .eventName(eventName)
+                    .shiftName("กะงานที่ " + shift.getShift_id())
+                    .location(location)
+                    .startDate(startDate)
+                    .endDate(endDate)
+                    .workTime(workTimeFormatted)
+                    .totalGuards(assignedGuardsCount)
+                    .status(status)
+                    .headGuardName(headFullName)
+                    .build();
+        }).collect(Collectors.toList());
     }
 }

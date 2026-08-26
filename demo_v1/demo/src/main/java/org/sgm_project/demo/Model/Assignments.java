@@ -42,3 +42,9 @@ public class Assignments {
     @JoinColumn(name = "head_id")
     private HeadGuard headGuard;
 }
+
+//mostly from assigning work
+//i need to explain how it works, cus it's hard to read the attributes
+//first, guard needs to send their request to the shift first
+//second, they will assign to the reserve status(this is why other attributes is null except status)
+//third, headguards have right to choose whoever they need to become actual member and assign the work

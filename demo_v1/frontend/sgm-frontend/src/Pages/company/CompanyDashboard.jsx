@@ -92,20 +92,25 @@ function CompanyDashboard() {
     try {
       setIsLoading(true);
       const response = await axios.get("http://localhost:8080/api/headguard");
-      const formattedData = response.data.map((guard) => {
-        const isActive = guard.quit_date === null;
-        return {
-          id: `HG-${guard.users_id.toString().padStart(3, "0")}`,
-          name: `${guard.first_name} ${guard.last_name}`,
-          experience: calculateExperience(guard.start_date),
-          status: isActive ? "ปฏิบัติงาน" : "พ้นสภาพ/พักงาน",
-          active: isActive,
-          raw: guard,
-        };
-      });
-      setHeadGuards(formattedData);
+      if (Array.isArray(response.data)) {
+        const formattedData = response.data.map((guard) => {
+          const isActive = guard.quit_date === null;
+          return {
+            id: `HG-${guard.users_id ? guard.users_id.toString().padStart(3, "0") : "000"}`,
+            name: `${guard.first_name || ""} ${guard.last_name || ""}`.trim(),
+            experience: calculateExperience(guard.start_date),
+            status: isActive ? "ปฏิบัติงาน" : "พ้นสภาพ/พักงาน",
+            active: isActive,
+            raw: guard,
+          };
+        });
+        setHeadGuards(formattedData);
+      } else {
+        setHeadGuards([]);
+      }
     } catch (error) {
       console.error("Error fetching head guards:", error);
+      setHeadGuards([]);
     } finally {
       setIsLoading(false);
     }
@@ -115,33 +120,46 @@ function CompanyDashboard() {
     try {
       setIsLoading(true);
       const response = await axios.get("http://localhost:8080/api/guard");
-      const formattedData = response.data.map((guard) => {
-        const isActive = guard.quit_date === null;
-        return {
-          id: `G-${guard.users_id.toString().padStart(3, "0")}`,
-          name: `${guard.first_name} ${guard.last_name}`,
-          experience: calculateExperience(guard.start_date),
-          status: isActive ? "ปฏิบัติงาน" : "พ้นสภาพ/พักงาน",
-          active: isActive,
-          headName: guard.head_name || "-",
-          raw: guard,
-        };
-      });
-      setGuards(formattedData);
+      if (Array.isArray(response.data)) {
+        const formattedData = response.data.map((guard) => {
+          const isActive = guard.quit_date === null;
+          return {
+            id: `G-${guard.users_id ? guard.users_id.toString().padStart(3, "0") : "000"}`,
+            name: `${guard.first_name || ""} ${guard.last_name || ""}`.trim(),
+            experience: calculateExperience(guard.start_date),
+            status: isActive ? "ปฏิบัติงาน" : "พ้นสภาพ/พักงาน",
+            active: isActive,
+            headName: guard.head_name || "-",
+            raw: guard,
+          };
+        });
+        setGuards(formattedData);
+      } else {
+        setGuards([]);
+      }
     } catch (error) {
       console.error("Error fetching guards:", error);
+      setGuards([]);
     } finally {
       setIsLoading(false);
     }
   }, []);
 
+  // 🌟 ป้องกันกรณี response.data ไม่ใช่ Array
   const fetchEvents = useCallback(async () => {
     try {
       setIsLoading(true);
       const response = await axios.get("http://localhost:8080/api/events");
-      setEvents(response.data);
+      if (Array.isArray(response.data)) {
+        setEvents(response.data);
+      } else if (response.data && typeof response.data === "object") {
+        setEvents([response.data]);
+      } else {
+        setEvents([]);
+      }
     } catch (error) {
       console.error("Error fetching events:", error);
+      setEvents([]);
     } finally {
       setIsLoading(false);
     }
@@ -152,7 +170,7 @@ function CompanyDashboard() {
       fetchHeadGuards();
     } else if (activeMenu === "guard") {
       fetchGuards();
-      fetchHeadGuards(); // 🌟 อัปเดต: สั่งให้ดึงรายชื่อหัวหน้าชุดมาเตรียมไว้ใช้เป็น Dropdown เสมอ
+      fetchHeadGuards();
     } else if (activeMenu === "schedule") {
       fetchEvents();
     }
@@ -288,16 +306,22 @@ function CompanyDashboard() {
     }
   };
 
-  const currentDataList = isGuardMenu ? guards : headGuards;
+  const currentDataList = Array.isArray(isGuardMenu ? guards : headGuards)
+    ? isGuardMenu
+      ? guards
+      : headGuards
+    : [];
+
   const filteredData = currentDataList.filter((item) => {
     const keyword = search.toLowerCase();
     return (
-      item.id.toLowerCase().includes(keyword) ||
-      item.name.toLowerCase().includes(keyword)
+      item.id?.toLowerCase().includes(keyword) ||
+      item.name?.toLowerCase().includes(keyword)
     );
   });
 
-  const filteredEvents = events.filter((ev) => {
+  // 🌟 บรรทัดที่เคยพัง: ป้องกัน events ไม่ใช่ Array ก่อนเรียก .filter()
+  const filteredEvents = (Array.isArray(events) ? events : []).filter((ev) => {
     const keyword = search.toLowerCase();
     return (
       ev.event_name?.toLowerCase().includes(keyword) ||
@@ -529,7 +553,7 @@ function CompanyDashboard() {
                             กะ
                           </p>
                           <p className="text-gray-500">
-                            ต้องการเจ้าหน้าที่รวม: {ev.required_guards} คน
+                            ต้องการเจ้าหน้าที่รวม: {ev.required_guards || 0} คน
                           </p>
                         </div>
                         <div className="bg-gray-50 border border-gray-200 rounded-xl p-2.5 mb-4 text-[12px]">
@@ -666,7 +690,6 @@ function CompanyDashboard() {
                     />
                   </div>
 
-                  {/* 🌟 อัปเดต: เปลี่ยน Input เป็น Select สำหรับเลือกหัวหน้าชุด */}
                   {isGuardMenu && (
                     <div className="flex items-center">
                       <label className="w-[120px] font-semibold">
@@ -680,7 +703,7 @@ function CompanyDashboard() {
                       >
                         <option value="">-- ระบุหัวหน้าชุด --</option>
                         {headGuards
-                          .filter((hg) => hg.active) // แสดงเฉพาะคนที่สถานะ "ปฏิบัติงาน"
+                          .filter((hg) => hg.active)
                           .map((hg) => (
                             <option key={hg.id} value={hg.name}>
                               {hg.name}
@@ -881,7 +904,6 @@ function CompanyDashboard() {
                     />
                   </div>
 
-                  {/* ในหน้า View คงไว้เป็น input readOnly เพราะเราไม่ได้แก้ไข */}
                   {isGuardMenu && (
                     <div className="flex items-center">
                       <label className="w-[120px] font-semibold">
@@ -899,7 +921,7 @@ function CompanyDashboard() {
 
                 <div className="w-[120px] flex flex-col pt-1">
                   <div className="w-full h-[140px] border border-gray-400 rounded-xl bg-gray-50 flex items-center justify-center text-gray-400 overflow-hidden shadow-sm">
-                    {selectedGuard.raw.profile_img &&
+                    {selectedGuard.raw?.profile_img &&
                     selectedGuard.raw.profile_img !== "default.png" ? (
                       <img
                         src={`http://localhost:8080/uploads/${selectedGuard.raw.profile_img}`}
@@ -1066,7 +1088,6 @@ function CompanyDashboard() {
                     />
                   </div>
 
-                  {/* 🌟 อัปเดต: เปลี่ยน Input เป็น Select ในหน้าต่าง Edit ด้วย */}
                   {isGuardMenu && (
                     <div className="flex items-center">
                       <label className="w-[120px] font-semibold">
@@ -1093,7 +1114,7 @@ function CompanyDashboard() {
 
                 <div className="w-[120px] flex flex-col pt-1">
                   <div className="w-full h-[140px] border border-gray-400 rounded-xl bg-gray-50 flex items-center justify-center text-gray-400 overflow-hidden">
-                    {selectedGuard?.raw.profile_img &&
+                    {selectedGuard?.raw?.profile_img &&
                     selectedGuard.raw.profile_img !== "default.png" ? (
                       <img
                         src={`http://localhost:8080/uploads/${selectedGuard.raw.profile_img}`}

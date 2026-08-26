@@ -9,15 +9,18 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/company")
-@CrossOrigin(origins = "http://localhost:5173")
+@CrossOrigin(origins = "http://localhost:5173", allowCredentials = "true")
 public class CompanyController {
 
+    //pls use autowired(no controller for this)
     private final CompanyService companyService;
 
     public CompanyController(CompanyService companyService) {
         this.companyService = companyService;
     }
 
+    //save company
+    //instead of using actual class we use its dto
     @PostMapping
     public ResponseEntity<Company> createCompany(
             @RequestBody CreateCompanyRequest request

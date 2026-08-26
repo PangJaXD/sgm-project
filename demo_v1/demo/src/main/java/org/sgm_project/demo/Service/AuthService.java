@@ -13,9 +13,11 @@ import org.springframework.stereotype.Service;
 @Service
 public class AuthService {
 
+    //just use autowired bro
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
 
+    //if you use autowired don't add a constructor
     public AuthService(
             UserRepository userRepository,
             PasswordEncoder passwordEncoder
@@ -24,6 +26,8 @@ public class AuthService {
         this.passwordEncoder = passwordEncoder;
     }
 
+    //use when we got some request from login
+    //it's gonna send you the response for authentication to the dashboard
     public LoginResponse login(LoginRequest request) {
 
         Users user = userRepository.findByUsername(request.getUsername())
@@ -38,8 +42,9 @@ public class AuthService {
             throw new RuntimeException("Username or password is incorrect");
         }
 
+        //this is my favorite part
+        //we check this for grants permission to do other things
         String role;
-
         if (user instanceof Admin) {
             role = "ADMIN";
         }
@@ -54,6 +59,7 @@ public class AuthService {
         }
 
         // 🌟 อัปเดตการ return ตรงนี้
+        //so we send out this json
         return new LoginResponse(
                 user.getUsers_id(),
                 user.getUsername(),

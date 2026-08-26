@@ -34,7 +34,6 @@ function LocationSelector({ position, setPosition }) {
 }
 
 export default function EditEventModal({ isOpen, onClose, onSave, eventData }) {
-  // ================= STATES =================
   const [eventName, setEventName] = useState("");
   const [locationName, setLocationName] = useState("");
   const [startDate, setStartDate] = useState("");
@@ -42,7 +41,7 @@ export default function EditEventModal({ isOpen, onClose, onSave, eventData }) {
   const [contractor, setContractor] = useState("");
   const [contactInfo, setContactInfo] = useState("");
   const [eventDetail, setEventDetail] = useState("");
-  const [status, setStatus] = useState("PENDING"); // <-- เพิ่ม State
+  const [status, setStatus] = useState("PENDING");
   const [headGuardsList, setHeadGuardsList] = useState([]);
 
   const [isMapOpen, setIsMapOpen] = useState(false);
@@ -55,67 +54,14 @@ export default function EditEventModal({ isOpen, onClose, onSave, eventData }) {
     { guards: "", startTime: "", endTime: "", headGuard: "" },
   ]);
 
-  // ================= PRE-FILL DATA =================
-  // ================= PRE-FILL DATA =================
   useEffect(() => {
-    if (isOpen && eventData) {
-      setEventName(eventData.event_name || "");
-      setLocationName(eventData.location || "");
-      setContractor(eventData.contractor || "");
-      setContactInfo(eventData.contact || "");
-      setEventDetail(eventData.event_detail || "");
-      setStatus(eventData.status || "PENDING"); // <-- เพิ่มบรรทัดนี้
-
-      // จัดการพิกัด
-      if (eventData.latitude && eventData.longitude) {
-        setPosition([
-          parseFloat(eventData.latitude),
-          parseFloat(eventData.longitude),
-        ]);
-      } else {
-        setPosition(null);
-      }
-
-      // จัดการอุปกรณ์
-      const padTools = (tools) => {
-        const padded = [...(tools || [])];
-        while (padded.length < 3) padded.push("");
-        return padded;
-      };
-      setRequiredTools(padTools(eventData.required_tools));
-      setProvidedTools(padTools(eventData.provided_tools));
-
-      // 🌟 1. เซ็ตวันที่เริ่ม-สิ้นสุด โดยดึงจากฟิลด์หลักตรงๆ (ไม่ต้องไปหาใน shift_times แล้ว)
-      setStartDate(
-        eventData.start_date ? eventData.start_date.split("T")[0] : "",
-      );
-      setEndDate(eventData.end_date ? eventData.end_date.split("T")[0] : "");
-
-      // 🌟 2. จัดการกะเวลา (เหลือแค่ดึงตัวเลขเวลามาโชว์)
-      if (eventData.shift_times && eventData.shift_times.length > 0) {
-        const sortedShifts = [...eventData.shift_times].sort(
-          (a, b) => new Date(a.start_time) - new Date(b.start_time),
-        );
-
-        const mappedShifts = sortedShifts.map((st) => ({
-          guards: st.maximum_guards?.toString() || "",
-          startTime: st.start_time
-            ? st.start_time.split("T")[1].substring(0, 5)
-            : "",
-          endTime: st.end_time ? st.end_time.split("T")[1].substring(0, 5) : "",
-          headGuard: "",
-        }));
-        setShifts(mappedShifts);
-      } else {
-        setShifts([{ guards: "", startTime: "", endTime: "", headGuard: "" }]);
-      }
-
+    if (isOpen) {
+      // 🌟 ดึงรายชื่อ HeadGuards เตรียมไว้
       const fetchHeadGuards = async () => {
         try {
           const response = await axios.get(
             "http://localhost:8080/api/headguard",
           );
-          // กรองเอาเฉพาะคนที่ยังปฏิบัติงานอยู่ (quit_date เป็น null)
           const activeGuards = response.data.filter(
             (guard) => guard.quit_date === null,
           );
@@ -125,12 +71,68 @@ export default function EditEventModal({ isOpen, onClose, onSave, eventData }) {
         }
       };
       fetchHeadGuards();
+
+      if (eventData) {
+        setEventName(eventData.event_name || "");
+        setLocationName(eventData.location || "");
+        setContractor(eventData.contractor || "");
+        setContactInfo(eventData.contact || "");
+        setEventDetail(eventData.event_detail || "");
+        setStatus(eventData.status || "PENDING");
+
+        if (eventData.latitude && eventData.longitude) {
+          setPosition([
+            parseFloat(eventData.latitude),
+            parseFloat(eventData.longitude),
+          ]);
+        } else {
+          setPosition(null);
+        }
+
+        const padTools = (tools) => {
+          const padded = [...(tools || [])];
+          while (padded.length < 3) padded.push("");
+          return padded;
+        };
+        setRequiredTools(padTools(eventData.required_tools));
+        setProvidedTools(padTools(eventData.provided_tools));
+
+        setStartDate(
+          eventData.start_date ? eventData.start_date.split("T")[0] : "",
+        );
+        setEndDate(eventData.end_date ? eventData.end_date.split("T")[0] : "");
+
+        // 🌟 Map กะเวลาเดิมกลับเข้า Form ให้ถูกต้อง
+        if (eventData.shift_times && eventData.shift_times.length > 0) {
+          const sortedShifts = [...eventData.shift_times].sort(
+            (a, b) => new Date(a.start_time) - new Date(b.start_time),
+          );
+
+          const mappedShifts = sortedShifts.map((st) => ({
+            guards: st.maximum_guards?.toString() || "",
+            startTime: st.start_time
+              ? st.start_time.split("T")[1]?.substring(0, 5)
+              : "",
+            endTime: st.end_time
+              ? st.end_time.split("T")[1]?.substring(0, 5)
+              : "",
+            headGuard:
+              st.headGuard?.users_id?.toString() ||
+              st.head_guard_id?.toString() ||
+              "",
+          }));
+          setShifts(mappedShifts);
+        } else {
+          setShifts([
+            { guards: "", startTime: "", endTime: "", headGuard: "" },
+          ]);
+        }
+      }
     }
   }, [isOpen, eventData]);
 
   if (!isOpen) return null;
 
-  // ================= FUNCTIONS =================
   const handleAddRequiredTool = () => setRequiredTools([...requiredTools, ""]);
   const handleAddProvidedTool = () => setProvidedTools([...providedTools, ""]);
 
@@ -179,17 +181,15 @@ export default function EditEventModal({ isOpen, onClose, onSave, eventData }) {
       required_guards: totalRequiredGuards,
       start_date: startDate,
       end_date: endDate,
-      status: status, // <-- ส่ง status กลับไปให้ Backend
+      status: status,
     };
 
     if (onSave) onSave(payload);
   };
 
-  // ================= RENDER =================
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-[20px] w-full max-w-[900px] max-h-[95vh] overflow-y-auto shadow-2xl relative scrollbar-hide border-[2px] border-blue-500">
-        {/* HEADER */}
         <div className="bg-[#2864e8] h-[55px] flex items-center justify-between px-6 text-white sticky top-0 z-10">
           <div className="flex items-center gap-2">
             <PenSquare size={22} />
@@ -202,7 +202,6 @@ export default function EditEventModal({ isOpen, onClose, onSave, eventData }) {
           </button>
         </div>
 
-        {/* BODY */}
         <div className="p-8 text-[13px] text-gray-800">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
             {/* ซ้าย */}
@@ -390,7 +389,6 @@ export default function EditEventModal({ isOpen, onClose, onSave, eventData }) {
 
           <hr className="my-6 border-gray-300" />
 
-          {/* ช่วงเวลาปฏิบัติงานและจำนวนเจ้าหน้าที่ (Grid 2 คอลัมน์ตามรูป) */}
           <div className="flex items-center justify-center gap-2 mb-6">
             <h3 className="font-bold text-[14px]">
               ช่วงเวลาปฏิบัติงานและจำนวนเจ้าหน้าที่
@@ -458,16 +456,12 @@ export default function EditEventModal({ isOpen, onClose, onSave, eventData }) {
                     className="w-full h-[32px] border border-gray-400 rounded-full px-4 outline-none bg-white text-gray-600"
                   >
                     <option value="">-- กรุณาเลือกหัวหน้าชุด --</option>
-                    {headGuardsList.map((hg) => {
-                      // สร้างรหัสแสดงผลแบบ HG-001
-                      const hgDisplayId = `HG-${hg.users_id.toString().padStart(3, "0")}`;
-                      // ใช้ users_id เป็น value ตอนส่งกลับไปให้ Backend (หรือจะใช้ hgDisplayId ก็ได้ ขึ้นอยู่กับ Backend ของคุณ)
-                      return (
-                        <option key={hg.users_id} value={hg.users_id}>
-                          {hg.first_name} {hg.last_name} ({hgDisplayId})
-                        </option>
-                      );
-                    })}
+                    {headGuardsList.map((hg) => (
+                      <option key={hg.users_id} value={hg.users_id}>
+                        {hg.first_name} {hg.last_name} (HG-
+                        {hg.users_id.toString().padStart(3, "0")})
+                      </option>
+                    ))}
                   </select>
                 </div>
               </div>
@@ -494,7 +488,6 @@ export default function EditEventModal({ isOpen, onClose, onSave, eventData }) {
         </div>
       </div>
 
-      {/* ================= MODAL แผนที่ (OSM) ================= */}
       {isMapOpen && (
         <div className="fixed inset-0 bg-black/60 z-[60] flex items-center justify-center p-4">
           <div className="bg-white rounded-xl w-full max-w-[700px] h-[500px] flex flex-col overflow-hidden shadow-2xl relative">

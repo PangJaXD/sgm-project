@@ -27,3 +27,5 @@ public class CreateCompanyRequest {
 
     private String admin_name;
 }
+
+// สามตัวแรกใช้password => Password123!

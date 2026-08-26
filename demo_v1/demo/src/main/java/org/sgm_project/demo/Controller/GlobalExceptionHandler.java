@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
+    //some exception handler this thing is for checking duplicate username
     @ExceptionHandler(DuplicateUsernameException.class)
     public ResponseEntity<String> handleDuplicateUsername(
             DuplicateUsernameException ex

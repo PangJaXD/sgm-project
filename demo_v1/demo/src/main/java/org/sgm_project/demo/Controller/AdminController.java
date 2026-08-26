@@ -10,12 +10,16 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/admin")
 public class AdminController {
 
+    //แนะนำให้ autowired(ไม่ต้องประกาศ controller ให้)
     private final AdminService adminService;
 
     public AdminController(AdminService adminService) {
         this.adminService = adminService;
     }
 
+    //create admin ยิง json
+    //request admin
+    //save with service
     @PostMapping
     public ResponseEntity<Admin> createAdmin(@RequestBody Admin admin) {
 
@@ -26,3 +30,5 @@ public class AdminController {
                 .body(newAdmin);
     }
 }
+
+//controller ของ admin

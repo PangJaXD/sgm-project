@@ -12,7 +12,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/headguard")
-@CrossOrigin(origins = "http://localhost:5173")
+@CrossOrigin(origins = "http://localhost:5173", allowCredentials = "true")
 public class HeadGuardController {
 
     private final HeadGuardService headGuardService;
@@ -72,3 +72,5 @@ public class HeadGuardController {
         );
     }
 }
+
+//same concept as another controller

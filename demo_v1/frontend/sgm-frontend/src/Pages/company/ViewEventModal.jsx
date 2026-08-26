@@ -257,6 +257,18 @@ export default function ViewEventModal({ isOpen, onClose, eventData }) {
                       กะที่ {idx + 1} : วันที่ {shift.start_time?.split("T")[0]}
                     </p>
                     <div className="grid grid-cols-2 gap-4">
+                      {/* เพิ่มบล็อกนี้เข้าไปใน Card แสดงกะงานของ ViewEventModal.jsx */}
+                      <div className="flex items-center justify-between bg-white px-3 py-2 rounded-lg border border-gray-100 col-span-2 mt-2">
+                        <span className="text-gray-500 font-medium flex items-center gap-1">
+                          <Shield size={14} className="text-blue-500" />{" "}
+                          หัวหน้าชุด:
+                        </span>
+                        <span className="font-semibold text-gray-800">
+                          {shift.headGuard
+                            ? `${shift.headGuard.first_name} ${shift.headGuard.last_name}`
+                            : "ยังไม่ระบุหัวหน้า"}
+                        </span>
+                      </div>
                       <div className="flex items-center justify-between bg-white px-3 py-2 rounded-lg border border-gray-100">
                         <span className="text-gray-500 font-medium">
                           เจ้าหน้าที่:

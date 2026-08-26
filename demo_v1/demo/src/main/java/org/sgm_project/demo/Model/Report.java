@@ -27,3 +27,5 @@ public class Report {
     @Column(length = 255, nullable = false)
     private String report_desc;
 }
+
+//report

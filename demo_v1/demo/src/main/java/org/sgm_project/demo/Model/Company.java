@@ -21,3 +21,5 @@ public class Company extends Users{
     @Column
     private String admin_name;
 }
+
+//just company >:(

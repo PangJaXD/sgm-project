@@ -3,15 +3,16 @@ package org.sgm_project.demo.Service;
 import org.sgm_project.demo.DTO.CreateEventRequest;
 import org.sgm_project.demo.DTO.ShiftTimeDTO;
 import org.sgm_project.demo.Model.Events;
+import org.sgm_project.demo.Model.HeadGuard;
 import org.sgm_project.demo.Model.ShiftTime;
 import org.sgm_project.demo.Repository.EventRepository;
+import org.sgm_project.demo.Repository.HeadGuardRepository; // 🌟 1. นำเข้า Repository นี้
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -20,12 +21,14 @@ import java.util.Set;
 public class EventService {
 
     private final EventRepository eventRepository;
+    private final HeadGuardRepository headGuardRepository; // 🌟 2. เพิ่มตัวแปร
 
-    public EventService(EventRepository eventRepository) {
+    // 🌟 3. Inject Repository เพิ่มผ่าน Constructor
+    public EventService(EventRepository eventRepository, HeadGuardRepository headGuardRepository) {
         this.eventRepository = eventRepository;
+        this.headGuardRepository = headGuardRepository;
     }
 
-    // ใส่ Transactional(readOnly = true) เพื่อประสิทธิภาพในการดึงข้อมูล
     @Transactional(readOnly = true)
     public List<Events> getAllEvents() {
         return eventRepository.findAll();
@@ -37,6 +40,8 @@ public class EventService {
                 .orElseThrow(() -> new RuntimeException("Event not found"));
     }
 
+    //this would be a challenge for you
+    //same as before i use dto again
     @Transactional
     public Events createEvent(CreateEventRequest request) {
         Events event = new Events();
@@ -51,50 +56,57 @@ public class EventService {
         event.setRequired_tools(request.getRequired_tools());
         event.setProvided_tools(request.getProvided_tools());
         event.setRequired_guards(request.getRequired_guards());
+        //this is a shorthand if
         event.setStatus(request.getStatus() != null ? request.getStatus() : "PENDING");
-
-        // ป้องกัน Error รูปภาพ
+        //setting default img
         event.setEvent_img("default.png");
+
 
         Set<ShiftTime> shiftTimes = new HashSet<>();
 
-// 1. ดึงวันที่เดิมจากฐานข้อมูลมาก่อน (เผื่อ Frontend ส่งมาเป็น Null)
-        LocalDate finalStartDate = event.getStart_date();
+        //if you did not select the date
+        //it's gonna use current time
+        LocalDate finalStartDate = request.getStart_date() != null && !request.getStart_date().isEmpty()
+                ? LocalDate.parse(request.getStart_date())
+                : LocalDate.now();
 
-// 2. ถ้า Frontend ส่งข้อมูลใหม่มา และไม่เป็นค่าว่าง ค่อยอัปเดตทับ
-        if (request.getStart_date() != null && !request.getStart_date().isEmpty()) {
-            finalStartDate = LocalDate.parse(request.getStart_date());
-        }
+        //if you did not select the date
+        //it's gonna use current time
+        LocalDate finalEndDate = request.getEnd_date() != null && !request.getEnd_date().isEmpty()
+                ? LocalDate.parse(request.getEnd_date())
+                : finalStartDate;
 
-        LocalDate finalEndDate = event.getEnd_date();
-        if (request.getEnd_date() != null && !request.getEnd_date().isEmpty()) {
-            finalEndDate = LocalDate.parse(request.getEnd_date());
-        }
-
-// 3. เซ็ตค่าลง Entity
         event.setStart_date(finalStartDate);
         event.setEnd_date(finalEndDate);
 
+        //if the event gets shift time while saving
+        //they gonna save each shift times
         if (request.getShift_times() != null) {
             for (ShiftTimeDTO dto : request.getShift_times()) {
                 ShiftTime st = new ShiftTime();
+
+                // 🌟 4. ผูก Event เข้ากับ ShiftTime (Bidirectional Mapping)
+                st.setEvent(event);
+
                 st.setMaximum_guards(Integer.parseInt(dto.getGuards() != null && !dto.getGuards().isEmpty() ? dto.getGuards() : "0"));
 
-                LocalTime sTime = LocalTime.of(8, 0);
-                if (dto.getStartTime() != null && !dto.getStartTime().isEmpty()) sTime = LocalTime.parse(dto.getStartTime());
+                LocalTime sTime = dto.getStartTime() != null && !dto.getStartTime().isEmpty() ? LocalTime.parse(dto.getStartTime()) : LocalTime.of(8, 0);
+                LocalTime eTime = dto.getEndTime() != null && !dto.getEndTime().isEmpty() ? LocalTime.parse(dto.getEndTime()) : LocalTime.of(17, 0);
 
-                LocalTime eTime = LocalTime.of(17, 0);
-                if (dto.getEndTime() != null && !dto.getEndTime().isEmpty()) eTime = LocalTime.parse(dto.getEndTime());
-
-                // 🌟 ใช้ startDate ที่ตรวจสอบแล้วมาประกอบร่าง
                 st.setShift_date(finalStartDate.atStartOfDay());
                 st.setStart_time(LocalDateTime.of(finalStartDate, sTime));
                 st.setEnd_time(LocalDateTime.of(finalEndDate, eTime));
 
+                // 🌟 5. ดึง Object HeadGuard จาก DB เพื่อมาผูกกับ ShiftTime
+                //find the head id
+                //query the headguard
+                //and set them for the shift
                 if (dto.getHeadGuard() != null && !dto.getHeadGuard().isEmpty()) {
-                    st.setHead_guard_id(Integer.parseInt(dto.getHeadGuard()));
+                    Integer headGuardId = Integer.parseInt(dto.getHeadGuard());
+                    HeadGuard headGuardObj = headGuardRepository.findById(headGuardId).orElse(null);
+                    st.setHeadGuard(headGuardObj);
                 } else {
-                    st.setHead_guard_id(null);
+                    st.setHeadGuard(null);
                 }
 
                 shiftTimes.add(st);
@@ -104,12 +116,19 @@ public class EventService {
         return eventRepository.save(event);
     }
 
+    //this would be a challenge for you
+    //same as before i use dto again
     @Transactional
-    public Events updateEvent(Integer id, CreateEventRequest request) { // <-- เปลี่ยนรับ DTO
+    //Annotation สำหรับจัดการ Transaction แบบประกาศ (Declarative Transaction Management)
+    // ที่ช่วยให้เราควบคุมการทำงานกับฐานข้อมูล (เช่น Commit หรือ Rollback) ได้อย่างอัตโนมัติ
+    // โดยไม่ต้องเขียนโค้ดจัดการ Connection, Commit หรือ Rollback ด้วยตัวเอง
+    public Events updateEvent(Integer id, CreateEventRequest request) {
+        //instead we create empty event
+        //we use an existing event
+        //cus we need to show current data first
         Events existingEvent = eventRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Event not found"));
 
-        // อัปเดตข้อมูลทั่วไป
         existingEvent.setEvent_name(request.getEvent_name());
         existingEvent.setLocation(request.getLocation());
         existingEvent.setLatitude(request.getLatitude());
@@ -121,62 +140,53 @@ public class EventService {
         existingEvent.setProvided_tools(request.getProvided_tools());
         existingEvent.setRequired_guards(request.getRequired_guards());
 
-
-
         if(request.getStatus() != null) {
             existingEvent.setStatus(request.getStatus());
         }
 
-        // === ส่วนแปลง DTO ให้เป็น ShiftTime Entity (มีระบบดัก Null) ===
-        java.util.Set<ShiftTime> shiftTimes = new java.util.HashSet<>();
+        LocalDate finalStartDate = request.getStart_date() != null && !request.getStart_date().isEmpty()
+                ? LocalDate.parse(request.getStart_date())
+                : existingEvent.getStart_date();
 
-// 1. ดึงวันที่เดิมจากฐานข้อมูลมาก่อน (เผื่อ Frontend ส่งมาเป็น Null)
-        LocalDate finalStartDate = existingEvent.getStart_date();
+        LocalDate finalEndDate = request.getEnd_date() != null && !request.getEnd_date().isEmpty()
+                ? LocalDate.parse(request.getEnd_date())
+                : existingEvent.getEnd_date();
 
-// 2. ถ้า Frontend ส่งข้อมูลใหม่มา และไม่เป็นค่าว่าง ค่อยอัปเดตทับ
-        if (request.getStart_date() != null && !request.getStart_date().isEmpty()) {
-            finalStartDate = LocalDate.parse(request.getStart_date());
-        }
-
-        LocalDate finalEndDate = existingEvent.getEnd_date();
-        if (request.getEnd_date() != null && !request.getEnd_date().isEmpty()) {
-            finalEndDate = LocalDate.parse(request.getEnd_date());
-        }
-
-// 3. เซ็ตค่าลง Entity
         existingEvent.setStart_date(finalStartDate);
         existingEvent.setEnd_date(finalEndDate);
+
+        Set<ShiftTime> shiftTimes = new HashSet<>();
 
         if (request.getShift_times() != null) {
             for (ShiftTimeDTO dto : request.getShift_times()) {
                 ShiftTime st = new ShiftTime();
+
+                // 🌟 6. ผูก Event เข้ากับ ShiftTime สำหรับตอน Update
+                st.setEvent(existingEvent);
+
                 st.setMaximum_guards(Integer.parseInt(dto.getGuards() != null && !dto.getGuards().isEmpty() ? dto.getGuards() : "0"));
 
-                LocalTime sTime = LocalTime.of(8, 0);
-                if (dto.getStartTime() != null && !dto.getStartTime().isEmpty()) sTime = LocalTime.parse(dto.getStartTime());
+                LocalTime sTime = dto.getStartTime() != null && !dto.getStartTime().isEmpty() ? LocalTime.parse(dto.getStartTime()) : LocalTime.of(8, 0);
+                LocalTime eTime = dto.getEndTime() != null && !dto.getEndTime().isEmpty() ? LocalTime.parse(dto.getEndTime()) : LocalTime.of(17, 0);
 
-                LocalTime eTime = LocalTime.of(17, 0);
-                if (dto.getEndTime() != null && !dto.getEndTime().isEmpty()) eTime = LocalTime.parse(dto.getEndTime());
-
-                // 🌟 ใช้ startDate ที่ตรวจสอบแล้วมาประกอบร่าง
                 st.setShift_date(finalStartDate.atStartOfDay());
                 st.setStart_time(LocalDateTime.of(finalStartDate, sTime));
                 st.setEnd_time(LocalDateTime.of(finalEndDate, eTime));
 
+                // 🌟 7. ผูก HeadGuard
                 if (dto.getHeadGuard() != null && !dto.getHeadGuard().isEmpty()) {
-                    st.setHead_guard_id(Integer.parseInt(dto.getHeadGuard()));
+                    Integer headGuardId = Integer.parseInt(dto.getHeadGuard());
+                    HeadGuard headGuardObj = headGuardRepository.findById(headGuardId).orElse(null);
+                    st.setHeadGuard(headGuardObj);
                 } else {
-                    st.setHead_guard_id(null);
+                    st.setHeadGuard(null);
                 }
 
                 shiftTimes.add(st);
             }
         }
 
-        existingEvent.getShift_times().clear();
-        existingEvent.getShift_times().addAll(shiftTimes);
-
-        // เคลียร์กะเวลาเดิมทิ้ง แล้วใส่ชุดที่แก้ไขใหม่เข้าไป (เพื่อให้ Orphan Removal ทำงานลบตัวเก่าทิ้ง)
+        // เคลียร์กะเวลาเดิมทิ้ง แล้วใส่ชุดที่แก้ไขใหม่เข้าไปให้ Orphan Removal ทำงาน
         existingEvent.getShift_times().clear();
         existingEvent.getShift_times().addAll(shiftTimes);
 

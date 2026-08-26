@@ -23,3 +23,5 @@ public class Guards extends Staff{
     @Column
     private String head_name;
 }
+
+//just a normal guard

@@ -16,3 +16,5 @@ public class Staff extends Users{
     @Column
     private Double performance_score;
 }
+
+//staff

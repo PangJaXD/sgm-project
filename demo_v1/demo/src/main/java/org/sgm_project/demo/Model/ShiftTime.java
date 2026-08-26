@@ -33,6 +33,13 @@ public class ShiftTime {
     @JsonIgnore
     @OneToMany(mappedBy = "shift", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Assignments> assignment;
-    @Column(name = "head_guard_id", nullable = true)
-    private Integer head_guard_id;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "head_guard_id")
+    private HeadGuard headGuard;
+    @JsonIgnore
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "event_id")
+    private Events event;
 }
+
+//shifttime

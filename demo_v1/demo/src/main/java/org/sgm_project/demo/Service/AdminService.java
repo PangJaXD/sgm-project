@@ -19,6 +19,7 @@ public class AdminService {
     public Admin createAdmin(Admin admin) {
 
         // เข้ารหัส password ก่อนบันทึก
+        //this is for your own safety
         String encodedPassword =
                 passwordEncoder.encode(admin.getPassword());
 

@@ -15,7 +15,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/guard")
-@CrossOrigin(origins = "http://localhost:5173")
+@CrossOrigin(origins = "http://localhost:5173", allowCredentials = "true")
 public class GuardController {
 
     private final GuardService guardService;
@@ -75,3 +75,5 @@ public class GuardController {
         );
     }
 }
+
+//nothing special for this just a normal controller like company and events

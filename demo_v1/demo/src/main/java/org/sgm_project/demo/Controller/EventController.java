@@ -11,9 +11,10 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/events")
-@CrossOrigin(origins = "http://localhost:5173") // อนุญาตให้ React (Vite) เรียกใช้งาน API ได้
+@CrossOrigin(origins = "http://localhost:5173", allowCredentials = "true") // อนุญาตให้ React (Vite) เรียกใช้งาน API ได้
 public class EventController {
 
+    //pls use autowired(no controller for this)
     private final EventService eventService;
 
     public EventController(EventService eventService) {

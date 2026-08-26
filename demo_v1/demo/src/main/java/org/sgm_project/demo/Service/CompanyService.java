@@ -21,6 +21,11 @@ public class CompanyService {
         this.passwordEncoder = passwordEncoder;
     }
 
+
+    //we get some request from creating a company
+    //as we reach this far you know what im gonna do next
+    //that rights we use dto instead
+    //we create some empty company and inject it with a dto class
     public Company createCompany(CreateCompanyRequest request) {
 
         if (companyRepository.existsByUsernameCustom(request.getUsername())) {

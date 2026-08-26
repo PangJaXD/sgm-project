@@ -13,3 +13,5 @@ import lombok.Setter;
 @NoArgsConstructor
 public class Admin extends Users{
 }
+
+//just admin :p

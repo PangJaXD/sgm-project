@@ -1,11 +1,13 @@
 package org.sgm_project.demo.DTO;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
 import java.util.List;
 import java.util.Set;
 
+@Data
 @Getter
 @Setter
 public class CreateEventRequest {
@@ -30,3 +32,7 @@ public class CreateEventRequest {
 
     private String status; // <-- เพิ่มบรรทัดนี้
 }
+
+//@JsonProperty (Jackson): Maps a specific JSON key to a specific Java field
+// , especially useful when the JSON key name doesn't match your Java variable name.
+//prevent some misunderstanding to both name

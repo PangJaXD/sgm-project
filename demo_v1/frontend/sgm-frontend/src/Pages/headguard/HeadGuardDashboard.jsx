@@ -1,10 +1,9 @@
 import { useState, useEffect, useCallback } from "react";
 import axios from "axios";
 import ViewGuardModal from "./ViewGuardModal";
-import ViewEventModal from "./ViewEventModal";
 import ViewRequestModal from "./ViewRequestModal";
 import AssignTaskModal from "./AssignTaskModal";
-import ViewAssignmentModal from "./ViewAssignmentModal"; // 🌟 Import เพิ่มเติม
+import ViewAssignmentModal from "./ViewAssignmentModal";
 import {
   Users,
   CalendarDays,
@@ -24,24 +23,21 @@ function HeadGuardDashboard() {
   const [search, setSearch] = useState("");
 
   const [guards, setGuards] = useState([]);
-  const [events, setEvents] = useState([]);
+  const [shifts, setShifts] = useState([]); // 🌟 เปลี่ยนจาก events เป็น shifts
   const [requests, setRequests] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
   const [selectedShiftDetail, setSelectedShiftDetail] = useState(null);
 
   const [isViewGuardModalOpen, setIsViewGuardModalOpen] = useState(false);
-  const [isViewEventModalOpen, setIsViewEventModalOpen] = useState(false);
   const [isViewRequestModalOpen, setIsViewRequestModalOpen] = useState(false);
   const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
-  const [isViewAssignmentModalOpen, setIsViewAssignmentModalOpen] =
-    useState(false); // 🌟 State ใหม่
+  const [isViewAssignmentModalOpen, setIsViewAssignmentModalOpen] = useState(false);
 
   const [selectedGuard, setSelectedGuard] = useState(null);
-  const [selectedEvent, setSelectedEvent] = useState(null);
   const [selectedRequest, setSelectedRequest] = useState(null);
   const [selectedAssignment, setSelectedAssignment] = useState(null);
-  const [selectedViewAssignment, setSelectedViewAssignment] = useState(null); // 🌟 State สำหรับเก็บข้อมูลที่จะ View
+  const [selectedViewAssignment, setSelectedViewAssignment] = useState(null);
 
   const [assignmentsList, setAssignmentsList] = useState([]);
 
@@ -78,7 +74,7 @@ function HeadGuardDashboard() {
     try {
       setIsLoading(true);
       const response = await axios.get(
-        `http://localhost:8080/api/headguard-dashboard/guards?headName=${encodeURIComponent(headGuardName)}`,
+        `http://localhost:8080/api/headguard-dashboard/guards?headName=${encodeURIComponent(headGuardName)}`
       );
       const formattedData = response.data.map((guard) => {
         const isActive = guard.quit_date === null;
@@ -100,15 +96,16 @@ function HeadGuardDashboard() {
     }
   }, [headGuardName]);
 
-  const fetchEvents = useCallback(async () => {
+  // 🌟 ดึงข้อมูลระดับ ShiftTime แทน Event
+  const fetchShifts = useCallback(async () => {
     try {
       setIsLoading(true);
       const response = await axios.get(
-        `http://localhost:8080/api/headguard-dashboard/events/${headGuardId}`,
+        `http://localhost:8080/api/headguard-dashboard/${headGuardId}/shifts`
       );
-      setEvents(response.data);
+      setShifts(response.data);
     } catch (error) {
-      console.error("Error fetching events:", error);
+      console.error("Error fetching shifts:", error);
     } finally {
       setIsLoading(false);
     }
@@ -118,7 +115,7 @@ function HeadGuardDashboard() {
     try {
       setIsLoading(true);
       const response = await axios.get(
-        `http://localhost:8080/api/headguard-dashboard/requests`,
+        `http://localhost:8080/api/headguard-dashboard/requests`
       );
       setRequests(response.data);
     } catch (error) {
@@ -130,28 +127,30 @@ function HeadGuardDashboard() {
 
   useEffect(() => {
     if (activeMenu === "guard") fetchGuards();
-    else if (activeMenu === "event") fetchEvents();
+    else if (activeMenu === "event") fetchShifts();
     else if (activeMenu === "request") fetchRequests();
-  }, [activeMenu, fetchGuards, fetchEvents, fetchRequests]);
+  }, [activeMenu, fetchGuards, fetchShifts, fetchRequests]);
 
   const filteredGuards = guards.filter(
     (g) =>
       g.name.toLowerCase().includes(search.toLowerCase()) ||
-      g.id.toLowerCase().includes(search.toLowerCase()),
+      g.id.toLowerCase().includes(search.toLowerCase())
   );
-  const filteredEvents = events.filter(
-    (ev) =>
-      ev.event_name?.toLowerCase().includes(search.toLowerCase()) ||
-      ev.location?.toLowerCase().includes(search.toLowerCase()),
+  
+  const filteredShifts = shifts.filter(
+    (sh) =>
+      sh.eventName?.toLowerCase().includes(search.toLowerCase()) ||
+      sh.location?.toLowerCase().includes(search.toLowerCase())
   );
+
   const filteredRequests = requests.filter((req) =>
-    req.report_type?.toLowerCase().includes(search.toLowerCase()),
+    req.report_type?.toLowerCase().includes(search.toLowerCase())
   );
 
   const fetchAssignments = useCallback(async (shiftId) => {
     try {
       const response = await axios.get(
-        `http://localhost:8080/api/headguard-dashboard/shifts/${shiftId}/assignments`,
+        `http://localhost:8080/api/headguard-dashboard/shifts/${shiftId}/assignments`
       );
       const formattedList = response.data.map((a) => ({
         id: a.assignment_id,
@@ -159,7 +158,7 @@ function HeadGuardDashboard() {
         guardName: a.guard_name || "ไม่ระบุ",
         status: a.assignment_status,
         time: a.time_range || "08:00 - 18:00 น.",
-        latitude: a.latitude, // 🌟 เพิ่มฟิลด์เหล่านี้ให้ ViewModal นำไปใช้ได้
+        latitude: a.latitude,
         longitude: a.longitude,
         description: a.description,
       }));
@@ -169,22 +168,19 @@ function HeadGuardDashboard() {
     }
   }, []);
 
-  const handleSelectShift = (eventData, shiftData) => {
-    setSelectedEvent(eventData);
-    setSelectedShiftDetail(shiftData);
-    setIsViewEventModalOpen(false);
-    fetchAssignments(shiftData.shift_id);
+  // 🌟 คลิกที่ Card กะงานแล้วกระโดดเข้าหน้า Assign ทันที
+  const handleSelectShift = (shift) => {
+    setSelectedShiftDetail(shift);
+    fetchAssignments(shift.shiftId);
   };
 
   const moveToActual = async (assignmentId) => {
     try {
       await axios.put(
         `http://localhost:8080/api/headguard-dashboard/assignments/${assignmentId}/status`,
-        {
-          status: "ACTUAL",
-        },
+        { status: "ACTUAL" }
       );
-      fetchAssignments(selectedShiftDetail.shift_id);
+      fetchAssignments(selectedShiftDetail.shiftId);
     } catch (error) {
       console.error("Error updating status:", error);
       alert("เกิดข้อผิดพลาดในการย้ายสถานะ");
@@ -200,10 +196,10 @@ function HeadGuardDashboard() {
           longitude: updatedData.longitude,
           description: updatedData.description,
           status: "ASSIGNED",
-        },
+        }
       );
       setIsAssignModalOpen(false);
-      fetchAssignments(selectedShiftDetail.shift_id);
+      fetchAssignments(selectedShiftDetail.shiftId);
       alert("บันทึกการมอบหมายงานเรียบร้อยแล้ว");
     } catch (error) {
       console.error("Error saving assignment detail:", error);
@@ -283,6 +279,7 @@ function HeadGuardDashboard() {
 
         <section className="px-8 pt-8 pb-10">
           {activeMenu === "event" && selectedShiftDetail ? (
+            /* 🌟 หน้าจอ Assign งาน (รูปที่ 2) */
             <div className="animate-in fade-in slide-in-from-right-4 duration-300">
               <div className="bg-[#111827] text-white p-6 rounded-[20px] shadow-md mb-8 relative">
                 <button
@@ -292,30 +289,30 @@ function HeadGuardDashboard() {
                   <ChevronLeft size={16} /> กลับ
                 </button>
                 <h2 className="text-[22px] font-bold mb-2">
-                  {selectedEvent?.event_name}
+                  {selectedShiftDetail.eventName}
                 </h2>
                 <div className="flex items-center gap-2 text-gray-400 text-[13px]">
                   <MapPin size={16} className="text-emerald-500" />{" "}
-                  {selectedEvent?.location}
-                  <span className="ml-4 bg-gray-700 px-2 py-0.5 rounded-md text-[11px] text-white">
-                    กะที่ {selectedShiftDetail.shift_id}
+                  {selectedShiftDetail.location}
+                  <span className="ml-4 bg-gray-700 px-2.5 py-0.5 rounded-md text-[11px] text-white">
+                    {selectedShiftDetail.shiftName}
                   </span>
                 </div>
               </div>
 
+              {/* ตารางตัวจริง */}
               <div className="mb-10">
                 <div className="flex items-center justify-between mb-3">
                   <h3 className="font-bold text-gray-800 flex items-center gap-2">
                     <Users size={18} /> รายชื่อเจ้าหน้าที่ในงาน (ตัวจริง)
                     <span className="font-normal text-gray-500 text-[13px] ml-2">
-                      ช่วงเวลา 08:00 - 18:00 น. จำนวน{" "}
+                      ช่วงเวลา {selectedShiftDetail.workTime} จำนวน{" "}
                       {
                         assignmentsList.filter(
-                          (a) =>
-                            a.status === "ACTUAL" || a.status === "ASSIGNED",
+                          (a) => a.status === "ACTUAL" || a.status === "ASSIGNED"
                         ).length
                       }
-                      /{selectedShiftDetail.maximum_guards || 6}
+                      /{selectedShiftDetail.totalGuards || 6}
                     </span>
                   </h3>
                   <button className="bg-[#F5B020] hover:bg-yellow-500 text-gray-900 px-4 py-1.5 rounded-lg text-[12px] font-bold flex items-center gap-2 shadow-sm transition">
@@ -332,21 +329,15 @@ function HeadGuardDashboard() {
                   </div>
 
                   {assignmentsList
-                    .filter(
-                      (a) => a.status === "ACTUAL" || a.status === "ASSIGNED",
-                    )
+                    .filter((a) => a.status === "ACTUAL" || a.status === "ASSIGNED")
                     .map((item) => (
                       <div
                         key={item.id}
                         className="grid grid-cols-[120px_1.5fr_1.5fr_120px] h-[48px] items-center border-t border-gray-300 text-[12px] px-6"
                       >
-                        <div className="font-medium text-gray-700">
-                          {item.guardId}
-                        </div>
+                        <div className="font-medium text-gray-700">{item.guardId}</div>
                         <div>{item.guardName}</div>
-                        <div className="font-semibold text-gray-800">
-                          {item.time}
-                        </div>
+                        <div className="font-semibold text-gray-800">{item.time}</div>
                         <div className="flex justify-center">
                           {item.status === "ACTUAL" ? (
                             <button
@@ -359,7 +350,6 @@ function HeadGuardDashboard() {
                               มอบหมายงาน
                             </button>
                           ) : (
-                            // 🌟 ปุ่ม View พร้อมฟังก์ชัน onClick
                             <button
                               onClick={() => {
                                 setSelectedViewAssignment(item);
@@ -374,10 +364,10 @@ function HeadGuardDashboard() {
                       </div>
                     ))}
                   <div className="h-[35px] border-t border-gray-300 bg-gray-50/50"></div>
-                  <div className="h-[35px] border-t border-gray-300 bg-gray-50/50"></div>
                 </div>
               </div>
 
+              {/* ตารางตัวสำรอง */}
               <div>
                 <h3 className="font-bold text-gray-800 flex items-center gap-2 mb-3">
                   <Users size={18} className="text-gray-400" />{" "}
@@ -401,13 +391,9 @@ function HeadGuardDashboard() {
                         className="grid grid-cols-[60px_120px_1.5fr_1.5fr_120px] h-[48px] items-center border-t border-gray-300 text-[12px] px-6"
                       >
                         <div className="text-gray-500">{index + 1}</div>
-                        <div className="font-medium text-gray-700">
-                          {item.guardId}
-                        </div>
+                        <div className="font-medium text-gray-700">{item.guardId}</div>
                         <div>{item.guardName}</div>
-                        <div className="font-semibold text-gray-800">
-                          {item.time}
-                        </div>
+                        <div className="font-semibold text-gray-800">{item.time}</div>
                         <div className="flex justify-center">
                           <button
                             onClick={() => moveToActual(item.id)}
@@ -423,28 +409,28 @@ function HeadGuardDashboard() {
             </div>
           ) : (
             <>
-              {activeMenu !== "event" && (
-                <div className="relative w-[450px] mb-8">
-                  <Search
-                    size={18}
-                    className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"
-                  />
-                  <input
-                    type="text"
-                    value={search}
-                    onChange={(e) => setSearch(e.target.value)}
-                    placeholder={
-                      activeMenu === "guard"
-                        ? "ค้นหาเจ้าหน้าที่รักษาความปลอดภัย"
-                        : activeMenu === "event"
-                          ? "ค้นหางานอีเว้นท์"
-                          : "ค้นหาคำร้องขอ"
-                    }
-                    className="w-full h-[40px] border border-gray-400 rounded-lg pl-11 pr-4 text-[13px] outline-none focus:border-emerald-500 transition bg-white"
-                  />
-                </div>
-              )}
+              {/* ส่วน Search Bar */}
+              <div className="relative w-[450px] mb-8">
+                <Search
+                  size={18}
+                  className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"
+                />
+                <input
+                  type="text"
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  placeholder={
+                    activeMenu === "guard"
+                      ? "ค้นหาเจ้าหน้าที่รักษาความปลอดภัย"
+                      : activeMenu === "event"
+                        ? "ค้นหางานอีเว้นท์"
+                        : "ค้นหาคำร้องขอ"
+                  }
+                  className="w-full h-[40px] border border-gray-400 rounded-lg pl-11 pr-4 text-[13px] outline-none focus:border-emerald-500 transition bg-white"
+                />
+              </div>
 
+              {/* Tab: รปภ. */}
               {activeMenu === "guard" && (
                 <div className="w-full border border-gray-300 rounded-xl overflow-hidden bg-white shadow-sm">
                   <div className="grid grid-cols-[120px_1.5fr_1.5fr_1fr_1fr_60px] h-[44px] bg-[#111827] text-white items-center text-[12px] font-medium px-6">
@@ -469,9 +455,7 @@ function HeadGuardDashboard() {
                         key={g.id}
                         className="grid grid-cols-[120px_1.5fr_1.5fr_1fr_1fr_60px] min-h-[48px] items-center border-t border-gray-200 text-[12px] px-6 hover:bg-gray-50 transition"
                       >
-                        <div className="text-center font-medium text-gray-700">
-                          {g.id}
-                        </div>
+                        <div className="text-center font-medium text-gray-700">{g.id}</div>
                         <div>{g.name}</div>
                         <div>{g.experience}</div>
                         <div className="flex items-center gap-2">
@@ -498,154 +482,97 @@ function HeadGuardDashboard() {
                 </div>
               )}
 
+              {/* 🌟 Tab: งานอีเว้นท์ (รูปที่ 1 เรนเดอร์ตาม ShiftTime โดยตรง) */}
               {activeMenu === "event" && (
                 <div>
                   {isLoading ? (
                     <div className="h-[200px] flex items-center justify-center text-sm text-gray-500">
                       กำลังโหลดข้อมูลงานอีเว้นท์...
                     </div>
-                  ) : filteredEvents.length === 0 ? (
+                  ) : filteredShifts.length === 0 ? (
                     <div className="h-[200px] flex flex-col items-center justify-center text-gray-400 bg-white border border-gray-300 rounded-2xl">
                       <CalendarDays size={48} className="mb-2 text-gray-300" />
                       <p>ไม่มีงานอีเว้นท์ที่ได้รับมอบหมาย</p>
                     </div>
                   ) : (
                     <div className="flex flex-wrap gap-6">
-                      {filteredEvents.map((ev, index) => {
-                        const myShifts =
-                          ev.shift_times?.filter(
-                            (st) =>
-                              Number(st.head_guard_id) === Number(headGuardId),
-                          ) || [];
-                        const displayShift =
-                          myShifts.length > 0
-                            ? myShifts[0]
-                            : ev.shift_times?.[0] || {};
-
-                        const formatTime = (timeStr) => {
-                          if (!timeStr) return "08.00 - 18.00 น.";
-                          try {
-                            const timePart = timeStr.split("T")[1];
-                            if (timePart) {
-                              const [h, m] = timePart.split(":");
-                              return `${h}.${m}`;
-                            }
-                          } catch (e) {}
-                          return "08.00";
-                        };
-
-                        const startTime = formatTime(displayShift.start_time);
-                        const endTime = formatTime(displayShift.end_time);
-
-                        return (
-                          <div
-                            key={ev.event_id || index}
-                            onClick={() => {
-                              setSelectedEvent(ev);
-                              setIsViewEventModalOpen(true);
-                            }}
-                            className="bg-white rounded-[20px] border border-gray-400 p-5 w-full max-w-[280px] flex flex-col justify-between hover:shadow-lg transition cursor-pointer"
-                          >
-                            <div>
-                              <div className="mb-4">
-                                <span
-                                  className={`inline-block px-3 py-1 text-[10px] font-bold rounded-full ${
-                                    ev.status === "ONGOING" ||
-                                    ev.status === "กำลังดำเนินการ"
-                                      ? "bg-[#00d1b2] text-white"
-                                      : ev.status === "COMPLETED" ||
-                                          ev.status === "เสร็จสิ้น"
-                                        ? "bg-green-500 text-white"
-                                        : ev.status === "CANCELLED" ||
-                                            ev.status === "ยกเลิก"
-                                          ? "bg-red-500 text-white"
-                                          : "bg-[#ffd700] text-gray-900"
-                                  }`}
-                                >
-                                  {ev.status === "ONGOING"
-                                    ? "กำลังดำเนินการ"
-                                    : ev.status === "COMPLETED"
-                                      ? "เสร็จสิ้น"
-                                      : ev.status === "CANCELLED"
-                                        ? "ยกเลิก"
-                                        : ev.status || "รอดำเนินการ"}
-                                </span>
-                              </div>
-
-                              <h3 className="font-bold text-[14px] text-gray-900 mb-3 leading-snug">
-                                {ev.event_name}{" "}
-                                <span className="text-blue-500 font-normal">
-                                  กะที่ {displayShift.shift_id || 1}
-                                </span>
-                              </h3>
-
-                              <div className="flex items-center gap-2 text-gray-600 text-[11px] mb-2">
-                                <MapPin
-                                  size={14}
-                                  className="text-gray-400 shrink-0"
-                                />
-                                <span className="truncate">{ev.location}</span>
-                              </div>
-
-                              <div className="flex items-center gap-2 text-gray-600 text-[11px] mb-1">
-                                <CalendarDays
-                                  size={14}
-                                  className="text-gray-400 shrink-0"
-                                />
-                                <span>
-                                  เริ่ม{" "}
-                                  <span className="ml-2">
-                                    {ev.start_date || "-"}
-                                  </span>
-                                </span>
-                              </div>
-                              <div className="flex items-center gap-2 text-gray-600 text-[11px] mb-4">
-                                <CalendarDays
-                                  size={14}
-                                  className="text-gray-400 shrink-0"
-                                />
-                                <span>
-                                  สิ้นสุด{" "}
-                                  <span className="ml-1">
-                                    {ev.end_date || "-"}
-                                  </span>
-                                </span>
-                              </div>
-
-                              <div className="text-[10px] text-gray-500 space-y-1.5 mb-5">
-                                <p>
-                                  ช่วงเวลาการทำงาน {startTime} - {endTime} น.
-                                </p>
-                                <p>
-                                  จำนวนเจ้าหน้าที่{" "}
-                                  {displayShift.maximum_guards ||
-                                    ev.required_guards ||
-                                    0}{" "}
-                                  คน
-                                </p>
-                              </div>
+                      {filteredShifts.map((shift) => (
+                        <div
+                          key={shift.shiftId}
+                          onClick={() => handleSelectShift(shift)}
+                          className="bg-white rounded-[20px] border border-gray-400 p-5 w-full max-w-[280px] flex flex-col justify-between hover:shadow-lg transition cursor-pointer"
+                        >
+                          <div>
+                            <div className="mb-4">
+                              <span
+                                className={`inline-block px-3 py-1 text-[10px] font-bold rounded-full ${
+                                  shift.status === "ONGOING" || shift.status === "กำลังดำเนินการ"
+                                    ? "bg-[#00d1b2] text-white"
+                                    : shift.status === "COMPLETED" || shift.status === "เสร็จสิ้น"
+                                      ? "bg-green-500 text-white"
+                                      : shift.status === "CANCELLED" || shift.status === "ยกเลิก"
+                                        ? "bg-red-500 text-white"
+                                        : "bg-[#ffd700] text-gray-900"
+                                }`}
+                              >
+                                {shift.status === "ONGOING"
+                                  ? "กำลังดำเนินการ"
+                                  : shift.status === "COMPLETED"
+                                    ? "เสร็จสิ้น"
+                                    : shift.status === "CANCELLED"
+                                      ? "ยกเลิก"
+                                      : shift.status || "รอดำเนินการ"}
+                              </span>
                             </div>
 
-                            <div className="border border-gray-400 rounded-xl p-3">
-                              <p className="text-[10px] text-blue-600 font-medium mb-1.5">
-                                หัวหน้าหน่วยที่รับผิดชอบ
-                              </p>
-                              <div className="flex items-center gap-1.5 text-gray-800 font-medium text-[12px]">
-                                <ShieldCheck
-                                  size={16}
-                                  className="text-blue-600"
-                                />
-                                <span>{headGuardName}</span>
-                              </div>
+                            <h3 className="font-bold text-[14px] text-gray-900 mb-3 leading-snug">
+                              {shift.eventName}{" "}
+                              <span className="text-blue-500 font-normal">
+                                {shift.shiftName}
+                              </span>
+                            </h3>
+
+                            <div className="flex items-center gap-2 text-gray-600 text-[11px] mb-2">
+                              <MapPin size={14} className="text-gray-400 shrink-0" />
+                              <span className="truncate">{shift.location}</span>
+                            </div>
+
+                            <div className="flex items-center gap-2 text-gray-600 text-[11px] mb-1">
+                              <CalendarDays size={14} className="text-gray-400 shrink-0" />
+                              <span>
+                                เริ่ม <span className="ml-2">{shift.startDate}</span>
+                              </span>
+                            </div>
+                            <div className="flex items-center gap-2 text-gray-600 text-[11px] mb-4">
+                              <CalendarDays size={14} className="text-gray-400 shrink-0" />
+                              <span>
+                                สิ้นสุด <span className="ml-1">{shift.endDate}</span>
+                              </span>
+                            </div>
+
+                            <div className="text-[10px] text-gray-500 space-y-1.5 mb-5">
+                              <p>ช่วงเวลาการทำงาน {shift.workTime}</p>
+                              <p>จำนวนเจ้าหน้าที่ {shift.totalGuards} คน</p>
                             </div>
                           </div>
-                        );
-                      })}
+
+                          <div className="border border-gray-400 rounded-xl p-3">
+                            <p className="text-[10px] text-blue-600 font-medium mb-1.5">
+                              หัวหน้าหน่วยที่รับผิดชอบ
+                            </p>
+                            <div className="flex items-center gap-1.5 text-gray-800 font-medium text-[12px]">
+                              <ShieldCheck size={16} className="text-blue-600" />
+                              <span>{shift.headGuardName}</span>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
                     </div>
                   )}
                 </div>
               )}
 
+              {/* Tab: Request */}
               {activeMenu === "request" && (
                 <div className="w-full border border-red-300 rounded-xl overflow-hidden bg-white shadow-sm">
                   <div className="grid grid-cols-[150px_1fr_2fr_1fr_60px] h-[44px] bg-red-500 text-white items-center text-[12px] font-medium px-6">
@@ -711,14 +638,6 @@ function HeadGuardDashboard() {
         guardData={selectedGuard}
       />
 
-      <ViewEventModal
-        isOpen={isViewEventModalOpen}
-        onClose={() => setIsViewEventModalOpen(false)}
-        eventData={selectedEvent}
-        headGuardId={headGuardId}
-        onSelectShift={handleSelectShift}
-      />
-
       <AssignTaskModal
         isOpen={isAssignModalOpen}
         onClose={() => setIsAssignModalOpen(false)}
@@ -726,7 +645,6 @@ function HeadGuardDashboard() {
         onSave={handleSaveAssignment}
       />
 
-      {/* 🌟 แสดงหน้าต่าง ViewAssignmentModal */}
       <ViewAssignmentModal
         isOpen={isViewAssignmentModalOpen}
         onClose={() => setIsViewAssignmentModalOpen(false)}

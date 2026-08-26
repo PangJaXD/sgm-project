@@ -16,4 +16,12 @@ public interface AssignmentRepository  extends JpaRepository<Assignments, Intege
             "JOIN users u ON g.users_id = u.users_id " +
             "WHERE a.shift_id = :shiftId", nativeQuery = true)
     List<Map<String, Object>> findAssignmentDetailsByShiftId(@Param("shiftId") Integer shiftId);
+    @Query("SELECT COUNT(a) FROM Assignments a WHERE a.shift.shift_id = :shiftId")
+    int countByShiftId(@Param("shiftId") Integer shiftId);
 }
+
+//i did not check this code but in my prediction it has to do something on the frontend side
+//so im gonna talk about object
+//it is useful when u use custom query
+//because YOU DIDN'T SEND WHOLE CLASS FROM ITS
+
