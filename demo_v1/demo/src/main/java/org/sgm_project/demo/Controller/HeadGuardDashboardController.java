@@ -15,6 +15,7 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/headguard-dashboard")
+@CrossOrigin(originPatterns = "*", allowCredentials = "true")
 public class HeadGuardDashboardController {
 
     @Autowired

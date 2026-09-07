@@ -18,9 +18,6 @@ import java.util.stream.Collectors;
 public class HeadGuardDashboardService {
 
     @Autowired
-    private GuardRepository guardsRepository;
-
-    @Autowired
     private EventRepository eventsRepository;
 
     @Autowired
@@ -36,7 +33,7 @@ public class HeadGuardDashboardService {
     private AssignmentRepository assignmentsRepository;
 
     public List<Guards> getGuardsUnderHead(String headName) {
-        return guardsRepository.findGuardsByHeadName(headName);
+        return guardRepository.findGuardsByHeadName(headName);
     }
 
     public List<Events> getEventsForHeadGuard(Integer headId) {

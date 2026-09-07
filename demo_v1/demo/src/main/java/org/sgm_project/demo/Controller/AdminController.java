@@ -8,9 +8,9 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/admin")
+@CrossOrigin(originPatterns = "*", allowCredentials = "true")
 public class AdminController {
 
-    //แนะนำให้ autowired(ไม่ต้องประกาศ controller ให้)
     private final AdminService adminService;
 
     public AdminController(AdminService adminService) {

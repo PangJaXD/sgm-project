@@ -38,6 +38,7 @@ public class Assignments {
     @JoinColumn(name = "shift_id")
     private ShiftTime shift;
 
+    @JsonIgnore
     @ManyToOne
     @JoinColumn(name = "head_id")
     private HeadGuard headGuard;

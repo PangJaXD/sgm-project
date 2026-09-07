@@ -2,13 +2,11 @@ package org.sgm_project.demo.Service;
 
 import org.sgm_project.demo.DTO.LoginRequest;
 import org.sgm_project.demo.DTO.LoginResponse;
-import org.sgm_project.demo.Model.Admin;
-import org.sgm_project.demo.Model.Company;
-import org.sgm_project.demo.Model.HeadGuard;
-import org.sgm_project.demo.Model.Users;
+import org.sgm_project.demo.Model.*;
 import org.sgm_project.demo.Repository.UserRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
 
 @Service
 public class AuthService {
@@ -53,6 +51,9 @@ public class AuthService {
         }
         else if (user instanceof HeadGuard) {
             role = "HEAD_GUARD";
+        }
+        else if (user instanceof Guards) {
+            role = "GUARD";
         }
         else {
             throw new RuntimeException("Unsupported user role");

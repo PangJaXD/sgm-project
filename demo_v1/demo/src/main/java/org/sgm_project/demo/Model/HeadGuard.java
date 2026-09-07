@@ -14,8 +14,8 @@ import java.util.List;
 @Setter
 @NoArgsConstructor
 public class HeadGuard extends Staff{
-    @OneToMany
-    @JoinColumn(name = "head_id")
+    @JsonIgnore
+    @OneToMany(mappedBy = "headGuard")
     private List<Assignments> assignments;
     @JsonIgnore
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "headGuard", orphanRemoval = true)

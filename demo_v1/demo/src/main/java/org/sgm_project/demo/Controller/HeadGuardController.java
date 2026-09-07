@@ -12,14 +12,12 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/headguard")
-@CrossOrigin(origins = "http://localhost:5173", allowCredentials = "true")
+@CrossOrigin(originPatterns = "*", allowCredentials = "true")
 public class HeadGuardController {
 
     private final HeadGuardService headGuardService;
 
-    public HeadGuardController(
-            HeadGuardService headGuardService
-    ) {
+    public HeadGuardController(HeadGuardService headGuardService) {
         this.headGuardService = headGuardService;
     }
 
@@ -27,10 +25,7 @@ public class HeadGuardController {
     public ResponseEntity<HeadGuard> createHeadGuard(
             @RequestBody CreateHeadGuardRequest request
     ) {
-
-        HeadGuard headGuard =
-                headGuardService.createHeadGuard(request);
-
+        HeadGuard headGuard = headGuardService.createHeadGuard(request);
         return ResponseEntity
                 .status(HttpStatus.CREATED)
                 .body(headGuard);
@@ -45,7 +40,6 @@ public class HeadGuardController {
 
     @GetMapping("/active")
     public ResponseEntity<List<HeadGuard>> getActiveHeadGuards() {
-
         return ResponseEntity.ok(
                 headGuardService.getActiveHeadGuards()
         );
@@ -55,7 +49,6 @@ public class HeadGuardController {
     public ResponseEntity<HeadGuard> getHeadGuardById(
             @PathVariable Integer id
     ) {
-
         return ResponseEntity.ok(
                 headGuardService.getHeadGuardById(id)
         );
@@ -66,11 +59,8 @@ public class HeadGuardController {
             @PathVariable Integer id,
             @RequestBody HeadGuard headGuard
     ) {
-
         return ResponseEntity.ok(
                 headGuardService.updateHeadGuard(id, headGuard)
         );
     }
 }
-
-//same concept as another controller
