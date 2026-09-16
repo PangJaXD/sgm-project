@@ -3,6 +3,7 @@ import './Screen/login_screen.dart';
 import './Screen/home_screen.dart';
 import './Screen/profile_screen.dart';
 import './Screen/notification_screen.dart';
+import './Screen/working_history_screen.dart';
 import './Service/notification_service.dart';
 
 void main() async {
@@ -14,14 +15,13 @@ void main() async {
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
+      title: 'SGM Guard App',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+        colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF2563EB)),
         useMaterial3: true,
       ),
       initialRoute: '/',
@@ -30,6 +30,7 @@ class MyApp extends StatelessWidget {
         '/home': (context) => const HomeScreen(),
         '/profile': (context) => const ProfileScreen(showBottomNav: true),
         '/notifications': (context) => const NotificationScreen(isTab: false),
+        '/history': (context) => const WorkingHistoryScreen(),
       },
     );
   }

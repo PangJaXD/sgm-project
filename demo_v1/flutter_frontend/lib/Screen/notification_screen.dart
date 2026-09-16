@@ -1,12 +1,19 @@
 import 'package:flutter/material.dart';
 import '../Model/notification_model.dart';
+import '../Service/event_service.dart';
 import '../Service/notification_service.dart';
+import './assignment_detail_screen.dart';
+import './shift_detail_screen.dart';
 
 class NotificationScreen extends StatefulWidget {
   final bool isTab;
   final VoidCallback? onBack;
 
-  const NotificationScreen({super.key, this.isTab = false, this.onBack});
+  const NotificationScreen({
+    super.key,
+    this.isTab = false,
+    this.onBack,
+  });
 
   @override
   State<NotificationScreen> createState() => _NotificationScreenState();
@@ -96,14 +103,10 @@ class _NotificationScreenState extends State<NotificationScreen> {
                         item.timeAgo,
                         style: TextStyle(
                           fontSize: 13,
-                          color:
-                              (!item.isRead ||
-                                  item.type == NotificationType.urgent)
+                          color: (!item.isRead || item.type == NotificationType.urgent)
                               ? const Color(0xFFDC2626)
                               : const Color(0xFF94A3B8),
-                          fontWeight:
-                              (!item.isRead ||
-                                  item.type == NotificationType.urgent)
+                          fontWeight: (!item.isRead || item.type == NotificationType.urgent)
                               ? FontWeight.w600
                               : FontWeight.normal,
                         ),
@@ -134,31 +137,120 @@ class _NotificationScreenState extends State<NotificationScreen> {
                 ),
                 child: Text(
                   'ข้อมูลเพิ่มเติม: ${item.data}',
-                  style: const TextStyle(
-                    fontSize: 12,
-                    color: Color(0xFF64748B),
-                  ),
+                  style: const TextStyle(fontSize: 12, color: Color(0xFF64748B)),
                 ),
               ),
             ],
             const SizedBox(height: 24),
+            if (item.body.contains('Assignment') || item.title.contains('จุดตรวจ')) ...[
+              SizedBox(
+                width: double.infinity,
+                height: 48,
+                child: ElevatedButton.icon(
+                  onPressed: () {
+                    Navigator.pop(context);
+                    final event = EventModel(
+                      id: 2,
+                      title: 'งานเกษตรแม่โจ้ ประจำปี',
+                      location: 'มหาวิทยาลัยแม่โจ้ (ประตูหลัก)',
+                    );
+                    final shift = ShiftTimeModel(
+                      shiftId: 101,
+                      title: 'กะเช้า (Morning Shift)',
+                      dutyLocation: 'ประตูหลัก คณะเกษตรศาสตร์',
+                    );
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => AssignmentDetailScreen(
+                          event: event,
+                          shift: shift,
+                        ),
+                      ),
+                    );
+                  },
+                  icon: const Icon(Icons.pin_drop_rounded, color: Colors.white, size: 18),
+                  label: const Text(
+                    'เปิดดูหน้าที่รับผิดชอบ (View Assignment)',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 15,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF2563EB),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                    elevation: 0,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 10),
+            ] else if (item.type == NotificationType.approval || item.title.contains('กะงาน')) ...[
+              SizedBox(
+                width: double.infinity,
+                height: 48,
+                child: ElevatedButton.icon(
+                  onPressed: () {
+                    Navigator.pop(context);
+                    final event = EventModel(
+                      id: 2,
+                      title: 'งานเกษตรแม่โจ้ ประจำปี',
+                      location: 'มหาวิทยาลัยแม่โจ้',
+                    );
+                    final shift = ShiftTimeModel(
+                      shiftId: 101,
+                      title: 'กะดึก (Night Shift)',
+                      dutyLocation: 'โซนเต็นท์นิทรรศการ',
+                    );
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => ShiftDetailScreen(
+                          event: event,
+                          shift: shift,
+                        ),
+                      ),
+                    );
+                  },
+                  icon: const Icon(Icons.assignment_turned_in_rounded, color: Colors.white, size: 18),
+                  label: const Text(
+                    'ดูกะงานที่ได้รับมอบหมาย (View Shift)',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 15,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF16A34A),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                    elevation: 0,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 10),
+            ],
             SizedBox(
               width: double.infinity,
               height: 48,
-              child: ElevatedButton(
+              child: OutlinedButton(
                 onPressed: () => Navigator.pop(context),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF2563EB),
+                style: OutlinedButton.styleFrom(
+                  side: const BorderSide(color: Color(0xFFCBD5E1)),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(14),
                   ),
-                  elevation: 0,
                 ),
                 child: const Text(
-                  'รับทราบ',
+                  'รับทราบ / ปิด',
                   style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 16,
+                    color: Color(0xFF475569),
+                    fontSize: 15.5,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
@@ -243,10 +335,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
                     Align(
                       alignment: Alignment.centerRight,
                       child: PopupMenuButton<String>(
-                        icon: const Icon(
-                          Icons.more_vert_rounded,
-                          color: Colors.white,
-                        ),
+                        icon: const Icon(Icons.more_vert_rounded, color: Colors.white),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(16),
                         ),
@@ -258,8 +347,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
                           } else if (value == 'test_fcm') {
                             _service.simulateTestNotification(
                               title: 'อัปเดตงานด่วน!',
-                              body:
-                                  'มีการเพิ่มกะงานใหม่ในพื้นที่ของคุณ กรุณาตรวจสอบ',
+                              body: 'มีการเพิ่มกะงานใหม่ในพื้นที่ของคุณ กรุณาตรวจสอบ',
                               type: NotificationType.urgent,
                             );
                           }
@@ -269,11 +357,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
                             value: 'read_all',
                             child: Row(
                               children: [
-                                Icon(
-                                  Icons.done_all_rounded,
-                                  size: 20,
-                                  color: Color(0xFF2563EB),
-                                ),
+                                Icon(Icons.done_all_rounded, size: 20, color: Color(0xFF2563EB)),
                                 SizedBox(width: 10),
                                 Text('อ่านทั้งหมด'),
                               ],
@@ -283,11 +367,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
                             value: 'test_fcm',
                             child: Row(
                               children: [
-                                Icon(
-                                  Icons.add_alert_rounded,
-                                  size: 20,
-                                  color: Color(0xFF16A34A),
-                                ),
+                                Icon(Icons.add_alert_rounded, size: 20, color: Color(0xFF16A34A)),
                                 SizedBox(width: 10),
                                 Text('จำลองแจ้งเตือน (Test)'),
                               ],
@@ -297,11 +377,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
                             value: 'clear_all',
                             child: Row(
                               children: [
-                                Icon(
-                                  Icons.delete_outline_rounded,
-                                  size: 20,
-                                  color: Colors.red,
-                                ),
+                                Icon(Icons.delete_outline_rounded, size: 20, color: Colors.red),
                                 SizedBox(width: 10),
                                 Text('ล้างการแจ้งเตือนทั้งหมด'),
                               ],
@@ -369,8 +445,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
   }
 
   Widget _buildNotificationCard(NotificationItem item) {
-    final isUrgentOrUnread =
-        !item.isRead || item.type == NotificationType.urgent;
+    final isUrgentOrUnread = !item.isRead || item.type == NotificationType.urgent;
 
     return Dismissible(
       key: Key(item.id),
@@ -383,11 +458,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
           color: const Color(0xFFFEE2E2),
           borderRadius: BorderRadius.circular(18),
         ),
-        child: const Icon(
-          Icons.delete_outline_rounded,
-          color: Color(0xFFDC2626),
-          size: 28,
-        ),
+        child: const Icon(Icons.delete_outline_rounded, color: Color(0xFFDC2626), size: 28),
       ),
       onDismissed: (_) {
         _service.deleteNotification(item.id);
@@ -396,9 +467,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
             content: const Text('ลบการแจ้งเตือนเรียบร้อยแล้ว'),
             duration: const Duration(seconds: 2),
             behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(10),
-            ),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
           ),
         );
       },
@@ -523,3 +592,4 @@ class _NotificationScreenState extends State<NotificationScreen> {
     );
   }
 }
+

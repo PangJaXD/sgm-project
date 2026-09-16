@@ -39,8 +39,7 @@ class NotificationService extends ChangeNotifier {
       NotificationItem(
         id: 'mock-1',
         title: 'อัปเดตจุดตรวจด่วน!',
-        body:
-            'มีการเปลี่ยนแปลงจุดเดินตรวจบริเวณประตูหลัก กรุณาตรวจสอบ View Assignment ในระบบ',
+        body: 'มีการเปลี่ยนแปลงจุดเดินตรวจบริเวณประตูหลัก กรุณาตรวจสอบ View Assignment ในระบบ',
         timestamp: now.subtract(const Duration(minutes: 10)),
         type: NotificationType.urgent,
         isRead: false,
@@ -48,8 +47,7 @@ class NotificationService extends ChangeNotifier {
       NotificationItem(
         id: 'mock-2',
         title: 'อนุมัติคำร้องรับกะงาน',
-        body:
-            'คำร้องเข้าทำงานรอบดึก (16:00) ของคุณได้รับการอนุมัติเรียบร้อยแล้ว',
+        body: 'คำร้องเข้าทำงานรอบดึก (16:00) ของคุณได้รับการอนุมัติเรียบร้อยแล้ว',
         timestamp: now.subtract(const Duration(hours: 2)),
         type: NotificationType.approval,
         isRead: true,
@@ -57,8 +55,7 @@ class NotificationService extends ChangeNotifier {
       NotificationItem(
         id: 'mock-3',
         title: 'ประกาศจากฝ่ายบุคคล',
-        body:
-            'ขอให้เจ้าหน้าที่ทุกท่านทำการอัปเดตแอปพลิเคชัน SGM เป็นเวอร์ชันล่าสุดเพื่อการใช้งานที่เสถียรขึ้น',
+        body: 'ขอให้เจ้าหน้าที่ทุกท่านทำการอัปเดตแอปพลิเคชัน SGM เป็นเวอร์ชันล่าสุดเพื่อการใช้งานที่เสถียรขึ้น',
         timestamp: now.subtract(const Duration(days: 1)),
         type: NotificationType.announcement,
         isRead: true,
@@ -116,17 +113,13 @@ class NotificationService extends ChangeNotifier {
 
       // 5. Handle foreground notifications
       FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-        debugPrint(
-          '[FCM] Foreground notification: ${message.notification?.title}',
-        );
+        debugPrint('[FCM] Foreground notification: ${message.notification?.title}');
         _handleRemoteMessage(message);
       });
 
       // 6. Handle notification click when app is opened from background
       FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
-        debugPrint(
-          '[FCM] Notification opened app: ${message.notification?.title}',
-        );
+        debugPrint('[FCM] Notification opened app: ${message.notification?.title}');
         _handleRemoteMessage(message);
       });
 
@@ -141,10 +134,7 @@ class NotificationService extends ChangeNotifier {
   }
 
   void _handleRemoteMessage(RemoteMessage message) {
-    final title =
-        message.notification?.title ??
-        message.data['title'] ??
-        'การแจ้งเตือนใหม่';
+    final title = message.notification?.title ?? message.data['title'] ?? 'การแจ้งเตือนใหม่';
     final body = message.notification?.body ?? message.data['body'] ?? '';
     final typeString = message.data['type'] as String?;
     final type = NotificationType.fromString(typeString);
@@ -217,3 +207,4 @@ class NotificationService extends ChangeNotifier {
     );
   }
 }
+

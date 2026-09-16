@@ -1,41 +1,88 @@
-import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import '../Model/auth_api_screen.dart';
+import '../Model/assignment_model.dart';
+import '../Model/working_history_model.dart';
+import './api_exception.dart';
 
 class ShiftTimeModel {
   final int shiftId;
+  final int eventId;
+  final String title;
   final DateTime? startTime;
   final DateTime? endTime;
+  final DateTime? shiftDate;
   final int maximumGuards;
+  final int currentGuards;
+  final String dutyLocation;
+  final String status; // OPEN, FULL, CLOSED
 
   ShiftTimeModel({
     required this.shiftId,
+    this.eventId = 0,
+    this.title = 'กะการทำงาน',
     this.startTime,
     this.endTime,
-    this.maximumGuards = 0,
+    this.shiftDate,
+    this.maximumGuards = 10,
+    this.currentGuards = 0,
+    this.dutyLocation = 'จุดตรวจหลัก',
+    this.status = 'OPEN',
   });
 
   factory ShiftTimeModel.fromJson(Map<String, dynamic> json) {
+    final shiftIdVal = json['shift_id'] ?? json['id'] ?? 0;
     return ShiftTimeModel(
-      shiftId: json['shift_id'] ?? 0,
+      shiftId: shiftIdVal,
+      eventId: json['event_id'] ?? 0,
+      title: json['title'] ?? json['event_name'] ?? 'กะงานที่ $shiftIdVal',
       startTime: json['start_time'] != null
           ? DateTime.tryParse(json['start_time'].toString())
           : null,
       endTime: json['end_time'] != null
           ? DateTime.tryParse(json['end_time'].toString())
           : null,
-      maximumGuards: json['maximum_guards'] ?? 0,
+      shiftDate: json['shift_date'] != null
+          ? DateTime.tryParse(json['shift_date'].toString())
+          : null,
+      maximumGuards: json['maximum_guards'] ?? 10,
+      currentGuards: json['current_guards'] ?? 0,
+      dutyLocation: json['duty_location'] ?? json['location'] ?? 'จุดตรวจหลัก',
+      status: json['status'] ?? 'OPEN',
     );
   }
 
+  int get availableSlots => (maximumGuards - currentGuards).clamp(0, 999);
+  bool get isFull => availableSlots <= 0 || status.toUpperCase() == 'FULL';
+
   String get formattedTime {
-    if (startTime == null || endTime == null) return 'ไม่ระบุเวลา';
+    if (startTime == null || endTime == null) return '08:00 - 16:00 น.';
     final startHour = startTime!.hour.toString().padLeft(2, '0');
     final startMin = startTime!.minute.toString().padLeft(2, '0');
     final endHour = endTime!.hour.toString().padLeft(2, '0');
     final endMin = endTime!.minute.toString().padLeft(2, '0');
     return '$startHour:$startMin - $endHour:$endMin น.';
+  }
+
+  String get formattedDateThai {
+    final d = shiftDate ?? startTime ?? DateTime.now();
+    final thaiYear = d.year > 2500 ? d.year : d.year + 543;
+    const months = [
+      '',
+      'มกราคม',
+      'กุมภาพันธ์',
+      'มีนาคม',
+      'เมษายน',
+      'พฤษภาคม',
+      'มิถุนายน',
+      'กรกฎาคม',
+      'สิงหาคม',
+      'กันยายน',
+      'ตุลาคม',
+      'พฤศจิกายน',
+      'ธันวาคม',
+    ];
+    return 'วันที่ ${d.day} ${months[d.month]} $thaiYear';
   }
 }
 
@@ -92,8 +139,17 @@ class EventModel {
               ? DateTime.tryParse(json['endTime'].toString())
               : null);
 
+    final eventId = json['event_id'] ?? json['id'] ?? 0;
+
+    List<ShiftTimeModel> shifts = [];
+    if (json['shift_times'] != null && json['shift_times'] is Iterable) {
+      shifts = (json['shift_times'] as Iterable)
+          .map((e) => ShiftTimeModel.fromJson(e as Map<String, dynamic>))
+          .toList();
+    }
+
     return EventModel(
-      id: json['event_id'] ?? json['id'] ?? 0,
+      id: eventId,
       title: json['event_name'] ?? json['title'] ?? 'ไม่มีชื่อกิจกรรม',
       location: json['location'] ?? 'ไม่ระบุสถานที่',
       startTime: parsedStart,
@@ -118,11 +174,7 @@ class EventModel {
               .toList() ??
           const [],
       requiredGuards: json['required_guards'] ?? 0,
-      shiftTimes:
-          (json['shift_times'] as List<dynamic>?)
-              ?.map((e) => ShiftTimeModel.fromJson(e as Map<String, dynamic>))
-              .toList() ??
-          const [],
+      shiftTimes: shifts,
     );
   }
 
@@ -148,9 +200,15 @@ class EventModel {
 
   String get formattedDateRange {
     if (startDate == null) return '';
-    final startStr = '${startDate!.day}/${startDate!.month}/${startDate!.year}';
+    final startYear = startDate!.year > 2500
+        ? startDate!.year
+        : startDate!.year + 543;
+    final startStr =
+        '${startDate!.day} ${WorkingHistoryModel.thaiMonths[startDate!.month]} $startYear';
     if (endDate == null || startDate == endDate) return startStr;
-    final endStr = '${endDate!.day}/${endDate!.month}/${endDate!.year}';
+    final endYear = endDate!.year > 2500 ? endDate!.year : endDate!.year + 543;
+    final endStr =
+        '${endDate!.day} ${WorkingHistoryModel.thaiMonths[endDate!.month]} $endYear';
     return '$startStr - $endStr';
   }
 
@@ -163,47 +221,201 @@ class EventModel {
 }
 
 class EventService {
-  Dio _createDio(String url) {
+  static final EventService instance = EventService._internal();
+  factory EventService() => instance;
+  EventService._internal();
+
+  Dio _createDio() {
     return Dio(
       BaseOptions(
-        baseUrl: url,
-        connectTimeout: const Duration(seconds: 8),
+        baseUrl: AuthApiService.baseUrl,
+        connectTimeout: const Duration(seconds: 6),
         receiveTimeout: const Duration(seconds: 8),
         headers: {'Content-Type': 'application/json'},
       ),
     );
   }
 
+  // Set of requested shift IDs by guard in current session
+  final Set<int> requestedShiftIds = {};
+
+  /// 1. Fetch all events from Spring Boot database: GET /api/events
   Future<List<EventModel>> fetchEvents() async {
     try {
-      final response = await _createDio(AuthApiService.baseUrl).get('/events');
+      final response = await _createDio().get('/events');
       if (response.statusCode == 200 && response.data is List) {
         return (response.data as List)
             .map((json) => EventModel.fromJson(json as Map<String, dynamic>))
             .toList();
       }
-      return [];
     } on DioException catch (e) {
-      // Fallback for Android emulator (10.0.2.2 <-> localhost)
-      if (Platform.isAndroid &&
-          AuthApiService.baseUrl.contains('10.0.2.2') &&
-          (e.type == DioExceptionType.connectionError ||
-              e.type == DioExceptionType.connectionTimeout)) {
-        try {
-          final res = await _createDio(
-            'http://localhost:8080/api',
-          ).get('/events');
-          if (res.statusCode == 200 && res.data is List) {
-            AuthApiService.baseUrl = 'http://localhost:8080/api';
-            return (res.data as List)
-                .map(
-                  (json) => EventModel.fromJson(json as Map<String, dynamic>),
-                )
-                .toList();
-          }
-        } catch (_) {}
-      }
-      throw Exception('ไม่สามารถดึงข้อมูลงานได้ (${e.message})');
+      debugPrint('[EventService] fetchEvents Dio error: ${e.message}');
+      // If error occurs, rethrow as ApiException for UI notification if needed
+      throw ApiException.fromDioException(e);
+    } catch (e) {
+      debugPrint('[EventService] fetchEvents general error: $e');
+      throw ApiException(message: 'ไม่สามารถดึงข้อมูลงานอีเวนต์ได้');
     }
+    return [];
+  }
+
+  /// 2. Fetch shifts for a specific event: GET /api/events/{id}/shifts
+  Future<List<ShiftTimeModel>> fetchEventShifts(int eventId) async {
+    try {
+      final response = await _createDio().get('/events/$eventId/shifts');
+      if (response.statusCode == 200 && response.data is List) {
+        return (response.data as List)
+            .map(
+              (json) => ShiftTimeModel.fromJson(json as Map<String, dynamic>),
+            )
+            .toList();
+      }
+    } on DioException catch (e) {
+      debugPrint('[EventService] fetchEventShifts Dio error: ${e.message}');
+      throw ApiException.fromDioException(e);
+    } catch (e) {
+      debugPrint('[EventService] fetchEventShifts error: $e');
+      throw ApiException(message: 'ไม่สามารถดึงข้อมูลกะงานได้');
+    }
+    return [];
+  }
+
+  /// 3. Fetch active assignment for guard: GET /api/assignment/guard/{guardId}/active
+  Future<AssignmentModel?> fetchActiveAssignment(int guardId) async {
+    try {
+      final response = await _createDio().get(
+        '/assignment/guard/$guardId/active',
+      );
+      if (response.statusCode == 200 && response.data is Map<String, dynamic>) {
+        return AssignmentModel.fromJson(response.data as Map<String, dynamic>);
+      }
+      if (response.statusCode == 204) {
+        return null; // No active assignment
+      }
+    } on DioException catch (e) {
+      if (e.response?.statusCode == 404 || e.response?.statusCode == 204) {
+        return null;
+      }
+      debugPrint(
+        '[EventService] fetchActiveAssignment Dio error: ${e.message}',
+      );
+    } catch (e) {
+      debugPrint('[EventService] fetchActiveAssignment error: $e');
+    }
+    return null;
+  }
+
+  /// 4. Fetch guard assignment by guardId (or fallback to active): GET /api/assignment/guard/{guardId}
+  Future<AssignmentModel> fetchGuardAssignment(
+    int guardId, {
+    int? shiftId,
+  }) async {
+    try {
+      final response = await _createDio().get('/assignment/guard/$guardId');
+      if (response.statusCode == 200 && response.data is List) {
+        final list = (response.data as List);
+        if (list.isNotEmpty) {
+          // If shiftId is given, search for that shift's assignment
+          if (shiftId != null) {
+            final match = list.firstWhere(
+              (item) => item['shift_id'] == shiftId,
+              orElse: () => list.first,
+            );
+            return AssignmentModel.fromJson(match as Map<String, dynamic>);
+          }
+          return AssignmentModel.fromJson(list.first as Map<String, dynamic>);
+        }
+      }
+    } on DioException catch (e) {
+      debugPrint('[EventService] fetchGuardAssignment Dio error: ${e.message}');
+      throw ApiException.fromDioException(e);
+    } catch (e) {
+      debugPrint('[EventService] fetchGuardAssignment error: $e');
+      throw ApiException(message: 'ไม่สามารถดึงข้อมูลหน้าที่รับผิดชอบได้');
+    }
+
+    // Default empty assignment fallback if no DB records found
+    return AssignmentModel(
+      assignmentId: 0,
+      guardId: guardId,
+      shiftId: shiftId ?? 0,
+      assignmentStatus: 'ยังไม่มีงาน',
+      description: 'ยังไม่ได้รับมอบหมายหน้าที่',
+      dutyLocation: 'ไม่ระบุ',
+      eventName: 'ไม่มีกะงาน',
+      shiftName: '-',
+      shiftTime: '-',
+    );
+  }
+
+  /// 5. Submit shift request: POST /api/assignment/request
+  Future<bool> sendShiftRequest(int shiftId, int guardId) async {
+    try {
+      final response = await _createDio().post(
+        '/assignment/request',
+        data: {
+          'shift_id': shiftId,
+          'guard_id': guardId,
+          'assignment_status': 'RESERVE',
+        },
+      );
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        requestedShiftIds.add(shiftId);
+        return true;
+      }
+    } on DioException catch (e) {
+      debugPrint('[EventService] sendShiftRequest Dio error: ${e.message}');
+      throw ApiException.fromDioException(e);
+    } catch (e) {
+      debugPrint('[EventService] sendShiftRequest error: $e');
+      throw ApiException(message: 'ไม่สามารถส่งคำขอเข้าทำงานได้');
+    }
+    return false;
+  }
+
+  /// 6. Withdraw from shift: POST /api/assignment/{id}/withdraw
+  Future<bool> withdrawShiftRequest({
+    required int assignmentId,
+    required String reason,
+    required String details,
+  }) async {
+    try {
+      final response = await _createDio().post(
+        '/assignment/$assignmentId/withdraw',
+        data: {'reason': reason, 'details': details},
+      );
+      if (response.statusCode == 200) {
+        return true;
+      }
+    } on DioException catch (e) {
+      debugPrint('[EventService] withdrawShiftRequest Dio error: ${e.message}');
+      throw ApiException.fromDioException(e);
+    } catch (e) {
+      debugPrint('[EventService] withdrawShiftRequest error: $e');
+      throw ApiException(message: 'ไม่สามารถส่งคำร้องถอนตัวได้');
+    }
+    return false;
+  }
+
+  /// 7. Fetch working history: GET /api/guard/{guardId}/history
+  Future<List<WorkingHistoryModel>> fetchWorkingHistory(int guardId) async {
+    try {
+      final response = await _createDio().get('/guard/$guardId/history');
+      if (response.statusCode == 200 && response.data is List) {
+        return (response.data as List)
+            .map(
+              (json) =>
+                  WorkingHistoryModel.fromJson(json as Map<String, dynamic>),
+            )
+            .toList();
+      }
+    } on DioException catch (e) {
+      debugPrint('[EventService] fetchWorkingHistory Dio error: ${e.message}');
+      throw ApiException.fromDioException(e);
+    } catch (e) {
+      debugPrint('[EventService] fetchWorkingHistory error: $e');
+      throw ApiException(message: 'ไม่สามารถดึงประวัติการทำงานได้');
+    }
+    return [];
   }
 }

@@ -53,4 +53,42 @@ public class EventController {
         eventService.deleteEvent(id);
         return ResponseEntity.noContent().build(); // คืนค่า Status 204 No Content เมื่อลบสำเร็จ
     }
+
+    // 6. ดึงกะงานทั้งหมดของอีเวนต์นี้ (GET /api/events/{id}/shifts)
+    @GetMapping("/{id}/shifts")
+    public ResponseEntity<List<java.util.Map<String, Object>>> getEventShifts(@PathVariable Integer id) {
+        Events event = eventService.getEventById(id);
+        List<java.util.Map<String, Object>> result = new java.util.ArrayList<>();
+
+        if (event.getShift_times() != null) {
+            for (org.sgm_project.demo.Model.ShiftTime st : event.getShift_times()) {
+                java.util.Map<String, Object> map = new java.util.LinkedHashMap<>();
+                map.put("shift_id", st.getShift_id());
+                map.put("event_id", event.getEvent_id());
+                map.put("event_name", event.getEvent_name());
+                map.put("shift_date", st.getShift_date() != null ? st.getShift_date().toString() : null);
+                map.put("start_time", st.getStart_time() != null ? st.getStart_time().toString() : null);
+                map.put("end_time", st.getEnd_time() != null ? st.getEnd_time().toString() : null);
+                map.put("maximum_guards", st.getMaximum_guards());
+
+                int currentCount = 0;
+                if (st.getAssignment() != null) {
+                    currentCount = (int) st.getAssignment().stream()
+                            .filter(a -> !"WITHDRAWN".equalsIgnoreCase(a.getAssignment_status()))
+                            .count();
+                }
+                map.put("current_guards", currentCount);
+                map.put("available_slots", Math.max(0, st.getMaximum_guards() - currentCount));
+                map.put("status", currentCount >= st.getMaximum_guards() ? "FULL" : "OPEN");
+
+                String dutyLoc = event.getLocation();
+                map.put("duty_location", dutyLoc != null ? dutyLoc : "จุดตรวจหลัก");
+                map.put("title", "กะงานที่ " + st.getShift_id());
+
+                result.add(map);
+            }
+        }
+
+        return ResponseEntity.ok(result);
+    }
 }

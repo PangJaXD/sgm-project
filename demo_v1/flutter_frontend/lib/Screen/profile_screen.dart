@@ -1,14 +1,13 @@
 import 'package:flutter/material.dart';
 import '../Model/user_model.dart';
+import '../Service/api_exception.dart';
 import '../Service/user_service.dart';
+import './working_history_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
   final bool showBottomNav;
 
-  const ProfileScreen({
-    super.key,
-    this.showBottomNav = false,
-  });
+  const ProfileScreen({super.key, this.showBottomNav = false});
 
   @override
   State<ProfileScreen> createState() => _ProfileScreenState();
@@ -17,12 +16,12 @@ class ProfileScreen extends StatefulWidget {
 class _ProfileScreenState extends State<ProfileScreen> {
   final UserService _userService = UserService();
 
-  void _showEditPhoneDialog(UserModel user) {
+  Future<void> _showEditPhoneDialog(UserModel user) async {
     final controller = TextEditingController(text: user.phone);
 
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (dialogCtx) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: const Text(
           'แก้ไขเบอร์โทรศัพท์',
@@ -39,24 +38,30 @@ class _ProfileScreenState extends State<ProfileScreen> {
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
+            onPressed: () => Navigator.pop(dialogCtx),
             child: const Text('ยกเลิก', style: TextStyle(color: Colors.grey)),
           ),
           ElevatedButton(
-            onPressed: () {
+            onPressed: () async {
               final newPhone = controller.text.trim();
               if (newPhone.isNotEmpty) {
-                setState(() {
-                  _userService.updatePhone(newPhone);
-                });
+                try {
+                  await _userService.updatePhone(newPhone);
+                  if (mounted && dialogCtx.mounted) {
+                    Navigator.pop(dialogCtx);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('อัปเดตเบอร์โทรศัพท์เรียบร้อยแล้ว'),
+                        backgroundColor: Color(0xFF2563EB),
+                      ),
+                    );
+                  }
+                } catch (e) {
+                  if (mounted) {
+                    ApiException.showSnackBar(context, e);
+                  }
+                }
               }
-              Navigator.pop(context);
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('อัปเดตเบอร์โทรศัพท์เรียบร้อยแล้ว'),
-                  backgroundColor: Color(0xFF2563EB),
-                ),
-              );
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFF2563EB),
@@ -65,135 +70,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ),
             ),
             child: const Text('บันทึก', style: TextStyle(color: Colors.white)),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _showHistoryModal(UserModel user) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (context) => Container(
-        constraints: BoxConstraints(
-          maxHeight: MediaQuery.of(context).size.height * 0.7,
-        ),
-        padding: const EdgeInsets.all(24),
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Center(
-              child: Container(
-                width: 40,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: Colors.grey.shade300,
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-            ),
-            const SizedBox(height: 20),
-            const Text(
-              'ประวัติการทำงาน (Work History)',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: Color(0xFF1E293B),
-              ),
-            ),
-            const SizedBox(height: 16),
-            Expanded(
-              child: ListView(
-                children: [
-                  _buildHistoryItem(
-                    title: 'งานหอสมุดมหาวิทยาลัยแม่โจ้',
-                    date: '27 ส.ค. 2026 - 28 ส.ค. 2026',
-                    status: 'เสร็จสิ้นภารกิจ',
-                    shift: 'กะเช้า 08:00 - 11:00 น.',
-                  ),
-                  _buildHistoryItem(
-                    title: 'ศูนย์การค้าเซ็นทรัล เชียงใหม่',
-                    date: '15 ส.ค. 2026',
-                    status: 'เสร็จสิ้นภารกิจ',
-                    shift: 'กะดึก 19:00 - 07:00 น.',
-                  ),
-                  _buildHistoryItem(
-                    title: 'งานเกษตรแม่โจ้ ประจำปี',
-                    date: '1 - 7 ก.ค. 2026',
-                    status: 'เสร็จสิ้นภารกิจ',
-                    shift: 'กะเช้า 09:00 - 18:00 น.',
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildHistoryItem({
-    required String title,
-    required String date,
-    required String status,
-    required String shift,
-  }) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: const Color(0xFFF8FAFC),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Expanded(
-                child: Text(
-                  title,
-                  style: const TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFF1E293B),
-                  ),
-                ),
-              ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                decoration: BoxDecoration(
-                  color: Colors.green.shade50,
-                  borderRadius: BorderRadius.circular(6),
-                ),
-                child: Text(
-                  status,
-                  style: TextStyle(
-                    fontSize: 11,
-                    color: Colors.green.shade700,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 6),
-          Text(
-            'วันที่: $date',
-            style: const TextStyle(fontSize: 13, color: Color(0xFF64748B)),
-          ),
-          const SizedBox(height: 2),
-          Text(
-            shift,
-            style: const TextStyle(fontSize: 13, color: Color(0xFF64748B)),
           ),
         ],
       ),
@@ -247,14 +123,23 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ),
             ),
             ListTile(
-              leading: const Icon(Icons.language_rounded, color: Color(0xFF2563EB)),
+              leading: const Icon(
+                Icons.language_rounded,
+                color: Color(0xFF2563EB),
+              ),
               title: const Text('ภาษา (Language)'),
               subtitle: const Text('ไทย (TH)'),
-              trailing: const Icon(Icons.chevron_right_rounded, color: Colors.grey),
+              trailing: const Icon(
+                Icons.chevron_right_rounded,
+                color: Colors.grey,
+              ),
               onTap: () {},
             ),
             const ListTile(
-              leading: Icon(Icons.info_outline_rounded, color: Color(0xFF2563EB)),
+              leading: Icon(
+                Icons.info_outline_rounded,
+                color: Color(0xFF2563EB),
+              ),
               title: Text('เวอร์ชันแอปพลิเคชัน'),
               subtitle: Text('v1.0.0 (Build 2026.09)'),
             ),
@@ -291,7 +176,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 borderRadius: BorderRadius.circular(10),
               ),
             ),
-            child: const Text('ออกจากระบบ', style: TextStyle(color: Colors.white)),
+            child: const Text(
+              'ออกจากระบบ',
+              style: TextStyle(color: Colors.white),
+            ),
           ),
         ],
       ),
@@ -588,7 +476,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     children: [
                       // Item 1: Work History (From Java Model: assignments & reports)
                       InkWell(
-                        onTap: () => _showHistoryModal(user),
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) =>
+                                  const WorkingHistoryScreen(),
+                            ),
+                          );
+                        },
                         borderRadius: const BorderRadius.vertical(
                           top: Radius.circular(20),
                         ),

@@ -26,6 +26,26 @@ public class Report {
     private String report_img;
     @Column(length = 255, nullable = false)
     private String report_desc;
-}
 
-//report
+    @Column(name = "guard_id")
+    private Integer guard_id;
+
+    @Column(name = "shift_id")
+    private Integer shift_id;
+
+    public Integer getGuard_id() {
+        return guard_id;
+    }
+
+    public void setGuard_id(Integer guard_id) {
+        this.guard_id = guard_id;
+    }
+
+    public Integer getShift_id() {
+        return shift_id;
+    }
+
+    public void setShift_id(Integer shift_id) {
+        this.shift_id = shift_id;
+    }
+}

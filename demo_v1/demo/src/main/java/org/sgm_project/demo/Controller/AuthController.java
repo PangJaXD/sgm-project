@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.*;
 @CrossOrigin(originPatterns = "*", allowCredentials = "true")
 public class AuthController {
 
-    //แนะนำให้ autowired(no controller for this)
+    // แนะนำให้ autowired(no controller for this)
     private final AuthService authService;
 
     public AuthController(AuthService authService) {
@@ -21,11 +21,11 @@ public class AuthController {
     // response for login useful for bringing data through user
     @PostMapping("/login")
     public ResponseEntity<LoginResponse> login(
-            @RequestBody LoginRequest request
-    ) {
+            @RequestBody LoginRequest request) {
 
+        System.out.println(">>> [AuthController] Login request received for username: "
+                + (request != null ? request.getUsername() : "null"));
         return ResponseEntity.ok(
-                authService.login(request)
-        );
+                authService.login(request));
     }
 }
