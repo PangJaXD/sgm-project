@@ -12,10 +12,18 @@ import java.util.Optional;
 public interface CompanyRepository extends JpaRepository<Company, Integer> {
 
     Optional<Company> findByUsername(String username);
+
     @Query("""
         SELECT COUNT(c) > 0
         FROM Company c
         WHERE c.username = :username
     """)
     boolean existsByUsernameCustom(@Param("username") String username);
+
+    @Query("""
+        SELECT COUNT(c) > 0
+        FROM Company c
+        WHERE c.username = :username AND c.users_id != :id
+    """)
+    boolean existsByUsernameAndIdNot(@Param("username") String username, @Param("id") Integer id);
 }

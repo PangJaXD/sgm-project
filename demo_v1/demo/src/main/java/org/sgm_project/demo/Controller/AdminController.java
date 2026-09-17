@@ -6,6 +6,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Map;
+
 @RestController
 @RequestMapping("/api/admin")
 @CrossOrigin(originPatterns = "*", allowCredentials = "true")
@@ -17,18 +19,16 @@ public class AdminController {
         this.adminService = adminService;
     }
 
-    //create admin ยิง json
-    //request admin
-    //save with service
     @PostMapping
     public ResponseEntity<Admin> createAdmin(@RequestBody Admin admin) {
-
         Admin newAdmin = adminService.createAdmin(admin);
-
         return ResponseEntity
                 .status(HttpStatus.CREATED)
                 .body(newAdmin);
     }
-}
 
-//controller ของ admin
+    @GetMapping("/stats")
+    public ResponseEntity<Map<String, Object>> getSystemStats() {
+        return ResponseEntity.ok(adminService.getSystemStats());
+    }
+}

@@ -11,19 +11,35 @@ import {
 
 function LoginPage() {
   const API_URL = "http://localhost:8080";
-  const [role, setRole] = useState("company");
+  const [role, setRole] = useState(() =>
+    window.location.pathname.includes("/admin") ? "admin" : "company"
+  );
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
 
+  const USERNAME_REGEX = /^[a-zA-Z0-9]{8,20}$/;
+  const PASSWORD_REGEX = /^[a-zA-Z0-9!#_.]{8,16}$/;
+
   const handleLogin = async (e) => {
     e.preventDefault();
-
     setError("");
 
     if (!username.trim()) {
       setError("กรุณากรอกชื่อผู้ใช้งาน");
+      return;
+    }
+    if (username.includes(" ")) {
+      setError("ชื่อผู้ใช้ต้องไม่มีเว้นวรรค หรือช่องว่าง");
+      return;
+    }
+    if (username.length < 8 || username.length > 20) {
+      setError("ชื่อผู้ใช้ต้องมีความยาวตั้งแต่ 8 ตัวอักษร และไม่เกิน 20 ตัวอักษร");
+      return;
+    }
+    if (!USERNAME_REGEX.test(username)) {
+      setError("ชื่อผู้ใช้ต้องเป็นภาษาอังกฤษหรือตัวเลขเท่านั้น");
       return;
     }
 
@@ -31,22 +47,30 @@ function LoginPage() {
       setError("กรุณากรอกรหัสผ่าน");
       return;
     }
+    if (password.includes(" ")) {
+      setError("รหัสผ่านต้องไม่มีเว้นวรรค หรือช่องว่าง");
+      return;
+    }
+    if (password.length < 8 || password.length > 16) {
+      setError("รหัสผ่านต้องมีความยาวตั้งแต่ 8 ตัวอักษร และไม่เกิน 16 ตัวอักษร");
+      return;
+    }
+    if (!PASSWORD_REGEX.test(password)) {
+      setError("รหัสผ่านต้องเป็นตัวอักษรภาษาอังกฤษหรือตัวเลข รวมอักขระพิเศษ [ !#_. ]");
+      return;
+    }
 
     try {
-      // ใช้ axios.post แทน fetch
       const response = await axios.post(`${API_URL}/api/auth/login`, {
-        username: username,
+        username: username.trim(),
         password: password,
       });
 
-      // ข้อมูลที่ส่งกลับมาจะอยู่ใน response.data อัตโนมัติ (ไม่ต้อง response.json() แล้ว)
       const data = response.data;
       console.log("Login success:", data);
 
-      // เก็บข้อมูล user ที่ Backend ยืนยันแล้ว
       localStorage.setItem("user", JSON.stringify(data));
 
-      // Redirect ตาม role ที่ Backend ส่งกลับมา
       if (data.role === "HEAD_GUARD") {
         window.location.href = "/headguard";
       } else if (data.role === "COMPANY") {
@@ -167,12 +191,20 @@ function LoginPage() {
             </div>
 
             {/* Admin */}
-            <a
-              href="/admin/login"
-              className="block mt-5 text-center text-sm text-white underline underline-offset-2 hover:text-white/70 transition"
+            <button
+              type="button"
+              onClick={() => {
+                setRole(role === "admin" ? "company" : "admin");
+                setError("");
+              }}
+              className={`block w-full mt-4 py-1.5 px-3 rounded-lg text-center text-xs transition ${
+                role === "admin"
+                  ? "bg-white text-[#2864e8] font-bold shadow"
+                  : "text-white/90 underline underline-offset-2 hover:text-white"
+              }`}
             >
-              เข้าสู่ระบบ Admin
-            </a>
+              {role === "admin" ? "✓ ใช้งานในฐานะ Admin" : "เข้าสู่ระบบ Admin"}
+            </button>
           </div>
         </div>
 
@@ -191,16 +223,26 @@ function LoginPage() {
                 <span className="text-[#2864e8] font-medium">
                   {role === "company"
                     ? "บริษัท รักษาความปลอดภัย"
-                    : "ผู้ดูแล Security Head"}
+                    : role === "admin"
+                      ? "ผู้ดูแลระบบ EventGuard System (EGS)"
+                      : "ผู้ดูแล Security Head"}
                 </span>
-                <br />
-                หรือ{" "}
-                <a
-                  href="/admin/login"
-                  className="text-[#2864e8] hover:underline"
-                >
-                  ดูแลระบบ EventGuard System (EGS)
-                </a>
+                {role !== "admin" && (
+                  <>
+                    <br />
+                    หรือ{" "}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setRole("admin");
+                        setError("");
+                      }}
+                      className="text-[#2864e8] hover:underline inline"
+                    >
+                      ดูแลระบบ EventGuard System (EGS)
+                    </button>
+                  </>
+                )}
               </p>
             </div>
 

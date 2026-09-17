@@ -25,6 +25,8 @@ public class GuardService {
     public Guards createGuard(
             CreateGuardRequest request
     ) {
+        org.sgm_project.demo.Util.UserValidationUtil.validateUsername(request.getUsername());
+        org.sgm_project.demo.Util.UserValidationUtil.validatePassword(request.getPassword());
 
         Guards guard = new Guards();
 

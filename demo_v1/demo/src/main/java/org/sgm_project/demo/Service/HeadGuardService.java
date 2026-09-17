@@ -26,6 +26,8 @@ public class HeadGuardService {
     public HeadGuard createHeadGuard(
             CreateHeadGuardRequest request
     ) {
+        org.sgm_project.demo.Util.UserValidationUtil.validateUsername(request.getUsername());
+        org.sgm_project.demo.Util.UserValidationUtil.validatePassword(request.getPassword());
 
         HeadGuard headGuard = new HeadGuard();
 

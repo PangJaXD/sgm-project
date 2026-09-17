@@ -11,6 +11,7 @@ function App() {
       <Routes>
         {/* Login */}
         <Route path="/" element={<LoginPage />} />
+        <Route path="/admin/login" element={<LoginPage />} />
 
         {/* Dashboard */}
         <Route path="/company" element={<CompanyDashboard />} />
