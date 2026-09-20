@@ -48,9 +48,8 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<Map<String, Object>> handleValidationExceptions(MethodArgumentNotValidException ex) {
         Map<String, String> fieldErrors = new HashMap<>();
-        ex.getBindingResult().getFieldErrors().forEach(error ->
-                fieldErrors.put(error.getField(), error.getDefaultMessage())
-        );
+        ex.getBindingResult().getFieldErrors()
+                .forEach(error -> fieldErrors.put(error.getField(), error.getDefaultMessage()));
         System.err.println(">>> [GlobalExceptionHandler] Validation Failed: " + fieldErrors);
         Map<String, Object> body = new HashMap<>();
         body.put("message", "ข้อมูลที่ส่งมาไม่ถูกต้องตามเงื่อนไข");
@@ -92,7 +91,8 @@ public class GlobalExceptionHandler {
         String msg = ex.getMessage() != null ? ex.getMessage() : "";
 
         // Check if authentication failure
-        if (msg.contains("รหัสผ่าน") || msg.toLowerCase().contains("login") || msg.toLowerCase().contains("unauthorized") || msg.toLowerCase().contains("credentials")) {
+        if (msg.contains("รหัสผ่าน") || msg.toLowerCase().contains("login")
+                || msg.toLowerCase().contains("unauthorized") || msg.toLowerCase().contains("credentials")) {
             return ResponseEntity
                     .status(HttpStatus.UNAUTHORIZED)
                     .body(Map.of("message", msg.isEmpty() ? "ชื่อผู้ใช้งานหรือรหัสผ่านไม่ถูกต้อง" : msg));

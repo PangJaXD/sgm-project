@@ -27,8 +27,7 @@ public class CompanyService {
     public CompanyService(
             CompanyRepository companyRepository,
             UserRepository userRepository,
-            PasswordEncoder passwordEncoder
-    ) {
+            PasswordEncoder passwordEncoder) {
         this.companyRepository = companyRepository;
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
@@ -84,20 +83,30 @@ public class CompanyService {
             existing.setUsername(request.getUsername());
         }
 
-        if (request.getPassword() != null && !request.getPassword().trim().isEmpty() && !request.getPassword().startsWith("$2a$")) {
+        if (request.getPassword() != null && !request.getPassword().trim().isEmpty()
+                && !request.getPassword().startsWith("$2a$")) {
             UserValidationUtil.validatePassword(request.getPassword());
             existing.setPassword(passwordEncoder.encode(request.getPassword()));
         }
 
-        if (request.getCompany_name() != null) existing.setCompany_name(request.getCompany_name());
-        if (request.getFirst_name() != null) existing.setFirst_name(request.getFirst_name());
-        if (request.getLast_name() != null) existing.setLast_name(request.getLast_name());
-        if (request.getPhone() != null) existing.setPhone(request.getPhone());
-        if (request.getAddress() != null) existing.setAddress(request.getAddress());
-        if (request.getUser_detail() != null) existing.setUser_detail(request.getUser_detail());
-        if (request.getStart_date() != null) existing.setStart_date(request.getStart_date());
-        if (request.getProfile_img() != null) existing.setProfile_img(request.getProfile_img());
-        if (request.getAdmin_name() != null) existing.setAdmin_name(request.getAdmin_name());
+        if (request.getCompany_name() != null)
+            existing.setCompany_name(request.getCompany_name());
+        if (request.getFirst_name() != null)
+            existing.setFirst_name(request.getFirst_name());
+        if (request.getLast_name() != null)
+            existing.setLast_name(request.getLast_name());
+        if (request.getPhone() != null)
+            existing.setPhone(request.getPhone());
+        if (request.getAddress() != null)
+            existing.setAddress(request.getAddress());
+        if (request.getUser_detail() != null)
+            existing.setUser_detail(request.getUser_detail());
+        if (request.getStart_date() != null)
+            existing.setStart_date(request.getStart_date());
+        if (request.getProfile_img() != null)
+            existing.setProfile_img(request.getProfile_img());
+        if (request.getAdmin_name() != null)
+            existing.setAdmin_name(request.getAdmin_name());
 
         if (request.getStatus() != null) {
             if ("ปฏิบัติงาน".equals(request.getStatus())) {

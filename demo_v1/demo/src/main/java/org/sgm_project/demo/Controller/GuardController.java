@@ -38,7 +38,11 @@ public class GuardController {
     }
 
     @GetMapping
-    public ResponseEntity<List<Guards>> getAllGuards() {
+    public ResponseEntity<List<Guards>> getAllGuards(
+            @RequestParam(required = false) String company) {
+        if (company != null && !company.trim().isEmpty()) {
+            return ResponseEntity.ok(guardService.getGuardsByCompany(company.trim()));
+        }
         return ResponseEntity.ok(guardService.getAllGuards());
     }
 

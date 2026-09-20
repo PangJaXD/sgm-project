@@ -20,9 +20,18 @@ public class EventController {
         this.eventService = eventService;
     }
 
-    // 1. ดึงข้อมูลงานทั้งหมด (GET /api/events)
+    // 1. ดึงข้อมูลงานทั้งหมด (GET /api/events?companyId=... หรือ ?company=...)
     @GetMapping
-    public ResponseEntity<List<Events>> getAllEvents() {
+    public ResponseEntity<List<Events>> getAllEvents(
+            @RequestParam(required = false) Integer companyId,
+            @RequestParam(required = false) String company
+    ) {
+        if (companyId != null) {
+            return ResponseEntity.ok(eventService.getEventsByCompany(companyId));
+        }
+        if (company != null && !company.trim().isEmpty()) {
+            return ResponseEntity.ok(eventService.getEventsByCompanyIdentifier(company.trim()));
+        }
         return ResponseEntity.ok(eventService.getAllEvents());
     }
 

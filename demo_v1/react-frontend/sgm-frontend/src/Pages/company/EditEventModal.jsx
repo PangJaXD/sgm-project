@@ -33,7 +33,14 @@ function LocationSelector({ position, setPosition }) {
   return position ? <Marker position={position} /> : null;
 }
 
-export default function EditEventModal({ isOpen, onClose, onSave, eventData }) {
+export default function EditEventModal({
+  isOpen,
+  onClose,
+  onSave,
+  eventData,
+  companyName,
+  companyId,
+}) {
   const [eventName, setEventName] = useState("");
   const [locationName, setLocationName] = useState("");
   const [startDate, setStartDate] = useState("");
@@ -61,11 +68,19 @@ export default function EditEventModal({ isOpen, onClose, onSave, eventData }) {
         try {
           const response = await axios.get(
             "http://localhost:8080/api/headguard",
+            {
+              params: companyName ? { company: companyName } : {},
+            },
           );
-          const activeGuards = response.data.filter(
-            (guard) => guard.quit_date === null,
-          );
-          setHeadGuardsList(activeGuards);
+          if (Array.isArray(response.data)) {
+            const activeGuards = response.data.filter((guard) => {
+              if (guard.quit_date !== null) return false;
+              if (!companyName) return true;
+              const gComp = guard.company_name;
+              return !gComp || gComp === companyName;
+            });
+            setHeadGuardsList(activeGuards);
+          }
         } catch (error) {
           console.error("Error fetching head guards:", error);
         }
@@ -182,6 +197,7 @@ export default function EditEventModal({ isOpen, onClose, onSave, eventData }) {
       start_date: startDate,
       end_date: endDate,
       status: status,
+      company_id: companyId || eventData?.company_id,
     };
 
     if (onSave) onSave(payload);

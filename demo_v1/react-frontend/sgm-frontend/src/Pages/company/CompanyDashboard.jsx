@@ -32,7 +32,29 @@ function CompanyDashboard() {
   // ดึงข้อมูลบริษัทปัจจุบัน
   const userJson = localStorage.getItem("user");
   const currentUser = userJson ? JSON.parse(userJson) : null;
-  const currentCompanyName = currentUser?.username || "บริษัทรักษาความปลอดภัย";
+  const [companyProfile, setCompanyProfile] = useState(null);
+
+  useEffect(() => {
+    if (currentUser?.users_id) {
+      axios
+        .get(`http://localhost:8080/api/company/${currentUser.users_id}`)
+        .then((res) => {
+          if (res.data) {
+            setCompanyProfile(res.data);
+          }
+        })
+        .catch((err) => {
+          console.error("Error fetching company profile:", err);
+        });
+    }
+  }, [currentUser?.users_id]);
+
+  const currentCompanyName =
+    companyProfile?.company_name ||
+    currentUser?.company_name ||
+    currentUser?.first_name ||
+    currentUser?.username ||
+    "บริษัทรักษาความปลอดภัย";
 
   const isGuardMenu = activeMenu === "guard";
   const apiEndpoint = isGuardMenu ? "guard" : "headguard";
@@ -91,9 +113,32 @@ function CompanyDashboard() {
   const fetchHeadGuards = useCallback(async () => {
     try {
       setIsLoading(true);
-      const response = await axios.get("http://localhost:8080/api/headguard");
+      const queryCompany =
+        companyProfile?.company_name ||
+        currentUser?.company_name ||
+        companyProfile?.username ||
+        currentUser?.username ||
+        "";
+
+      const response = await axios.get("http://localhost:8080/api/headguard", {
+        params: queryCompany ? { company: queryCompany } : {},
+      });
+
       if (Array.isArray(response.data)) {
-        const formattedData = response.data.map((guard) => {
+        const filtered = response.data.filter((guard) => {
+          if (!queryCompany) return true;
+          const gComp = guard.company_name;
+          if (!gComp) return true;
+          return (
+            gComp === queryCompany ||
+            gComp === currentUser?.username ||
+            gComp === companyProfile?.username ||
+            gComp === currentUser?.company_name ||
+            gComp === companyProfile?.company_name
+          );
+        });
+
+        const formattedData = filtered.map((guard) => {
           const isActive = guard.quit_date === null;
           return {
             id: `HG-${guard.users_id ? guard.users_id.toString().padStart(3, "0") : "000"}`,
@@ -114,14 +159,42 @@ function CompanyDashboard() {
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [
+    companyProfile?.company_name,
+    companyProfile?.username,
+    currentUser?.company_name,
+    currentUser?.username,
+  ]);
 
   const fetchGuards = useCallback(async () => {
     try {
       setIsLoading(true);
-      const response = await axios.get("http://localhost:8080/api/guard");
+      const queryCompany =
+        companyProfile?.company_name ||
+        currentUser?.company_name ||
+        companyProfile?.username ||
+        currentUser?.username ||
+        "";
+
+      const response = await axios.get("http://localhost:8080/api/guard", {
+        params: queryCompany ? { company: queryCompany } : {},
+      });
+
       if (Array.isArray(response.data)) {
-        const formattedData = response.data.map((guard) => {
+        const filtered = response.data.filter((guard) => {
+          if (!queryCompany) return true;
+          const gComp = guard.company_name;
+          if (!gComp) return true;
+          return (
+            gComp === queryCompany ||
+            gComp === currentUser?.username ||
+            gComp === companyProfile?.username ||
+            gComp === currentUser?.company_name ||
+            gComp === companyProfile?.company_name
+          );
+        });
+
+        const formattedData = filtered.map((guard) => {
           const isActive = guard.quit_date === null;
           return {
             id: `G-${guard.users_id ? guard.users_id.toString().padStart(3, "0") : "000"}`,
@@ -143,17 +216,46 @@ function CompanyDashboard() {
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [
+    companyProfile?.company_name,
+    companyProfile?.username,
+    currentUser?.company_name,
+    currentUser?.username,
+  ]);
 
   // 🌟 ป้องกันกรณี response.data ไม่ใช่ Array
   const fetchEvents = useCallback(async () => {
     try {
       setIsLoading(true);
-      const response = await axios.get("http://localhost:8080/api/events");
+      const compId = companyProfile?.users_id || currentUser?.users_id;
+      const queryCompany =
+        companyProfile?.company_name ||
+        currentUser?.company_name ||
+        companyProfile?.username ||
+        currentUser?.username ||
+        "";
+
+      const response = await axios.get("http://localhost:8080/api/events", {
+        params: compId
+          ? { companyId: compId }
+          : queryCompany
+            ? { company: queryCompany }
+            : {},
+      });
+
       if (Array.isArray(response.data)) {
-        setEvents(response.data);
+        const filtered = response.data.filter((ev) => {
+          if (!compId) return true;
+          return ev.company_id == compId;
+        });
+        setEvents(filtered);
       } else if (response.data && typeof response.data === "object") {
-        setEvents([response.data]);
+        const item = response.data;
+        if (!compId || item.company_id == compId) {
+          setEvents([item]);
+        } else {
+          setEvents([]);
+        }
       } else {
         setEvents([]);
       }
@@ -163,7 +265,14 @@ function CompanyDashboard() {
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [
+    companyProfile?.users_id,
+    companyProfile?.company_name,
+    companyProfile?.username,
+    currentUser?.users_id,
+    currentUser?.company_name,
+    currentUser?.username,
+  ]);
 
   useEffect(() => {
     if (activeMenu === "headguard") {
@@ -322,6 +431,10 @@ function CompanyDashboard() {
 
   // 🌟 บรรทัดที่เคยพัง: ป้องกัน events ไม่ใช่ Array ก่อนเรียก .filter()
   const filteredEvents = (Array.isArray(events) ? events : []).filter((ev) => {
+    const compId = companyProfile?.users_id || currentUser?.users_id;
+    if (compId && ev.company_id != null && ev.company_id != compId) {
+      return false;
+    }
     const keyword = search.toLowerCase();
     return (
       ev.event_name?.toLowerCase().includes(keyword) ||
@@ -762,11 +875,18 @@ function CompanyDashboard() {
       <AddEventModal
         isOpen={isAddEventModalOpen}
         onClose={() => setIsAddEventModalOpen(false)}
+        companyName={currentCompanyName}
+        companyId={companyProfile?.users_id || currentUser?.users_id}
         onSave={async (payload) => {
           try {
+            const compId = companyProfile?.users_id || currentUser?.users_id;
+            const fullPayload = {
+              ...payload,
+              company_id: payload.company_id || compId,
+            };
             const response = await axios.post(
               "http://localhost:8080/api/events",
-              payload,
+              fullPayload,
             );
             if (response.status === 201 || response.status === 200) {
               alert("บันทึกข้อมูลงานอีเว้นท์เรียบร้อยแล้ว!");
@@ -791,11 +911,19 @@ function CompanyDashboard() {
         isOpen={isEditEventModalOpen}
         onClose={() => setIsEditEventModalOpen(false)}
         eventData={selectedEvent}
+        companyName={currentCompanyName}
+        companyId={companyProfile?.users_id || currentUser?.users_id}
         onSave={async (payload) => {
           try {
+            const compId = companyProfile?.users_id || currentUser?.users_id;
+            const fullPayload = {
+              ...payload,
+              company_id:
+                payload.company_id || selectedEvent?.company_id || compId,
+            };
             const response = await axios.put(
               `http://localhost:8080/api/events/${selectedEvent.event_id}`,
-              payload,
+              fullPayload,
             );
             if (response.status === 200) {
               alert("อัปเดตข้อมูลงานอีเว้นท์เรียบร้อยแล้ว!");

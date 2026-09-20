@@ -15,52 +15,50 @@ import java.util.List;
 @CrossOrigin(originPatterns = "*", allowCredentials = "true")
 public class HeadGuardController {
 
-    private final HeadGuardService headGuardService;
+        private final HeadGuardService headGuardService;
 
-    public HeadGuardController(HeadGuardService headGuardService) {
-        this.headGuardService = headGuardService;
-    }
+        public HeadGuardController(HeadGuardService headGuardService) {
+                this.headGuardService = headGuardService;
+        }
 
-    @PostMapping
-    public ResponseEntity<HeadGuard> createHeadGuard(
-            @RequestBody CreateHeadGuardRequest request
-    ) {
-        HeadGuard headGuard = headGuardService.createHeadGuard(request);
-        return ResponseEntity
-                .status(HttpStatus.CREATED)
-                .body(headGuard);
-    }
+        @PostMapping
+        public ResponseEntity<HeadGuard> createHeadGuard(
+                        @RequestBody CreateHeadGuardRequest request) {
+                HeadGuard headGuard = headGuardService.createHeadGuard(request);
+                return ResponseEntity
+                                .status(HttpStatus.CREATED)
+                                .body(headGuard);
+        }
 
-    @GetMapping
-    public ResponseEntity<List<HeadGuardResponse>> getAllHeadGuards() {
-        return ResponseEntity.ok(
-                headGuardService.getAllHeadGuardsResponse()
-        );
-    }
+        @GetMapping
+        public ResponseEntity<List<HeadGuardResponse>> getAllHeadGuards(
+                        @RequestParam(required = false) String company) {
+                if (company != null && !company.trim().isEmpty()) {
+                        return ResponseEntity.ok(
+                                        headGuardService.getHeadGuardsByCompanyResponse(company.trim()));
+                }
+                return ResponseEntity.ok(
+                                headGuardService.getAllHeadGuardsResponse());
+        }
 
-    @GetMapping("/active")
-    public ResponseEntity<List<HeadGuard>> getActiveHeadGuards() {
-        return ResponseEntity.ok(
-                headGuardService.getActiveHeadGuards()
-        );
-    }
+        @GetMapping("/active")
+        public ResponseEntity<List<HeadGuard>> getActiveHeadGuards() {
+                return ResponseEntity.ok(
+                                headGuardService.getActiveHeadGuards());
+        }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<HeadGuard> getHeadGuardById(
-            @PathVariable Integer id
-    ) {
-        return ResponseEntity.ok(
-                headGuardService.getHeadGuardById(id)
-        );
-    }
+        @GetMapping("/{id}")
+        public ResponseEntity<HeadGuard> getHeadGuardById(
+                        @PathVariable Integer id) {
+                return ResponseEntity.ok(
+                                headGuardService.getHeadGuardById(id));
+        }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<HeadGuard> updateHeadGuard(
-            @PathVariable Integer id,
-            @RequestBody HeadGuard headGuard
-    ) {
-        return ResponseEntity.ok(
-                headGuardService.updateHeadGuard(id, headGuard)
-        );
-    }
+        @PutMapping("/{id}")
+        public ResponseEntity<HeadGuard> updateHeadGuard(
+                        @PathVariable Integer id,
+                        @RequestBody HeadGuard headGuard) {
+                return ResponseEntity.ok(
+                                headGuardService.updateHeadGuard(id, headGuard));
+        }
 }

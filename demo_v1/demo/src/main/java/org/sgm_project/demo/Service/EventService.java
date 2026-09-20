@@ -2,9 +2,11 @@ package org.sgm_project.demo.Service;
 
 import org.sgm_project.demo.DTO.CreateEventRequest;
 import org.sgm_project.demo.DTO.ShiftTimeDTO;
+import org.sgm_project.demo.Model.Company;
 import org.sgm_project.demo.Model.Events;
 import org.sgm_project.demo.Model.HeadGuard;
 import org.sgm_project.demo.Model.ShiftTime;
+import org.sgm_project.demo.Repository.CompanyRepository;
 import org.sgm_project.demo.Repository.EventRepository;
 import org.sgm_project.demo.Repository.HeadGuardRepository; // 🌟 1. นำเข้า Repository นี้
 import org.springframework.stereotype.Service;
@@ -15,6 +17,7 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 @Service
@@ -22,16 +25,47 @@ public class EventService {
 
     private final EventRepository eventRepository;
     private final HeadGuardRepository headGuardRepository; // 🌟 2. เพิ่มตัวแปร
+    private final CompanyRepository companyRepository;
 
     // 🌟 3. Inject Repository เพิ่มผ่าน Constructor
-    public EventService(EventRepository eventRepository, HeadGuardRepository headGuardRepository) {
+    public EventService(
+            EventRepository eventRepository,
+            HeadGuardRepository headGuardRepository,
+            CompanyRepository companyRepository) {
         this.eventRepository = eventRepository;
         this.headGuardRepository = headGuardRepository;
+        this.companyRepository = companyRepository;
     }
 
     @Transactional(readOnly = true)
     public List<Events> getAllEvents() {
         return eventRepository.findAll();
+    }
+
+    @Transactional(readOnly = true)
+    public List<Events> getEventsByCompany(Integer companyId) {
+        if (companyId != null) {
+            return eventRepository.findByCompanyId(companyId);
+        }
+        return eventRepository.findAll();
+    }
+
+    @Transactional(readOnly = true)
+    public List<Events> getEventsByCompanyIdentifier(String companyIdentifier) {
+        if (companyIdentifier == null || companyIdentifier.trim().isEmpty()) {
+            return eventRepository.findAll();
+        }
+        try {
+            int cId = Integer.parseInt(companyIdentifier.trim());
+            return eventRepository.findByCompanyId(cId);
+        } catch (NumberFormatException ignored) {
+        }
+        return companyRepository.findAll().stream()
+                .filter(c -> companyIdentifier.equalsIgnoreCase(c.getUsername())
+                          || companyIdentifier.equalsIgnoreCase(c.getCompany_name()))
+                .findFirst()
+                .map(company -> eventRepository.findByCompanyId(company.getUsers_id()))
+                .orElseGet(List::of);
     }
 
     @Transactional(readOnly = true)
@@ -56,6 +90,7 @@ public class EventService {
         event.setRequired_tools(request.getRequired_tools());
         event.setProvided_tools(request.getProvided_tools());
         event.setRequired_guards(request.getRequired_guards());
+        event.setCompany_id(request.getCompany_id());
         //this is a shorthand if
         event.setStatus(request.getStatus() != null ? request.getStatus() : "PENDING");
         //setting default img
@@ -139,6 +174,10 @@ public class EventService {
         existingEvent.setRequired_tools(request.getRequired_tools());
         existingEvent.setProvided_tools(request.getProvided_tools());
         existingEvent.setRequired_guards(request.getRequired_guards());
+
+        if (request.getCompany_id() != null) {
+            existingEvent.setCompany_id(request.getCompany_id());
+        }
 
         if(request.getStatus() != null) {
             existingEvent.setStatus(request.getStatus());

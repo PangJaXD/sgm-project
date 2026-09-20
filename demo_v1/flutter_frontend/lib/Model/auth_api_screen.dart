@@ -11,7 +11,7 @@ class AuthApiService {
   static final List<String> _candidateUrls = Platform.isAndroid
       ? [
           'http://localhost:8080/api',
-          'http://10.10.13.130:8080/api',
+          'http://192.168.0.31:8080/api',
           'http://10.0.2.2:8080/api',
         ]
       : ['http://localhost:8080/api'];

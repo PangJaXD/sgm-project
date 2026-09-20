@@ -16,15 +16,13 @@ public class GuardService {
 
     public GuardService(
             GuardRepository guardRepository,
-            PasswordEncoder passwordEncoder
-    ) {
+            PasswordEncoder passwordEncoder) {
         this.guardRepository = guardRepository;
         this.passwordEncoder = passwordEncoder;
     }
 
     public Guards createGuard(
-            CreateGuardRequest request
-    ) {
+            CreateGuardRequest request) {
         org.sgm_project.demo.Util.UserValidationUtil.validateUsername(request.getUsername());
         org.sgm_project.demo.Util.UserValidationUtil.validatePassword(request.getPassword());
 
@@ -44,8 +42,7 @@ public class GuardService {
 
         // BCrypt
         guard.setPassword(
-                passwordEncoder.encode(request.getPassword())
-        );
+                passwordEncoder.encode(request.getPassword()));
 
         return guardRepository.save(guard);
     }
@@ -61,6 +58,10 @@ public class GuardService {
 
     public List<Guards> getActiveGuards() {
         return guardRepository.findActiveGuards();
+    }
+
+    public List<Guards> getGuardsByCompany(String company) {
+        return guardRepository.findByCompanyIdentifier(company);
     }
 
     public Guards updateGuard(Integer id, Guards guard) {

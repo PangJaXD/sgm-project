@@ -22,4 +22,8 @@ public interface EventRepository extends JpaRepository<Events, Integer> {
 
     @Query("SELECT DISTINCT e FROM Events e JOIN e.shift_times st WHERE st.headGuard.users_id = :headId")
     List<Events> findEventsByShiftHeadGuardId(@Param("headId") Integer headId);
+
+    @EntityGraph(attributePaths = {"required_tools", "provided_tools", "shift_times"})
+    @Query("SELECT DISTINCT e FROM Events e WHERE e.company_id = :companyId")
+    List<Events> findByCompanyId(@Param("companyId") Integer companyId);
 }

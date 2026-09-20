@@ -67,8 +67,8 @@ function AdminDashboard() {
     currentUser?.first_name || currentUser?.username || "Admin Master";
 
   // Regex rules from SRS & Logic Refine:
-  // Username: English or numbers, length 8-20, no spaces, not empty
-  const USERNAME_REGEX = /^[a-zA-Z0-9]{8,20}$/;
+  // Username: English or numbers + special characters [ !#_.- ], length 4-30, no spaces, not empty
+  const USERNAME_REGEX = /^[a-zA-Z0-9!#_.-]{4,30}$/;
   // Password: English or numbers + special characters [ !#_. ], length 8-16, no spaces, not empty
   const PASSWORD_REGEX = /^[a-zA-Z0-9!#_.]{8,16}$/;
 
@@ -150,11 +150,11 @@ function AdminDashboard() {
     if (u.includes(" ")) {
       return "ชื่อผู้ใช้งานต้องไม่มีเว้นวรรค หรือช่องว่าง";
     }
-    if (u.length < 8 || u.length > 20) {
-      return "ชื่อผู้ใช้งานต้องมีความยาวตั้งแต่ 8 ตัวอักษร และไม่เกิน 20 ตัวอักษร";
+    if (u.length < 4 || u.length > 30) {
+      return "ชื่อผู้ใช้งานต้องมีความยาวตั้งแต่ 4 ตัวอักษร และไม่เกิน 30 ตัวอักษร";
     }
     if (!USERNAME_REGEX.test(u)) {
-      return "ชื่อผู้ใช้งานต้องเป็นภาษาอังกฤษหรือตัวเลขเท่านั้น";
+      return "ชื่อผู้ใช้งานต้องเป็นภาษาอังกฤษ ตัวเลข หรืออักขระพิเศษ [ !#_.- ] เท่านั้น";
     }
 
     if (isPasswordRequired || (p && p.trim().length > 0)) {
@@ -184,7 +184,7 @@ function AdminDashboard() {
     const validationError = validateCredentials(
       formData.username,
       formData.password,
-      true
+      true,
     );
     if (validationError) {
       setFormError(validationError);
@@ -213,7 +213,10 @@ function AdminDashboard() {
     };
 
     try {
-      const res = await axios.post("http://localhost:8080/api/company", payload);
+      const res = await axios.post(
+        "http://localhost:8080/api/company",
+        payload,
+      );
       if (res.status === 201 || res.status === 200) {
         setIsAddModalOpen(false);
         fetchCompanies();
@@ -258,7 +261,7 @@ function AdminDashboard() {
     const validationError = validateCredentials(
       formData.username,
       formData.password,
-      false
+      false,
     );
     if (validationError) {
       setFormError(validationError);
@@ -289,7 +292,7 @@ function AdminDashboard() {
     try {
       const res = await axios.put(
         `http://localhost:8080/api/company/${editingId}`,
-        payload
+        payload,
       );
       if (res.status === 200) {
         setIsEditModalOpen(false);
@@ -492,8 +495,8 @@ function AdminDashboard() {
                       ข้อกำหนดชื่อผู้ใช้งาน (Username)
                     </p>
                     <ul className="list-disc list-inside space-y-1">
-                      <li>ภาษาอังกฤษหรือตัวเลขเท่านั้น [a-zA-Z0-9]</li>
-                      <li>ความยาว 8 ถึง 20 ตัวอักษร</li>
+                      <li>ภาษาอังกฤษ ตัวเลข หรืออักขระพิเศษ [ !#_.- ]</li>
+                      <li>ความยาว 4 ถึง 30 ตัวอักษร</li>
                       <li>ห้ามมีช่องว่าง หรือเว้นวรรค</li>
                       <li>ไม่เป็นค่าว่าง</li>
                     </ul>

@@ -11,6 +11,9 @@ class UserValidationUtilTest {
     void testValidUsername() {
         assertDoesNotThrow(() -> UserValidationUtil.validateUsername("thanareth1"));
         assertDoesNotThrow(() -> UserValidationUtil.validateUsername("company001"));
+        assertDoesNotThrow(() -> UserValidationUtil.validateUsername("user_name1"));
+        assertDoesNotThrow(() -> UserValidationUtil.validateUsername("admin_thanapat"));
+        assertDoesNotThrow(() -> UserValidationUtil.validateUsername("mr.kopp"));
         assertDoesNotThrow(() -> UserValidationUtil.validateUsername("12345678"));
         assertDoesNotThrow(() -> UserValidationUtil.validateUsername("abcdefghij1234567890"));
     }
@@ -25,15 +28,15 @@ class UserValidationUtilTest {
         // space inside
         assertThrows(IllegalArgumentException.class, () -> UserValidationUtil.validateUsername("user name123"));
 
-        // length < 8
-        assertThrows(IllegalArgumentException.class, () -> UserValidationUtil.validateUsername("short"));
+        // length < 4
+        assertThrows(IllegalArgumentException.class, () -> UserValidationUtil.validateUsername("abc"));
 
-        // length > 20
-        assertThrows(IllegalArgumentException.class, () -> UserValidationUtil.validateUsername("thisusernameiswaytoolongtobevalid123"));
+        // length > 30
+        assertThrows(IllegalArgumentException.class,
+                () -> UserValidationUtil.validateUsername("thisusernameiswaytoolongtobevalid1234567890"));
 
         // Thai or disallowed symbols
         assertThrows(IllegalArgumentException.class, () -> UserValidationUtil.validateUsername("ผู้ใช้งาน1234"));
-        assertThrows(IllegalArgumentException.class, () -> UserValidationUtil.validateUsername("user_name1"));
     }
 
     @Test
@@ -58,7 +61,8 @@ class UserValidationUtilTest {
         assertThrows(IllegalArgumentException.class, () -> UserValidationUtil.validatePassword("pass!1"));
 
         // length > 16
-        assertThrows(IllegalArgumentException.class, () -> UserValidationUtil.validatePassword("thispasswordiswaytoolong123!"));
+        assertThrows(IllegalArgumentException.class,
+                () -> UserValidationUtil.validatePassword("thispasswordiswaytoolong123!"));
 
         // Disallowed special chars (e.g. $, %, &)
         assertThrows(IllegalArgumentException.class, () -> UserValidationUtil.validatePassword("Password$123"));

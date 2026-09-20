@@ -12,14 +12,14 @@ import {
 function LoginPage() {
   const API_URL = "http://localhost:8080";
   const [role, setRole] = useState(() =>
-    window.location.pathname.includes("/admin") ? "admin" : "company"
+    window.location.pathname.includes("/admin") ? "admin" : "company",
   );
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
 
-  const USERNAME_REGEX = /^[a-zA-Z0-9]{8,20}$/;
+  const USERNAME_REGEX = /^[a-zA-Z0-9!#_.-]{4,30}$/;
   const PASSWORD_REGEX = /^[a-zA-Z0-9!#_.]{8,16}$/;
 
   const handleLogin = async (e) => {
@@ -34,12 +34,16 @@ function LoginPage() {
       setError("ชื่อผู้ใช้ต้องไม่มีเว้นวรรค หรือช่องว่าง");
       return;
     }
-    if (username.length < 8 || username.length > 20) {
-      setError("ชื่อผู้ใช้ต้องมีความยาวตั้งแต่ 8 ตัวอักษร และไม่เกิน 20 ตัวอักษร");
+    if (username.length < 4 || username.length > 30) {
+      setError(
+        "ชื่อผู้ใช้ต้องมีความยาวตั้งแต่ 4 ตัวอักษร และไม่เกิน 30 ตัวอักษร",
+      );
       return;
     }
     if (!USERNAME_REGEX.test(username)) {
-      setError("ชื่อผู้ใช้ต้องเป็นภาษาอังกฤษหรือตัวเลขเท่านั้น");
+      setError(
+        "ชื่อผู้ใช้ต้องเป็นภาษาอังกฤษ ตัวเลข หรืออักขระพิเศษ [ !#_.- ] เท่านั้น",
+      );
       return;
     }
 
@@ -52,11 +56,15 @@ function LoginPage() {
       return;
     }
     if (password.length < 8 || password.length > 16) {
-      setError("รหัสผ่านต้องมีความยาวตั้งแต่ 8 ตัวอักษร และไม่เกิน 16 ตัวอักษร");
+      setError(
+        "รหัสผ่านต้องมีความยาวตั้งแต่ 8 ตัวอักษร และไม่เกิน 16 ตัวอักษร",
+      );
       return;
     }
     if (!PASSWORD_REGEX.test(password)) {
-      setError("รหัสผ่านต้องเป็นตัวอักษรภาษาอังกฤษหรือตัวเลข รวมอักขระพิเศษ [ !#_. ]");
+      setError(
+        "รหัสผ่านต้องเป็นตัวอักษรภาษาอังกฤษหรือตัวเลข รวมอักขระพิเศษ [ !#_. ]",
+      );
       return;
     }
 

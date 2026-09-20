@@ -24,8 +24,7 @@ public class CompanyController {
 
     @PostMapping
     public ResponseEntity<CompanyResponse> createCompany(
-            @RequestBody CreateCompanyRequest request
-    ) {
+            @RequestBody CreateCompanyRequest request) {
         CompanyResponse company = companyService.createCompany(request);
         return ResponseEntity
                 .status(HttpStatus.CREATED)
@@ -45,8 +44,7 @@ public class CompanyController {
     @PutMapping("/{id}")
     public ResponseEntity<CompanyResponse> updateCompany(
             @PathVariable Integer id,
-            @RequestBody UpdateCompanyRequest request
-    ) {
+            @RequestBody UpdateCompanyRequest request) {
         return ResponseEntity.ok(companyService.updateCompany(id, request));
     }
 

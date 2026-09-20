@@ -17,15 +17,13 @@ public class HeadGuardService {
 
     public HeadGuardService(
             HeadGuardRepository headGuardRepository,
-            PasswordEncoder passwordEncoder
-    ) {
+            PasswordEncoder passwordEncoder) {
         this.headGuardRepository = headGuardRepository;
         this.passwordEncoder = passwordEncoder;
     }
 
     public HeadGuard createHeadGuard(
-            CreateHeadGuardRequest request
-    ) {
+            CreateHeadGuardRequest request) {
         org.sgm_project.demo.Util.UserValidationUtil.validateUsername(request.getUsername());
         org.sgm_project.demo.Util.UserValidationUtil.validatePassword(request.getPassword());
 
@@ -43,8 +41,7 @@ public class HeadGuardService {
 
         // BCrypt
         headGuard.setPassword(
-                passwordEncoder.encode(request.getPassword())
-        );
+                passwordEncoder.encode(request.getPassword()));
 
         return headGuardRepository.save(headGuard);
     }
@@ -79,8 +76,7 @@ public class HeadGuardService {
         existingHeadGuard.setPassword(passwordEncoder.encode(headGuard.getPassword()));
 
         existingHeadGuard.setPerformance_score(
-                headGuard.getPerformance_score()
-        );
+                headGuard.getPerformance_score());
 
         return headGuardRepository.save(existingHeadGuard);
     }
@@ -106,6 +102,14 @@ public class HeadGuardService {
     // ปรับ getAll ให้คืนค่าเป็น DTO
     public List<HeadGuardResponse> getAllHeadGuardsResponse() {
         return headGuardRepository.findAll()
+                .stream()
+                .map(this::mapToResponseDTO)
+                .toList();
+    }
+
+    // ดึงเฉพาะ HeadGuard ที่สังกัดบริษัทที่ระบุ
+    public List<HeadGuardResponse> getHeadGuardsByCompanyResponse(String company) {
+        return headGuardRepository.findByCompanyIdentifier(company)
                 .stream()
                 .map(this::mapToResponseDTO)
                 .toList();

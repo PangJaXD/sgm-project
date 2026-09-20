@@ -32,7 +32,13 @@ function LocationSelector({ position, setPosition }) {
   return position ? <Marker position={position} /> : null;
 }
 
-export default function AddEventModal({ isOpen, onClose, onSave }) {
+export default function AddEventModal({
+  isOpen,
+  onClose,
+  onSave,
+  companyName,
+  companyId,
+}) {
   const [eventName, setEventName] = useState("");
   const [locationName, setLocationName] = useState("");
   const [startDate, setStartDate] = useState("");
@@ -57,11 +63,19 @@ export default function AddEventModal({ isOpen, onClose, onSave }) {
     if (isOpen) {
       const fetchHeadGuards = async () => {
         try {
-          const response = await axios.get("http://localhost:8080/api/headguard");
+          const response = await axios.get(
+            "http://localhost:8080/api/headguard",
+            {
+              params: companyName ? { company: companyName } : {},
+            },
+          );
           if (Array.isArray(response.data)) {
-            const activeGuards = response.data.filter(
-              (guard) => guard.quit_date === null
-            );
+            const activeGuards = response.data.filter((guard) => {
+              if (guard.quit_date !== null) return false;
+              if (!companyName) return true;
+              const gComp = guard.company_name;
+              return !gComp || gComp === companyName;
+            });
             setHeadGuardsList(activeGuards);
           }
         } catch (error) {
@@ -145,7 +159,7 @@ export default function AddEventModal({ isOpen, onClose, onSave }) {
 
     const totalRequiredGuards = shifts.reduce(
       (sum, shift) => sum + (parseInt(shift.guards) || 0),
-      0
+      0,
     );
 
     const payload = {
@@ -163,6 +177,7 @@ export default function AddEventModal({ isOpen, onClose, onSave }) {
       start_date: startDate,
       end_date: endDate,
       status: status,
+      company_id: companyId,
     };
 
     if (onSave) onSave(payload);

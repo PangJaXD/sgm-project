@@ -31,6 +31,9 @@ public class CreateEventRequest {
     private String end_date;
 
     private String status; // <-- เพิ่มบรรทัดนี้
+
+    @JsonProperty("company_id")
+    private Integer company_id;
 }
 
 //@JsonProperty (Jackson): Maps a specific JSON key to a specific Java field

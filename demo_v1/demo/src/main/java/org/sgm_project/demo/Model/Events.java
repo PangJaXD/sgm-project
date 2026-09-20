@@ -55,6 +55,8 @@ public class Events {
     private Set<String> provided_tools;
     @Column(nullable = false)
     private Integer required_guards;
+    @Column(name = "company_id")
+    private Integer company_id;
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, mappedBy = "event")
     private Set<ShiftTime> shift_times;
 }

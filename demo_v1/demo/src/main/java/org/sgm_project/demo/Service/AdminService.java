@@ -28,8 +28,7 @@ public class AdminService {
             HeadGuardRepository headGuardRepository,
             GuardRepository guardRepository,
             EventRepository eventRepository,
-            PasswordEncoder passwordEncoder
-    ) {
+            PasswordEncoder passwordEncoder) {
         this.adminRepository = adminRepository;
         this.userRepository = userRepository;
         this.companyRepository = companyRepository;
