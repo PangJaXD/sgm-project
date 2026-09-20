@@ -1,9 +1,7 @@
-import React from "react";
 import {
   X,
   MapPin,
   CalendarDays,
-  Users,
   Shield,
   Image as ImageIcon,
 } from "lucide-react";

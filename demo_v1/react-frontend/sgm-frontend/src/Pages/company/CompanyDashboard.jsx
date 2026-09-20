@@ -7,7 +7,6 @@ import {
   Shield,
   Users,
   CalendarDays,
-  LogOut,
   Search,
   Plus,
   Eye,
@@ -16,7 +15,6 @@ import {
   Edit,
   PenSquare,
   MapPin,
-  Clock,
 } from "lucide-react";
 
 function CompanyDashboard() {
@@ -299,14 +297,7 @@ function CompanyDashboard() {
     } finally {
       setIsLoading(false);
     }
-  }, [
-    companyProfile?.users_id,
-    companyProfile?.company_name,
-    companyProfile?.username,
-    currentUser?.users_id,
-    currentUser?.company_name,
-    currentUser?.username,
-  ]);
+  }, [companyProfile, currentUser]);
 
   useEffect(() => {
     if (activeMenu === "headguard") {

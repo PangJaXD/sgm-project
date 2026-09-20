@@ -17,10 +17,6 @@ import {
   Building,
   CheckCircle2,
   AlertCircle,
-  Clock,
-  Phone,
-  Mail,
-  MapPin,
 } from "lucide-react";
 
 function AdminDashboard() {

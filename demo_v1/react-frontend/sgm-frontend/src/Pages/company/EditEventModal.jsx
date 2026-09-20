@@ -1,9 +1,8 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import axios from "axios";
 import {
   X,
   MapPin,
-  CalendarDays,
   Plus,
   Users,
   Shield,
@@ -155,7 +154,7 @@ export default function EditEventModal({
         }
       }
     }
-  }, [isOpen, eventData]);
+  }, [isOpen, eventData, companyName]);
 
   if (!isOpen) return null;
 

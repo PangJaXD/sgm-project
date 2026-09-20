@@ -70,18 +70,37 @@ public class HeadGuardDashboardService {
 
         List<Report> reports;
         if (headGuardId != null) {
-            if (shiftIds.isEmpty()) {
-                return Collections.emptyList();
+            if (!shiftIds.isEmpty()) {
+                reports = reportRepository.findAbnormalReportsByShiftIds(shiftIds);
+                if (reports.isEmpty()) {
+                    reports = reportRepository.findAbnormalReportsByHeadGuardId(headGuardId);
+                }
+            } else {
+                reports = reportRepository.findAbnormalReportsByHeadGuardId(headGuardId);
             }
-            reports = reportRepository.findAbnormalReportsByShiftIds(shiftIds);
         } else {
             reports = reportRepository.findAbnormalReports();
         }
 
         for (Report r : reports) {
-            String eventName = shiftToEventName.getOrDefault(r.getShift_id(), "ไม่ระบุชื่องาน");
-            r.setEventName(eventName);
-            r.setEvent_name(eventName);
+            String name = null;
+            if (r.getShift_id() != null && shiftToEventName.containsKey(r.getShift_id())) {
+                name = shiftToEventName.get(r.getShift_id());
+            }
+            if ((name == null || name.equals("ไม่ระบุชื่องาน")) && r.getShift() != null && r.getShift().getEvent() != null) {
+                name = r.getShift().getEvent().getEvent_name();
+            }
+            if ((name == null || name.equals("ไม่ระบุชื่องาน")) && r.getShift_id() != null) {
+                var stOpt = shiftTimeRepository.findById(r.getShift_id());
+                if (stOpt.isPresent() && stOpt.get().getEvent() != null) {
+                    name = stOpt.get().getEvent().getEvent_name();
+                }
+            }
+            if (name == null || name.trim().isEmpty()) {
+                name = "ไม่ระบุชื่องาน";
+            }
+            r.setEventName(name);
+            r.setEvent_name(name);
         }
         return reports;
     }

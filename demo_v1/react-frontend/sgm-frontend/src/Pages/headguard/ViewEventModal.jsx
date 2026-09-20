@@ -35,7 +35,9 @@ export default function ViewEventModal({
         const [h, m] = timePart.split(":");
         return `${h}.${m} น.`;
       }
-    } catch (e) {}
+    } catch {
+      // ignore invalid time format
+    }
     return timeStr;
   };
 

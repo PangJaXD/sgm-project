@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import axios from "axios";
 import {
   X,
@@ -106,7 +106,7 @@ export default function AddEventModal({
         },
       ]);
     }
-  }, [isOpen]);
+  }, [isOpen, companyName]);
 
   if (!isOpen) return null;
 

@@ -15,6 +15,16 @@ public interface ReportRepository extends JpaRepository<Report, Integer> {
     @Query("SELECT r FROM Report r LEFT JOIN FETCH r.shift st LEFT JOIN FETCH st.event e WHERE r.is_normal = false ORDER BY r.report_time DESC")
     List<Report> findAbnormalReports();
 
+    // ดึงรายงานฉุกเฉินเฉพาะที่มาจากกะ/อีเวนต์ที่ HeadGuard รับผิดชอบ
+    @Query("SELECT r FROM Report r " +
+            "LEFT JOIN FETCH r.shift st " +
+            "LEFT JOIN FETCH st.event e " +
+            "WHERE r.is_normal = false " +
+            "AND (st.headGuard.users_id = :headGuardId OR e.event_id IN " +
+            "  (SELECT DISTINCT ev.event_id FROM Events ev JOIN ev.shift_times st2 WHERE st2.headGuard.users_id = :headGuardId)) "
+            +
+            "ORDER BY r.report_time DESC")
+    List<Report> findAbnormalReportsByHeadGuardId(@Param("headGuardId") Integer headGuardId);
     // ดึงรายงานฉุกเฉินเฉพาะที่มาจากกะที่ระบุ (ตรงตาม shift_id ของ HeadGuard)
     @Query("SELECT r FROM Report r WHERE r.shift_id IN :shiftIds AND r.is_normal = false ORDER BY r.report_time DESC")
     List<Report> findAbnormalReportsByShiftIds(@Param("shiftIds") List<Integer> shiftIds);
