@@ -10,7 +10,8 @@ import {
 export default function ViewRequestModal({ isOpen, onClose, requestData }) {
   if (!isOpen || !requestData) return null;
 
-  const eventName = requestData.eventName || requestData.event_name || "ไม่ระบุชื่องาน";
+  const eventName =
+    requestData.eventName || requestData.event_name || "ไม่ระบุชื่องาน";
 
   return (
     <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50">
@@ -49,7 +50,9 @@ export default function ViewRequestModal({ isOpen, onClose, requestData }) {
           <div className="bg-blue-50/80 p-3.5 rounded-xl border border-blue-200/60 flex items-center gap-2.5">
             <CalendarDays size={18} className="text-blue-600 shrink-0" />
             <div className="min-w-0">
-              <p className="text-[11px] text-blue-600 font-medium">งานอีเว้นท์ที่เกิดเหตุ</p>
+              <p className="text-[11px] text-blue-600 font-medium">
+                งานอีเว้นท์ที่เกิดเหตุ
+              </p>
               <p className="font-bold text-gray-800 text-[13px] truncate">
                 {eventName}
               </p>

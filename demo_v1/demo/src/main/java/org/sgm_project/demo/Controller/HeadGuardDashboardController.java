@@ -85,8 +85,7 @@ public class HeadGuardDashboardController {
                 body.get("status"),
                 body.get("latitude"),
                 body.get("longitude"),
-                body.get("description")
-        );
+                body.get("description"));
         return ResponseEntity.ok().build();
     }
 
@@ -98,5 +97,5 @@ public class HeadGuardDashboardController {
     }
 }
 
-//THIS CONTROLLER IS FOR HEAD-GUARD-DASHBOARD NOTHING RELATED TO HEAD-GUARD
-//mostly it does everything on headguard-dashboard page
+// THIS CONTROLLER IS FOR HEAD-GUARD-DASHBOARD NOTHING RELATED TO HEAD-GUARD
+// mostly it does everything on headguard-dashboard page

@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import axios from "axios";
 import ViewGuardModal from "./ViewGuardModal";
 import ViewRequestModal from "./ViewRequestModal";
@@ -32,7 +32,8 @@ function HeadGuardDashboard() {
   const [isViewGuardModalOpen, setIsViewGuardModalOpen] = useState(false);
   const [isViewRequestModalOpen, setIsViewRequestModalOpen] = useState(false);
   const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
-  const [isViewAssignmentModalOpen, setIsViewAssignmentModalOpen] = useState(false);
+  const [isViewAssignmentModalOpen, setIsViewAssignmentModalOpen] =
+    useState(false);
 
   const [selectedGuard, setSelectedGuard] = useState(null);
   const [selectedRequest, setSelectedRequest] = useState(null);
@@ -74,7 +75,7 @@ function HeadGuardDashboard() {
     try {
       setIsLoading(true);
       const response = await axios.get(
-        `http://localhost:8080/api/headguard-dashboard/guards?headName=${encodeURIComponent(headGuardName)}`
+        `http://localhost:8080/api/headguard-dashboard/guards?headName=${encodeURIComponent(headGuardName)}`,
       );
       const formattedData = response.data.map((guard) => {
         const isActive = guard.quit_date === null;
@@ -101,7 +102,7 @@ function HeadGuardDashboard() {
     try {
       setIsLoading(true);
       const response = await axios.get(
-        `http://localhost:8080/api/headguard-dashboard/${headGuardId}/shifts`
+        `http://localhost:8080/api/headguard-dashboard/${headGuardId}/shifts`,
       );
       setShifts(response.data);
     } catch (error) {
@@ -114,18 +115,29 @@ function HeadGuardDashboard() {
   const fetchRequests = useCallback(async () => {
     try {
       setIsLoading(true);
-      const response = await axios.get(
-        `http://localhost:8080/api/headguard-dashboard/requests?headGuardId=${headGuardId}`
-      );
-      setRequests(response.data);
+      const [reqRes, shiftRes] = await Promise.all([
+        axios.get(
+          `http://localhost:8080/api/headguard-dashboard/requests?headGuardId=${headGuardId}`,
+        ),
+        shifts.length === 0
+          ? axios.get(
+              `http://localhost:8080/api/headguard-dashboard/${headGuardId}/shifts`,
+            )
+          : Promise.resolve(null),
+      ]);
+      setRequests(reqRes.data);
+      if (shiftRes && shiftRes.data) {
+        setShifts(shiftRes.data);
+      }
     } catch (error) {
       console.error("Error fetching requests:", error);
     } finally {
       setIsLoading(false);
     }
-  }, [headGuardId]);
+  }, [headGuardId, shifts.length]);
 
   useEffect(() => {
+    fetchShifts();
     if (activeMenu === "guard") fetchGuards();
     else if (activeMenu === "event") fetchShifts();
     else if (activeMenu === "request") fetchRequests();
@@ -134,27 +146,60 @@ function HeadGuardDashboard() {
   const filteredGuards = guards.filter(
     (g) =>
       g.name.toLowerCase().includes(search.toLowerCase()) ||
-      g.id.toLowerCase().includes(search.toLowerCase())
+      g.id.toLowerCase().includes(search.toLowerCase()),
   );
-  
+
   const filteredShifts = shifts.filter(
     (sh) =>
       sh.eventName?.toLowerCase().includes(search.toLowerCase()) ||
-      sh.location?.toLowerCase().includes(search.toLowerCase())
+      sh.location?.toLowerCase().includes(search.toLowerCase()),
   );
 
-  const filteredRequests = requests.filter((req) => {
+  // 🌟 Map เก็บ shiftId -> eventName จาก shifts ของ HeadGuard
+  const shiftMap = useMemo(() => {
+    const map = new Map();
+    shifts.forEach((s) => {
+      if (s.shiftId != null) {
+        map.set(Number(s.shiftId), s.eventName || "-");
+      }
+    });
+    return map;
+  }, [shifts]);
+
+  const filteredRequests = useMemo(() => {
     const q = search.toLowerCase();
-    const type = (req.report_type || "").toLowerCase();
-    const desc = (req.report_desc || "").toLowerCase();
-    const evName = (req.eventName || req.event_name || "").toLowerCase();
-    return type.includes(q) || desc.includes(q) || evName.includes(q);
-  });
+    return requests
+      .filter((req) => {
+        // 🌟 กรองเฉพาะ Report ที่มี shift_id อยู่ในกะที่ HeadGuard คนนี้รับผิดชอบ
+        if (shiftMap.size > 0 && req.shift_id != null) {
+          if (!shiftMap.has(Number(req.shift_id))) {
+            return false;
+          }
+        }
+        const type = (req.report_type || "").toLowerCase();
+        const desc = (req.report_desc || "").toLowerCase();
+        const evName = (
+          req.eventName ||
+          req.event_name ||
+          shiftMap.get(Number(req.shift_id)) ||
+          ""
+        ).toLowerCase();
+        return type.includes(q) || desc.includes(q) || evName.includes(q);
+      })
+      .map((req) => ({
+        ...req,
+        eventName:
+          req.eventName ||
+          req.event_name ||
+          shiftMap.get(Number(req.shift_id)) ||
+          "ไม่ระบุชื่องาน",
+      }));
+  }, [requests, shiftMap, search]);
 
   const fetchAssignments = useCallback(async (shiftId) => {
     try {
       const response = await axios.get(
-        `http://localhost:8080/api/headguard-dashboard/shifts/${shiftId}/assignments`
+        `http://localhost:8080/api/headguard-dashboard/shifts/${shiftId}/assignments`,
       );
       const formattedList = response.data.map((a) => ({
         id: a.assignment_id,
@@ -182,7 +227,7 @@ function HeadGuardDashboard() {
     try {
       await axios.put(
         `http://localhost:8080/api/headguard-dashboard/assignments/${assignmentId}/status`,
-        { status: "ACTUAL" }
+        { status: "ACTUAL" },
       );
       fetchAssignments(selectedShiftDetail.shiftId);
     } catch (error) {
@@ -200,7 +245,7 @@ function HeadGuardDashboard() {
           longitude: updatedData.longitude,
           description: updatedData.description,
           status: "ASSIGNED",
-        }
+        },
       );
       setIsAssignModalOpen(false);
       fetchAssignments(selectedShiftDetail.shiftId);
@@ -313,7 +358,8 @@ function HeadGuardDashboard() {
                       ช่วงเวลา {selectedShiftDetail.workTime} จำนวน{" "}
                       {
                         assignmentsList.filter(
-                          (a) => a.status === "ACTUAL" || a.status === "ASSIGNED"
+                          (a) =>
+                            a.status === "ACTUAL" || a.status === "ASSIGNED",
                         ).length
                       }
                       /{selectedShiftDetail.totalGuards || 6}
@@ -333,15 +379,21 @@ function HeadGuardDashboard() {
                   </div>
 
                   {assignmentsList
-                    .filter((a) => a.status === "ACTUAL" || a.status === "ASSIGNED")
+                    .filter(
+                      (a) => a.status === "ACTUAL" || a.status === "ASSIGNED",
+                    )
                     .map((item) => (
                       <div
                         key={item.id}
                         className="grid grid-cols-[120px_1.5fr_1.5fr_120px] h-[48px] items-center border-t border-gray-300 text-[12px] px-6"
                       >
-                        <div className="font-medium text-gray-700">{item.guardId}</div>
+                        <div className="font-medium text-gray-700">
+                          {item.guardId}
+                        </div>
                         <div>{item.guardName}</div>
-                        <div className="font-semibold text-gray-800">{item.time}</div>
+                        <div className="font-semibold text-gray-800">
+                          {item.time}
+                        </div>
                         <div className="flex justify-center">
                           {item.status === "ACTUAL" ? (
                             <button
@@ -395,9 +447,13 @@ function HeadGuardDashboard() {
                         className="grid grid-cols-[60px_120px_1.5fr_1.5fr_120px] h-[48px] items-center border-t border-gray-300 text-[12px] px-6"
                       >
                         <div className="text-gray-500">{index + 1}</div>
-                        <div className="font-medium text-gray-700">{item.guardId}</div>
+                        <div className="font-medium text-gray-700">
+                          {item.guardId}
+                        </div>
                         <div>{item.guardName}</div>
-                        <div className="font-semibold text-gray-800">{item.time}</div>
+                        <div className="font-semibold text-gray-800">
+                          {item.time}
+                        </div>
                         <div className="flex justify-center">
                           <button
                             onClick={() => moveToActual(item.id)}
@@ -459,7 +515,9 @@ function HeadGuardDashboard() {
                         key={g.id}
                         className="grid grid-cols-[120px_1.5fr_1.5fr_1fr_1fr_60px] min-h-[48px] items-center border-t border-gray-200 text-[12px] px-6 hover:bg-gray-50 transition"
                       >
-                        <div className="text-center font-medium text-gray-700">{g.id}</div>
+                        <div className="text-center font-medium text-gray-700">
+                          {g.id}
+                        </div>
                         <div>{g.name}</div>
                         <div>{g.experience}</div>
                         <div className="flex items-center gap-2">
@@ -510,11 +568,14 @@ function HeadGuardDashboard() {
                             <div className="mb-4">
                               <span
                                 className={`inline-block px-3 py-1 text-[10px] font-bold rounded-full ${
-                                  shift.status === "ONGOING" || shift.status === "กำลังดำเนินการ"
+                                  shift.status === "ONGOING" ||
+                                  shift.status === "กำลังดำเนินการ"
                                     ? "bg-[#00d1b2] text-white"
-                                    : shift.status === "COMPLETED" || shift.status === "เสร็จสิ้น"
+                                    : shift.status === "COMPLETED" ||
+                                        shift.status === "เสร็จสิ้น"
                                       ? "bg-green-500 text-white"
-                                      : shift.status === "CANCELLED" || shift.status === "ยกเลิก"
+                                      : shift.status === "CANCELLED" ||
+                                          shift.status === "ยกเลิก"
                                         ? "bg-red-500 text-white"
                                         : "bg-[#ffd700] text-gray-900"
                                 }`}
@@ -537,20 +598,31 @@ function HeadGuardDashboard() {
                             </h3>
 
                             <div className="flex items-center gap-2 text-gray-600 text-[11px] mb-2">
-                              <MapPin size={14} className="text-gray-400 shrink-0" />
+                              <MapPin
+                                size={14}
+                                className="text-gray-400 shrink-0"
+                              />
                               <span className="truncate">{shift.location}</span>
                             </div>
 
                             <div className="flex items-center gap-2 text-gray-600 text-[11px] mb-1">
-                              <CalendarDays size={14} className="text-gray-400 shrink-0" />
+                              <CalendarDays
+                                size={14}
+                                className="text-gray-400 shrink-0"
+                              />
                               <span>
-                                เริ่ม <span className="ml-2">{shift.startDate}</span>
+                                เริ่ม{" "}
+                                <span className="ml-2">{shift.startDate}</span>
                               </span>
                             </div>
                             <div className="flex items-center gap-2 text-gray-600 text-[11px] mb-4">
-                              <CalendarDays size={14} className="text-gray-400 shrink-0" />
+                              <CalendarDays
+                                size={14}
+                                className="text-gray-400 shrink-0"
+                              />
                               <span>
-                                สิ้นสุด <span className="ml-1">{shift.endDate}</span>
+                                สิ้นสุด{" "}
+                                <span className="ml-1">{shift.endDate}</span>
                               </span>
                             </div>
 
@@ -565,7 +637,10 @@ function HeadGuardDashboard() {
                               หัวหน้าหน่วยที่รับผิดชอบ
                             </p>
                             <div className="flex items-center gap-1.5 text-gray-800 font-medium text-[12px]">
-                              <ShieldCheck size={16} className="text-blue-600" />
+                              <ShieldCheck
+                                size={16}
+                                className="text-blue-600"
+                              />
                               <span>{shift.headGuardName}</span>
                             </div>
                           </div>
@@ -604,15 +679,26 @@ function HeadGuardDashboard() {
                         <div className="text-gray-600 font-medium">
                           {new Date(req.report_time).toLocaleString("th-TH")}
                         </div>
-                        <div className="flex items-center gap-1.5 font-semibold text-gray-800 truncate pr-2" title={req.eventName || req.event_name}>
-                          <CalendarDays size={14} className="text-blue-500 shrink-0" />
-                          <span className="truncate">{req.eventName || req.event_name || "-"}</span>
+                        <div
+                          className="flex items-center gap-1.5 font-semibold text-gray-800 truncate pr-2"
+                          title={req.eventName || req.event_name}
+                        >
+                          <CalendarDays
+                            size={14}
+                            className="text-blue-500 shrink-0"
+                          />
+                          <span className="truncate">
+                            {req.eventName || req.event_name || "-"}
+                          </span>
                         </div>
                         <div className="flex items-center gap-2 font-bold text-red-600 truncate pr-2">
                           <AlertCircle size={15} className="shrink-0" />
                           <span className="truncate">{req.report_type}</span>
                         </div>
-                        <div className="truncate pr-4 text-gray-700" title={req.report_desc}>
+                        <div
+                          className="truncate pr-4 text-gray-700"
+                          title={req.report_desc}
+                        >
                           {req.report_desc}
                         </div>
                         <div>

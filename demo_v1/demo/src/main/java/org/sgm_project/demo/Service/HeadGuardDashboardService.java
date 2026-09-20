@@ -7,10 +7,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-
 
 //sry i did not take to gemini very well
 //he creates this madness to fuck up my brain
@@ -41,26 +43,45 @@ public class HeadGuardDashboardService {
     }
 
     public List<Report> getUrgentRequests(Integer headGuardId) {
+        List<ShiftTime> shifts;
+        if (headGuardId != null) {
+            shifts = shiftTimeRepository.findByHeadGuardId(headGuardId);
+        } else {
+            shifts = shiftTimeRepository.findAll();
+        }
+
+        if (headGuardId != null && (shifts == null || shifts.isEmpty())) {
+            return Collections.emptyList();
+        }
+
+        Map<Integer, String> shiftToEventName = new HashMap<>();
+        List<Integer> shiftIds = new ArrayList<>();
+        if (shifts != null) {
+            for (ShiftTime st : shifts) {
+                if (st.getShift_id() != null) {
+                    shiftIds.add(st.getShift_id());
+                    String evName = (st.getEvent() != null && st.getEvent().getEvent_name() != null)
+                            ? st.getEvent().getEvent_name()
+                            : "ไม่ระบุชื่องาน";
+                    shiftToEventName.put(st.getShift_id(), evName);
+                }
+            }
+        }
+
         List<Report> reports;
         if (headGuardId != null) {
-            reports = reportRepository.findAbnormalReportsByHeadGuardId(headGuardId);
+            if (shiftIds.isEmpty()) {
+                return Collections.emptyList();
+            }
+            reports = reportRepository.findAbnormalReportsByShiftIds(shiftIds);
         } else {
             reports = reportRepository.findAbnormalReports();
         }
 
         for (Report r : reports) {
-            if (r.getShift() != null && r.getShift().getEvent() != null) {
-                r.setEventName(r.getShift().getEvent().getEvent_name());
-            } else if (r.getShift_id() != null) {
-                shiftTimeRepository.findById(r.getShift_id()).ifPresent(st -> {
-                    if (st.getEvent() != null) {
-                        r.setEventName(st.getEvent().getEvent_name());
-                    }
-                });
-            }
-            if (r.getEventName() == null || r.getEventName().trim().isEmpty()) {
-                r.setEventName("ไม่ระบุชื่องาน");
-            }
+            String eventName = shiftToEventName.getOrDefault(r.getShift_id(), "ไม่ระบุชื่องาน");
+            r.setEventName(eventName);
+            r.setEvent_name(eventName);
         }
         return reports;
     }
@@ -84,7 +105,8 @@ public class HeadGuardDashboardService {
         assignmentsRepository.save(assignment);
     }
 
-    public void updateAssignmentDetail(Integer assignmentId, String status, String latitude, String longitude, String description) {
+    public void updateAssignmentDetail(Integer assignmentId, String status, String latitude, String longitude,
+            String description) {
         Assignments assignment = assignmentsRepository.findById(assignmentId)
                 .orElseThrow(() -> new RuntimeException("Assignment not found"));
         assignment.setAssignment_status(status);
@@ -95,14 +117,14 @@ public class HeadGuardDashboardService {
     }
 
     public void createAssignment(org.sgm_project.demo.DTO.AssignmentRequest request) {
-        //first we gonna get ids from mobile side
+        // first we gonna get ids from mobile side
         ShiftTime shift = shiftTimeRepository.findById(request.getShift_id())
                 .orElseThrow(() -> new RuntimeException("Shift not found"));
 
         Guards guard = guardRepository.findById(request.getGuard_id())
                 .orElseThrow(() -> new RuntimeException("Guard not found"));
 
-        //second we inject the request to assignment
+        // second we inject the request to assignment
         Assignments newAssignment = new Assignments();
         newAssignment.setAssignment_status(request.getAssignment_status());
         newAssignment.setRequest_date(java.time.LocalDateTime.now());
@@ -125,13 +147,15 @@ public class HeadGuardDashboardService {
 
             // Format เวลาทำงาน (Start - End)
             String workTimeFormatted = (shift.getStart_time() != null && shift.getEnd_time() != null)
-                    ? shift.getStart_time().format(timeFormatter) + " - " + shift.getEnd_time().format(timeFormatter) + " น."
+                    ? shift.getStart_time().format(timeFormatter) + " - " + shift.getEnd_time().format(timeFormatter)
+                            + " น."
                     : "ไม่ระบุเวลา";
 
             // นับจำนวน รปภ. ในกะนี้
             int assignedGuardsCount = assignmentsRepository.countByShiftId(shift.getShift_id());
 
-            // 🌟 รวมชื่อ-นามสกุลของ HeadGuard (ดึงจาก first_name และ last_name ในคลาส Users)
+            // 🌟 รวมชื่อ-นามสกุลของ HeadGuard (ดึงจาก first_name และ last_name ในคลาส
+            // Users)
             String headFullName = "ยังไม่ระบุหัวหน้า";
             if (shift.getHeadGuard() != null) {
                 String fName = shift.getHeadGuard().getFirst_name() != null ? shift.getHeadGuard().getFirst_name() : "";
@@ -143,8 +167,11 @@ public class HeadGuardDashboardService {
             Events event = shift.getEvent();
             String eventName = event != null ? event.getEvent_name() : "ไม่ระบุชื่องาน";
             String location = event != null ? event.getLocation() : "ไม่ระบุสถานที่";
-            String startDate = (event != null && event.getStart_date() != null) ? event.getStart_date().format(dateFormatter) : "-";
-            String endDate = (event != null && event.getEnd_date() != null) ? event.getEnd_date().format(dateFormatter) : "-";
+            String startDate = (event != null && event.getStart_date() != null)
+                    ? event.getStart_date().format(dateFormatter)
+                    : "-";
+            String endDate = (event != null && event.getEnd_date() != null) ? event.getEnd_date().format(dateFormatter)
+                    : "-";
             String status = event != null ? event.getStatus() : "PENDING";
 
             return ShiftTimeDashboardResponse.builder()
