@@ -42,7 +42,7 @@ class UserService extends ChangeNotifier {
     notifyListeners();
   }
 
-  void setUserFromLoginResponse(Map<String, dynamic> data) {
+  Future<void> setUserFromLoginResponse(Map<String, dynamic> data) async {
     _currentUser = UserModel(
       usersId: data['users_id'] ?? _currentUser.usersId,
       username: data['username'] ?? _currentUser.username,
@@ -59,7 +59,10 @@ class UserService extends ChangeNotifier {
     notifyListeners();
 
     if (data['users_id'] != null && data['role'] != null) {
-      fetchUserProfile(data['users_id'], data['role']);
+      await fetchUserProfile(
+        data['users_id'] as int,
+        data['role']?.toString(),
+      );
     }
   }
 

@@ -30,4 +30,12 @@ public interface EventRepository extends JpaRepository<Events, Integer> {
     @EntityGraph(attributePaths = { "required_tools", "provided_tools", "shift_times" })
     @Query("SELECT DISTINCT e FROM Events e LEFT JOIN e.shift_times st LEFT JOIN st.headGuard hg WHERE hg.company_name = :companyName")
     List<Events> findEventsByCompanyName(@Param("companyName") String companyName);
+
+    @EntityGraph(attributePaths = { "required_tools", "provided_tools", "shift_times" })
+    @Query("SELECT DISTINCT e FROM Events e JOIN e.shift_times st WHERE CONCAT(st.headGuard.first_name, ' ', st.headGuard.last_name) = :headName OR st.headGuard.username = :headName")
+    List<Events> findEventsByHeadName(@Param("headName") String headName);
+
+    @EntityGraph(attributePaths = { "required_tools", "provided_tools", "shift_times" })
+    @Query("SELECT DISTINCT e FROM Events e JOIN e.shift_times st WHERE CONCAT(st.headGuard.first_name, ' ', st.headGuard.last_name) = (SELECT g.head_name FROM Guards g WHERE g.users_id = :guardId)")
+    List<Events> findEventsByGuardId(@Param("guardId") Integer guardId);
 }

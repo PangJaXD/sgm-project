@@ -159,22 +159,57 @@ public class AssignmentController {
                 request.getDescription() != null ? request.getDescription() : "รอการมอบหมายจุดปฏิบัติการ");
         newAssignment.setShift(shift);
         newAssignment.setGuard(guard);
+        if (shift.getHeadGuard() != null) {
+            newAssignment.setHeadGuard(shift.getHeadGuard());
+        }
 
         Assignments saved = assignmentRepository.save(newAssignment);
         return ResponseEntity.status(HttpStatus.CREATED).body(mapAssignmentToDTO(saved));
     }
 
-    // 4. ถอนตัวจากกะงาน (POST /api/assignment/{id}/withdraw)
+    // 4. ถอนตัวจากกะงาน (POST /api/assignment/{id}/withdraw หรือ POST /api/assignment/withdraw)
     @PostMapping("/{id}/withdraw")
     @Transactional
     public ResponseEntity<?> withdrawAssignment(
             @PathVariable Integer id,
-            @RequestBody(required = false) Map<String, String> body) {
-        Assignments assignment = assignmentRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Assignment", "id", id));
+            @RequestBody(required = false) Map<String, Object> body) {
+        Assignments assignment = null;
+        if (body != null && body.containsKey("guard_id")) {
+            try {
+                int gId = Integer.parseInt(body.get("guard_id").toString());
+                assignment = assignmentRepository.findByGuardIdAndShiftId(gId, id).orElse(null);
+            } catch (Exception ignored) {}
+        }
+        if (assignment == null) {
+            assignment = assignmentRepository.findById(id).orElse(null);
+        }
+        if (assignment == null) {
+            throw new ResourceNotFoundException("Assignment", "id", id);
+        }
 
         assignment.setAssignment_status("WITHDRAWN");
         if (body != null && body.containsKey("reason")) {
+            assignment.setDescription("ถอนตัว: " + body.get("reason")
+                    + (body.containsKey("details") ? " (" + body.get("details") + ")" : ""));
+        }
+        assignmentRepository.save(assignment);
+        return ResponseEntity.ok(Map.of("message", "ถอนตัวจากการปฏิบัติหน้าที่เรียบร้อยแล้ว"));
+    }
+
+    @PostMapping("/withdraw")
+    @Transactional
+    public ResponseEntity<?> withdrawByGuardAndShift(
+            @RequestBody Map<String, Object> body) {
+        if (body == null || !body.containsKey("guard_id") || !body.containsKey("shift_id")) {
+            throw new IllegalArgumentException("guard_id และ shift_id ต้องไม่เป็นค่าว่าง");
+        }
+        int gId = Integer.parseInt(body.get("guard_id").toString());
+        int sId = Integer.parseInt(body.get("shift_id").toString());
+        Assignments assignment = assignmentRepository.findByGuardIdAndShiftId(gId, sId)
+                .orElseThrow(() -> new ResourceNotFoundException("Assignment for guard " + gId + " and shift", "id", sId));
+
+        assignment.setAssignment_status("WITHDRAWN");
+        if (body.containsKey("reason")) {
             assignment.setDescription("ถอนตัว: " + body.get("reason")
                     + (body.containsKey("details") ? " (" + body.get("details") + ")" : ""));
         }

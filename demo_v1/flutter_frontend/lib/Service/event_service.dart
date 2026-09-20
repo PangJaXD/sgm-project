@@ -240,9 +240,25 @@ class EventService {
   final Set<int> requestedShiftIds = {};
 
   /// 1. Fetch all events from Spring Boot database: GET /api/events
-  Future<List<EventModel>> fetchEvents() async {
+  Future<List<EventModel>> fetchEvents({
+    int? guardId,
+    String? headName,
+    String? company,
+  }) async {
     try {
-      final response = await _createDio().get('/events');
+      final queryParams = <String, dynamic>{};
+      if (guardId != null && guardId > 0) queryParams['guardId'] = guardId;
+      if (headName != null && headName.trim().isNotEmpty) {
+        queryParams['headName'] = headName.trim();
+      }
+      if (company != null && company.trim().isNotEmpty) {
+        queryParams['company'] = company.trim();
+      }
+
+      final response = await _createDio().get(
+        '/events',
+        queryParameters: queryParams.isNotEmpty ? queryParams : null,
+      );
       if (response.statusCode == 200 && response.data is List) {
         return (response.data as List)
             .map((json) => EventModel.fromJson(json as Map<String, dynamic>))
@@ -260,9 +276,22 @@ class EventService {
   }
 
   /// 2. Fetch shifts for a specific event: GET /api/events/{id}/shifts
-  Future<List<ShiftTimeModel>> fetchEventShifts(int eventId) async {
+  Future<List<ShiftTimeModel>> fetchEventShifts(
+    int eventId, {
+    int? guardId,
+    String? headName,
+  }) async {
     try {
-      final response = await _createDio().get('/events/$eventId/shifts');
+      final queryParams = <String, dynamic>{};
+      if (guardId != null && guardId > 0) queryParams['guardId'] = guardId;
+      if (headName != null && headName.trim().isNotEmpty) {
+        queryParams['headName'] = headName.trim();
+      }
+
+      final response = await _createDio().get(
+        '/events/$eventId/shifts',
+        queryParameters: queryParams.isNotEmpty ? queryParams : null,
+      );
       if (response.statusCode == 200 && response.data is List) {
         return (response.data as List)
             .map(
@@ -315,15 +344,16 @@ class EventService {
       if (response.statusCode == 200 && response.data is List) {
         final list = (response.data as List);
         if (list.isNotEmpty) {
-          // If shiftId is given, search for that shift's assignment
           if (shiftId != null) {
-            final match = list.firstWhere(
-              (item) => item['shift_id'] == shiftId,
-              orElse: () => list.first,
-            );
-            return AssignmentModel.fromJson(match as Map<String, dynamic>);
+            final match = list
+                .where((item) => item['shift_id'] == shiftId)
+                .firstOrNull;
+            if (match != null) {
+              return AssignmentModel.fromJson(match as Map<String, dynamic>);
+            }
+          } else {
+            return AssignmentModel.fromJson(list.first as Map<String, dynamic>);
           }
-          return AssignmentModel.fromJson(list.first as Map<String, dynamic>);
         }
       }
     } on DioException catch (e) {
@@ -373,18 +403,40 @@ class EventService {
     return false;
   }
 
-  /// 6. Withdraw from shift: POST /api/assignment/{id}/withdraw
+  /// 6. Withdraw from shift: POST /api/assignment/withdraw
   Future<bool> withdrawShiftRequest({
-    required int assignmentId,
+    int? assignmentId,
+    int? guardId,
+    int? shiftId,
     required String reason,
     required String details,
   }) async {
     try {
-      final response = await _createDio().post(
-        '/assignment/$assignmentId/withdraw',
-        data: {'reason': reason, 'details': details},
-      );
+      Response response;
+      if (guardId != null && shiftId != null) {
+        response = await _createDio().post(
+          '/assignment/withdraw',
+          data: {
+            'guard_id': guardId,
+            'shift_id': shiftId,
+            'reason': reason,
+            'details': details,
+          },
+        );
+      } else {
+        response = await _createDio().post(
+          '/assignment/${assignmentId ?? shiftId}/withdraw',
+          data: {
+            'guard_id': ?guardId,
+            'reason': reason,
+            'details': details,
+          },
+        );
+      }
       if (response.statusCode == 200) {
+        if (shiftId != null) {
+          requestedShiftIds.remove(shiftId);
+        }
         return true;
       }
     } on DioException catch (e) {

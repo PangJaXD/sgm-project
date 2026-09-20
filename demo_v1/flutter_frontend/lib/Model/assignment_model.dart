@@ -2,6 +2,7 @@ class AssignmentModel {
   final int assignmentId;
   final int guardId;
   final int shiftId;
+  final int? eventId;
   final String
   assignmentStatus; // ASSIGNED (ตัวจริง), RESERVE (ตัวสำรอง), WITHDRAWN
   final String description;
@@ -20,6 +21,7 @@ class AssignmentModel {
     required this.assignmentId,
     required this.guardId,
     required this.shiftId,
+    this.eventId,
     required this.assignmentStatus,
     required this.description,
     this.latitude = 18.898446,
@@ -58,11 +60,15 @@ class AssignmentModel {
 
     final shiftIdVal = json['shift_id'] ?? json['shiftId'] ?? 0;
     final shiftTitle = json['shift_name'] ?? 'กะงานที่ $shiftIdVal';
+    final parsedEventId = json['event_id'] != null
+        ? int.tryParse(json['event_id'].toString())
+        : (json['eventId'] != null ? int.tryParse(json['eventId'].toString()) : null);
 
     return AssignmentModel(
       assignmentId: json['assignment_id'] ?? json['id'] ?? 0,
       guardId: json['guard_id'] ?? 0,
       shiftId: shiftIdVal,
+      eventId: parsedEventId,
       assignmentStatus: json['assignment_status'] ?? 'ASSIGNED',
       description:
           json['description'] ?? 'เดินตรวจตราพื้นที่และดูแลความเรียบร้อย',
@@ -114,6 +120,7 @@ class AssignmentModel {
     'assignment_id': assignmentId,
     'guard_id': guardId,
     'shift_id': shiftId,
+    'event_id': eventId,
     'assignment_status': assignmentStatus,
     'description': description,
     'latitude': latitude.toString(),

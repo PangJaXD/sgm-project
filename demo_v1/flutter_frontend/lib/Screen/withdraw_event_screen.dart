@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../Service/api_exception.dart';
 import '../Service/event_service.dart';
+import '../Service/user_service.dart';
 
 class WithdrawEventScreen extends StatefulWidget {
   final EventModel event;
@@ -51,8 +52,10 @@ class _WithdrawEventScreenState extends State<WithdrawEventScreen> {
     setState(() => _isSubmitting = true);
 
     try {
+      final user = UserService().currentUser;
       await _eventService.withdrawShiftRequest(
-        assignmentId: widget.shift.shiftId,
+        guardId: user.usersId,
+        shiftId: widget.shift.shiftId,
         reason: _selectedReason!,
         details: _detailController.text.trim(),
       );

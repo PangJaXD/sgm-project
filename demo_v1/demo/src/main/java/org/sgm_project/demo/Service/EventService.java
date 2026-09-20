@@ -4,11 +4,13 @@ import org.sgm_project.demo.DTO.CreateEventRequest;
 import org.sgm_project.demo.DTO.ShiftTimeDTO;
 import org.sgm_project.demo.Model.Company;
 import org.sgm_project.demo.Model.Events;
+import org.sgm_project.demo.Model.Guards;
 import org.sgm_project.demo.Model.HeadGuard;
 import org.sgm_project.demo.Model.ShiftTime;
 import org.sgm_project.demo.Repository.CompanyRepository;
 import org.sgm_project.demo.Repository.EventRepository;
-import org.sgm_project.demo.Repository.HeadGuardRepository; // 🌟 1. นำเข้า Repository นี้
+import org.sgm_project.demo.Repository.GuardRepository;
+import org.sgm_project.demo.Repository.HeadGuardRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,22 +26,67 @@ import java.util.Set;
 public class EventService {
 
     private final EventRepository eventRepository;
-    private final HeadGuardRepository headGuardRepository; // 🌟 2. เพิ่มตัวแปร
+    private final HeadGuardRepository headGuardRepository;
     private final CompanyRepository companyRepository;
+    private final GuardRepository guardRepository;
 
-    // 🌟 3. Inject Repository เพิ่มผ่าน Constructor
     public EventService(
             EventRepository eventRepository,
             HeadGuardRepository headGuardRepository,
-            CompanyRepository companyRepository) {
+            CompanyRepository companyRepository,
+            GuardRepository guardRepository) {
         this.eventRepository = eventRepository;
         this.headGuardRepository = headGuardRepository;
         this.companyRepository = companyRepository;
+        this.guardRepository = guardRepository;
     }
 
     @Transactional(readOnly = true)
     public List<Events> getAllEvents() {
         return eventRepository.findAll();
+    }
+
+    @Transactional(readOnly = true)
+    public List<Events> getEventsForGuardOrTeam(Integer guardId, Integer headId, String headName, String company) {
+        if (headId != null) {
+            List<Events> evts = eventRepository.findEventsByShiftHeadGuardId(headId);
+            if (!evts.isEmpty()) return evts;
+        }
+
+        if (guardId != null) {
+            List<Events> guardEvents = eventRepository.findEventsByGuardId(guardId);
+            if (guardEvents != null && !guardEvents.isEmpty()) {
+                return guardEvents;
+            }
+            Optional<Guards> gOpt = guardRepository.findById(guardId);
+            if (gOpt.isPresent()) {
+                Guards g = gOpt.get();
+                if (g.getHead_name() != null && !g.getHead_name().trim().isEmpty()) {
+                    List<Events> byHead = eventRepository.findEventsByHeadName(g.getHead_name().trim());
+                    if (!byHead.isEmpty()) return byHead;
+                }
+                if (g.getCompany_name() != null && !g.getCompany_name().trim().isEmpty()) {
+                    return getEventsByCompanyIdentifier(g.getCompany_name().trim());
+                }
+            }
+        }
+
+        if (headName != null && !headName.trim().isEmpty()) {
+            List<Events> byHead = eventRepository.findEventsByHeadName(headName.trim());
+            if (!byHead.isEmpty()) return byHead;
+        }
+
+        if (company != null && !company.trim().isEmpty()) {
+            return getEventsByCompanyIdentifier(company.trim());
+        }
+
+        return getAllEvents();
+    }
+
+    @Transactional(readOnly = true)
+    public String getHeadNameForGuard(Integer guardId) {
+        if (guardId == null) return null;
+        return guardRepository.findById(guardId).map(Guards::getHead_name).orElse(null);
     }
 
     @Transactional(readOnly = true)

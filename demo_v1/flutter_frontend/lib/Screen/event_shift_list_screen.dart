@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../Service/event_service.dart';
+import '../Service/user_service.dart';
 import './send_request_screen.dart';
 import './shift_detail_screen.dart';
 
@@ -26,7 +27,12 @@ class _EventShiftListScreenState extends State<EventShiftListScreen> {
   Future<void> _loadShifts() async {
     setState(() => _isLoading = true);
     try {
-      final shifts = await _eventService.fetchEventShifts(widget.event.id);
+      final user = UserService().currentUser;
+      final shifts = await _eventService.fetchEventShifts(
+        widget.event.id,
+        guardId: user.usersId,
+        headName: user.headName,
+      );
       if (mounted) {
         setState(() {
           _shifts = shifts.isNotEmpty ? shifts : widget.event.shiftTimes;

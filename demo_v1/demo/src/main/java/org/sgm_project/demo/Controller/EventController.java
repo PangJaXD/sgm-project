@@ -20,11 +20,17 @@ public class EventController {
         this.eventService = eventService;
     }
 
-    // 1. ดึงข้อมูลงานทั้งหมด (GET /api/events?companyId=... หรือ ?company=...)
+    // 1. ดึงข้อมูลงานทั้งหมด (GET /api/events?companyId=... หรือ ?company=... หรือ ?guardId=... หรือ ?headName=...)
     @GetMapping
     public ResponseEntity<List<Events>> getAllEvents(
             @RequestParam(required = false) Integer companyId,
-            @RequestParam(required = false) String company) {
+            @RequestParam(required = false) String company,
+            @RequestParam(required = false) Integer guardId,
+            @RequestParam(required = false) Integer headId,
+            @RequestParam(required = false) String headName) {
+        if (guardId != null || headId != null || (headName != null && !headName.trim().isEmpty())) {
+            return ResponseEntity.ok(eventService.getEventsForGuardOrTeam(guardId, headId, headName, company));
+        }
         if (companyId != null) {
             return ResponseEntity.ok(eventService.getEventsByCompany(companyId));
         }
@@ -64,12 +70,35 @@ public class EventController {
 
     // 6. ดึงกะงานทั้งหมดของอีเวนต์นี้ (GET /api/events/{id}/shifts)
     @GetMapping("/{id}/shifts")
-    public ResponseEntity<List<java.util.Map<String, Object>>> getEventShifts(@PathVariable Integer id) {
+    public ResponseEntity<List<java.util.Map<String, Object>>> getEventShifts(
+            @PathVariable Integer id,
+            @RequestParam(required = false) Integer guardId,
+            @RequestParam(required = false) Integer headId,
+            @RequestParam(required = false) String headName) {
         Events event = eventService.getEventById(id);
         List<java.util.Map<String, Object>> result = new java.util.ArrayList<>();
 
+        String resolvedHeadName = headName;
+        if ((resolvedHeadName == null || resolvedHeadName.trim().isEmpty()) && guardId != null) {
+            resolvedHeadName = eventService.getHeadNameForGuard(guardId);
+        }
+
         if (event.getShift_times() != null) {
             for (org.sgm_project.demo.Model.ShiftTime st : event.getShift_times()) {
+                // Filter by headGuard if requested
+                if (headId != null && st.getHeadGuard() != null && !headId.equals(st.getHeadGuard().getUsers_id())) {
+                    continue;
+                }
+                if (resolvedHeadName != null && !resolvedHeadName.trim().isEmpty() && st.getHeadGuard() != null) {
+                    String hgFullName = (st.getHeadGuard().getFirst_name() != null ? st.getHeadGuard().getFirst_name() : "") + " "
+                            + (st.getHeadGuard().getLast_name() != null ? st.getHeadGuard().getLast_name() : "");
+                    hgFullName = hgFullName.trim();
+                    String hgUsername = st.getHeadGuard().getUsername() != null ? st.getHeadGuard().getUsername().trim() : "";
+                    if (!resolvedHeadName.trim().equalsIgnoreCase(hgFullName) && !resolvedHeadName.trim().equalsIgnoreCase(hgUsername)) {
+                        continue;
+                    }
+                }
+
                 java.util.Map<String, Object> map = new java.util.LinkedHashMap<>();
                 map.put("shift_id", st.getShift_id());
                 map.put("event_id", event.getEvent_id());
@@ -94,6 +123,36 @@ public class EventController {
                 map.put("title", "กะงานที่ " + st.getShift_id());
 
                 result.add(map);
+            }
+
+            // Fallback: If strict filtering resulted in 0 shifts (e.g. shifts have no headGuard assigned yet), return all shifts for the event
+            if (result.isEmpty() && !event.getShift_times().isEmpty()) {
+                for (org.sgm_project.demo.Model.ShiftTime st : event.getShift_times()) {
+                    java.util.Map<String, Object> map = new java.util.LinkedHashMap<>();
+                    map.put("shift_id", st.getShift_id());
+                    map.put("event_id", event.getEvent_id());
+                    map.put("event_name", event.getEvent_name());
+                    map.put("shift_date", st.getShift_date() != null ? st.getShift_date().toString() : null);
+                    map.put("start_time", st.getStart_time() != null ? st.getStart_time().toString() : null);
+                    map.put("end_time", st.getEnd_time() != null ? st.getEnd_time().toString() : null);
+                    map.put("maximum_guards", st.getMaximum_guards());
+
+                    int currentCount = 0;
+                    if (st.getAssignment() != null) {
+                        currentCount = (int) st.getAssignment().stream()
+                                .filter(a -> !"WITHDRAWN".equalsIgnoreCase(a.getAssignment_status()))
+                                .count();
+                    }
+                    map.put("current_guards", currentCount);
+                    map.put("available_slots", Math.max(0, st.getMaximum_guards() - currentCount));
+                    map.put("status", currentCount >= st.getMaximum_guards() ? "FULL" : "OPEN");
+
+                    String dutyLoc = event.getLocation();
+                    map.put("duty_location", dutyLoc != null ? dutyLoc : "จุดตรวจหลัก");
+                    map.put("title", "กะงานที่ " + st.getShift_id());
+
+                    result.add(map);
+                }
             }
         }
 

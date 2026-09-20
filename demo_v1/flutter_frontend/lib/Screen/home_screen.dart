@@ -57,7 +57,11 @@ class _HomeScreenState extends State<HomeScreen> {
 
     try {
       final user = UserService().currentUser;
-      final eventsFuture = _eventService.fetchEvents();
+      final eventsFuture = _eventService.fetchEvents(
+        guardId: user.usersId,
+        headName: user.headName,
+        company: user.companyName,
+      );
       final assignmentFuture = _eventService.fetchActiveAssignment(
         user.usersId,
       );
@@ -86,11 +90,15 @@ class _HomeScreenState extends State<HomeScreen> {
 
   EventModel _getEventForAssignment(AssignmentModel assign) {
     final match = _events
-        .where((e) => e.title == assign.eventName || e.id == assign.shiftId)
+        .where(
+          (e) =>
+              (assign.eventId != null && e.id == assign.eventId) ||
+              e.title == assign.eventName,
+        )
         .firstOrNull;
     if (match != null) return match;
     return EventModel(
-      id: assign.shiftId,
+      id: assign.eventId ?? assign.shiftId,
       title: assign.eventName,
       location: assign.dutyLocation,
     );
@@ -682,28 +690,11 @@ class _HomeScreenState extends State<HomeScreen> {
                                 ),
                               ),
                             );
-                          } else if (_events.isNotEmpty) {
-                            final firstEvent = _events.first;
-                            final firstShift = firstEvent.shiftTimes.isNotEmpty
-                                ? firstEvent.shiftTimes.first
-                                : ShiftTimeModel(
-                                    shiftId: 0,
-                                    dutyLocation: firstEvent.location,
-                                  );
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => ReportSituationScreen(
-                                  event: firstEvent,
-                                  shift: firstShift,
-                                ),
-                              ),
-                            );
                           } else {
                             ScaffoldMessenger.of(context).showSnackBar(
                               const SnackBar(
                                 content: Text(
-                                  'กรุณาเลือกงานอีเวนต์ก่อนส่งรายงานสถานการณ์',
+                                  'คุณยังไม่มีกะงานที่เข้าปฏิบัติหน้าที่ กรุณาเลือกกะงานที่ได้รับมอบหมายก่อนส่งรายงาน',
                                 ),
                               ),
                             );

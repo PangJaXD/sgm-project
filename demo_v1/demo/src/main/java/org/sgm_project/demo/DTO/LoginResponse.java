@@ -18,4 +18,9 @@ public class LoginResponse {
     private String first_name;
     private String last_name;
     private String company_name;
+    private String head_name;
+
+    public LoginResponse(Integer users_id, String username, String role, String first_name, String last_name, String company_name) {
+        this(users_id, username, role, first_name, last_name, company_name, null);
+    }
 }

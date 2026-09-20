@@ -39,6 +39,7 @@ public class AuthService {
         // we check this for grants permission to do other things
         String role;
         String companyName = null;
+        String headName = null;
         if (user instanceof Admin) {
             role = "ADMIN";
         } else if (user instanceof Company) {
@@ -50,6 +51,7 @@ public class AuthService {
         } else if (user instanceof Guards) {
             role = "GUARD";
             companyName = ((Guards) user).getCompany_name();
+            headName = ((Guards) user).getHead_name();
         } else {
             throw new RuntimeException("Unsupported user role");
         }
@@ -62,6 +64,7 @@ public class AuthService {
                 role,
                 user.getFirst_name(), // ส่งชื่อ
                 user.getLast_name(), // ส่งนามสกุล
-                companyName);
+                companyName,
+                headName);
     }
 }

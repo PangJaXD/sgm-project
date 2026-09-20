@@ -315,14 +315,29 @@ def generate_full_dataset():
     active_shifts = [s for e in data["events"] if e["status"] == "ONGOING" for s in e["shifts"]]
     all_shifts = [s for e in data["events"] for s in e["shifts"]]
 
-    # Pick 30 distinct guards from the first 100 guards to assign
-    sampled_guards = random.sample(data["guards"][:200], 30)
+    # Build map of headguard_username -> guards belonging to that headguard's team
+    hg_to_guards = {}
+    for g in data["guards"]:
+        hg_u = g["headguard_username"]
+        if hg_u not in hg_to_guards:
+            hg_to_guards[hg_u] = []
+        hg_to_guards[hg_u].append(g)
 
+    eligible_shifts = [s for s in active_shifts if s["headguard_username"] in hg_to_guards and len(hg_to_guards[s["headguard_username"]]) > 0]
+    if not eligible_shifts:
+        eligible_shifts = [s for s in all_shifts if s["headguard_username"] in hg_to_guards and len(hg_to_guards[s["headguard_username"]]) > 0]
+
+    assigned_guard_usernames = set()
     for a_idx in range(30):
         # 15 ASSIGNED, 15 RESERVE
         status = "ASSIGNED" if a_idx < 15 else "RESERVE"
-        guard = sampled_guards[a_idx]
-        shift = active_shifts[a_idx % len(active_shifts)]
+        shift = eligible_shifts[a_idx % len(eligible_shifts)]
+        team_guards = hg_to_guards.get(shift["headguard_username"], [])
+
+        unassigned = [g for g in team_guards if g["username"] not in assigned_guard_usernames]
+        guard = unassigned[0] if unassigned else random.choice(team_guards)
+        assigned_guard_usernames.add(guard["username"])
+
         desc = random.choice(assignment_descriptions)
         req_dt = CURRENT_TIME - datetime.timedelta(hours=random.randint(1, 48))
 

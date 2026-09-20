@@ -40,11 +40,13 @@ class _LoginScreenState extends State<LoginScreen> {
         debugPrint('Login success, token: $token');
 
         if (response.data is Map<String, dynamic>) {
-          UserService().setUserFromLoginResponse(
+          await UserService().setUserFromLoginResponse(
             response.data as Map<String, dynamic>,
           );
         }
-        Navigator.pushReplacementNamed(context, '/home');
+        if (mounted) {
+          Navigator.pushReplacementNamed(context, '/home');
+        }
       }
     } catch (e) {
       if (mounted) {
