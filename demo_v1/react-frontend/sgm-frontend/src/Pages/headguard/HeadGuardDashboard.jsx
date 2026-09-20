@@ -115,7 +115,7 @@ function HeadGuardDashboard() {
     try {
       setIsLoading(true);
       const response = await axios.get(
-        `http://localhost:8080/api/headguard-dashboard/requests`
+        `http://localhost:8080/api/headguard-dashboard/requests?headGuardId=${headGuardId}`
       );
       setRequests(response.data);
     } catch (error) {
@@ -123,7 +123,7 @@ function HeadGuardDashboard() {
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [headGuardId]);
 
   useEffect(() => {
     if (activeMenu === "guard") fetchGuards();
@@ -143,9 +143,13 @@ function HeadGuardDashboard() {
       sh.location?.toLowerCase().includes(search.toLowerCase())
   );
 
-  const filteredRequests = requests.filter((req) =>
-    req.report_type?.toLowerCase().includes(search.toLowerCase())
-  );
+  const filteredRequests = requests.filter((req) => {
+    const q = search.toLowerCase();
+    const type = (req.report_type || "").toLowerCase();
+    const desc = (req.report_desc || "").toLowerCase();
+    const evName = (req.eventName || req.event_name || "").toLowerCase();
+    return type.includes(q) || desc.includes(q) || evName.includes(q);
+  });
 
   const fetchAssignments = useCallback(async (shiftId) => {
     try {
@@ -575,8 +579,9 @@ function HeadGuardDashboard() {
               {/* Tab: Request */}
               {activeMenu === "request" && (
                 <div className="w-full border border-red-300 rounded-xl overflow-hidden bg-white shadow-sm">
-                  <div className="grid grid-cols-[150px_1fr_2fr_1fr_60px] h-[44px] bg-red-500 text-white items-center text-[12px] font-medium px-6">
+                  <div className="grid grid-cols-[140px_1.2fr_1fr_1.8fr_100px_50px] h-[44px] bg-red-500 text-white items-center text-[12px] font-medium px-6">
                     <div>เวลาแจ้งเหตุ</div>
+                    <div>ชื่องานอีเว้นท์</div>
                     <div>ประเภทคำร้องขอ</div>
                     <div>รายละเอียด</div>
                     <div>สถานะ</div>
@@ -594,16 +599,20 @@ function HeadGuardDashboard() {
                     filteredRequests.map((req, index) => (
                       <div
                         key={req.report_id || index}
-                        className="grid grid-cols-[150px_1fr_2fr_1fr_60px] min-h-[48px] items-center border-t border-gray-200 text-[12px] px-6 hover:bg-red-50 transition"
+                        className="grid grid-cols-[140px_1.2fr_1fr_1.8fr_100px_50px] min-h-[48px] items-center border-t border-gray-200 text-[12px] px-6 hover:bg-red-50 transition"
                       >
                         <div className="text-gray-600 font-medium">
                           {new Date(req.report_time).toLocaleString("th-TH")}
                         </div>
-                        <div className="flex items-center gap-2 font-bold text-red-600">
-                          <AlertCircle size={15} />
-                          {req.report_type}
+                        <div className="flex items-center gap-1.5 font-semibold text-gray-800 truncate pr-2" title={req.eventName || req.event_name}>
+                          <CalendarDays size={14} className="text-blue-500 shrink-0" />
+                          <span className="truncate">{req.eventName || req.event_name || "-"}</span>
                         </div>
-                        <div className="truncate pr-4 text-gray-700">
+                        <div className="flex items-center gap-2 font-bold text-red-600 truncate pr-2">
+                          <AlertCircle size={15} className="shrink-0" />
+                          <span className="truncate">{req.report_type}</span>
+                        </div>
+                        <div className="truncate pr-4 text-gray-700" title={req.report_desc}>
                           {req.report_desc}
                         </div>
                         <div>

@@ -254,7 +254,10 @@ export default function ViewEventModal({ isOpen, onClose, eventData }) {
                     className="bg-gray-50 p-4 rounded-xl border border-gray-200"
                   >
                     <p className="text-[#2864e8] font-semibold mb-3">
-                      กะที่ {idx + 1} : วันที่ {shift.shift_date?.split("T")[0] || shift.start_time?.split("T")[0] || "-"}
+                      กะที่ {idx + 1} : วันที่{" "}
+                      {shift.shift_date?.split("T")[0] ||
+                        shift.start_time?.split("T")[0] ||
+                        "-"}
                     </p>
                     <div className="grid grid-cols-2 gap-4">
                       {/* เพิ่มบล็อกนี้เข้าไปใน Card แสดงกะงานของ ViewEventModal.jsx */}

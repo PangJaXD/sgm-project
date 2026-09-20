@@ -96,7 +96,15 @@ export default function AddEventModal({
       setPosition(null);
       setRequiredTools(["", "", ""]);
       setProvidedTools(["", "", ""]);
-      setShifts([{ guards: "", shiftDate: "", startTime: "", endTime: "", headGuard: "" }]);
+      setShifts([
+        {
+          guards: "",
+          shiftDate: "",
+          startTime: "",
+          endTime: "",
+          headGuard: "",
+        },
+      ]);
     }
   }, [isOpen]);
 
@@ -123,7 +131,13 @@ export default function AddEventModal({
   const handleAddShift = () => {
     setShifts([
       ...shifts,
-      { guards: "", shiftDate: startDate || "", startTime: "", endTime: "", headGuard: "" },
+      {
+        guards: "",
+        shiftDate: startDate || "",
+        startTime: "",
+        endTime: "",
+        headGuard: "",
+      },
     ]);
   };
 

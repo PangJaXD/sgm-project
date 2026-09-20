@@ -144,7 +144,13 @@ export default function EditEventModal({
           setShifts(mappedShifts);
         } else {
           setShifts([
-            { guards: "", shiftDate: "", startTime: "", endTime: "", headGuard: "" },
+            {
+              guards: "",
+              shiftDate: "",
+              startTime: "",
+              endTime: "",
+              headGuard: "",
+            },
           ]);
         }
       }
@@ -159,7 +165,13 @@ export default function EditEventModal({
   const handleAddShift = () => {
     setShifts([
       ...shifts,
-      { guards: "", shiftDate: startDate || "", startTime: "", endTime: "", headGuard: "" },
+      {
+        guards: "",
+        shiftDate: startDate || "",
+        startTime: "",
+        endTime: "",
+        headGuard: "",
+      },
     ]);
   };
 

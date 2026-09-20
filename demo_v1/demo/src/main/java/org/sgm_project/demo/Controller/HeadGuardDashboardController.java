@@ -49,8 +49,14 @@ public class HeadGuardDashboardController {
 
     // ดึงคำร้องขอ/แจ้งเหตุฉุกเฉิน (เมนูคำร้องขอ)
     @GetMapping("/requests")
-    public ResponseEntity<List<Report>> getUrgentRequests() {
-        List<Report> urgentReports = dashboardService.getUrgentRequests();
+    public ResponseEntity<List<Report>> getUrgentRequests(@RequestParam(required = false) Integer headGuardId) {
+        List<Report> urgentReports = dashboardService.getUrgentRequests(headGuardId);
+        return ResponseEntity.ok(urgentReports);
+    }
+
+    @GetMapping("/{headGuardId}/requests")
+    public ResponseEntity<List<Report>> getUrgentRequestsByHeadGuard(@PathVariable Integer headGuardId) {
+        List<Report> urgentReports = dashboardService.getUrgentRequests(headGuardId);
         return ResponseEntity.ok(urgentReports);
     }
 

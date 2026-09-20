@@ -40,8 +40,33 @@ public class HeadGuardDashboardService {
         return eventsRepository.findEventsByShiftHeadGuardId(headId);
     }
 
+    public List<Report> getUrgentRequests(Integer headGuardId) {
+        List<Report> reports;
+        if (headGuardId != null) {
+            reports = reportRepository.findAbnormalReportsByHeadGuardId(headGuardId);
+        } else {
+            reports = reportRepository.findAbnormalReports();
+        }
+
+        for (Report r : reports) {
+            if (r.getShift() != null && r.getShift().getEvent() != null) {
+                r.setEventName(r.getShift().getEvent().getEvent_name());
+            } else if (r.getShift_id() != null) {
+                shiftTimeRepository.findById(r.getShift_id()).ifPresent(st -> {
+                    if (st.getEvent() != null) {
+                        r.setEventName(st.getEvent().getEvent_name());
+                    }
+                });
+            }
+            if (r.getEventName() == null || r.getEventName().trim().isEmpty()) {
+                r.setEventName("ไม่ระบุชื่องาน");
+            }
+        }
+        return reports;
+    }
+
     public List<Report> getUrgentRequests() {
-        return reportRepository.findAbnormalReports();
+        return getUrgentRequests(null);
     }
 
     // ==========================================
