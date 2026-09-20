@@ -14,20 +14,20 @@ import java.util.Optional;
 public interface EventRepository extends JpaRepository<Events, Integer> {
 
     // ดึงข้อมูลทั้งหมดพร้อมกับ tools และ shift_times แบบ Eager เพื่อป้องกัน N+1
-    @EntityGraph(attributePaths = {"required_tools", "provided_tools", "shift_times"})
+    @EntityGraph(attributePaths = { "required_tools", "provided_tools", "shift_times" })
     List<Events> findAll();
 
-    @EntityGraph(attributePaths = {"required_tools", "provided_tools", "shift_times"})
+    @EntityGraph(attributePaths = { "required_tools", "provided_tools", "shift_times" })
     Optional<Events> findById(Integer id);
 
     @Query("SELECT DISTINCT e FROM Events e JOIN e.shift_times st WHERE st.headGuard.users_id = :headId")
     List<Events> findEventsByShiftHeadGuardId(@Param("headId") Integer headId);
 
-    @EntityGraph(attributePaths = {"required_tools", "provided_tools", "shift_times"})
+    @EntityGraph(attributePaths = { "required_tools", "provided_tools", "shift_times" })
     @Query("SELECT DISTINCT e FROM Events e LEFT JOIN e.shift_times st LEFT JOIN st.headGuard hg WHERE e.company_id = :companyId OR hg.company_name = (SELECT c.company_name FROM Company c WHERE c.users_id = :companyId) OR hg.company_name = (SELECT u.username FROM Users u WHERE u.users_id = :companyId)")
     List<Events> findByCompanyId(@Param("companyId") Integer companyId);
 
-    @EntityGraph(attributePaths = {"required_tools", "provided_tools", "shift_times"})
+    @EntityGraph(attributePaths = { "required_tools", "provided_tools", "shift_times" })
     @Query("SELECT DISTINCT e FROM Events e LEFT JOIN e.shift_times st LEFT JOIN st.headGuard hg WHERE hg.company_name = :companyName")
     List<Events> findEventsByCompanyName(@Param("companyName") String companyName);
 }

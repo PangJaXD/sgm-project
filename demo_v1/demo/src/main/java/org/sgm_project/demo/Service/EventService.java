@@ -132,9 +132,14 @@ public class EventService {
                         ? LocalTime.parse(dto.getEndTime())
                         : LocalTime.of(17, 0);
 
-                st.setShift_date(finalStartDate.atStartOfDay());
-                st.setStart_time(LocalDateTime.of(finalStartDate, sTime));
-                st.setEnd_time(LocalDateTime.of(finalEndDate, eTime));
+                LocalDate sDate = dto.getShiftDate() != null && !dto.getShiftDate().isEmpty()
+                        ? LocalDate.parse(dto.getShiftDate())
+                        : finalStartDate;
+
+                st.setShift_date(sDate.atStartOfDay());
+                st.setStart_time(LocalDateTime.of(sDate, sTime));
+                LocalDate eDate = eTime.isBefore(sTime) ? sDate.plusDays(1) : sDate;
+                st.setEnd_time(LocalDateTime.of(eDate, eTime));
 
                 // 🌟 5. ดึง Object HeadGuard จาก DB เพื่อมาผูกกับ ShiftTime
                 // find the head id
@@ -219,9 +224,14 @@ public class EventService {
                         ? LocalTime.parse(dto.getEndTime())
                         : LocalTime.of(17, 0);
 
-                st.setShift_date(finalStartDate.atStartOfDay());
-                st.setStart_time(LocalDateTime.of(finalStartDate, sTime));
-                st.setEnd_time(LocalDateTime.of(finalEndDate, eTime));
+                LocalDate sDate = dto.getShiftDate() != null && !dto.getShiftDate().isEmpty()
+                        ? LocalDate.parse(dto.getShiftDate())
+                        : finalStartDate;
+
+                st.setShift_date(sDate.atStartOfDay());
+                st.setStart_time(LocalDateTime.of(sDate, sTime));
+                LocalDate eDate = eTime.isBefore(sTime) ? sDate.plusDays(1) : sDate;
+                st.setEnd_time(LocalDateTime.of(eDate, eTime));
 
                 // 🌟 7. ผูก HeadGuard
                 if (dto.getHeadGuard() != null && !dto.getHeadGuard().isEmpty()) {

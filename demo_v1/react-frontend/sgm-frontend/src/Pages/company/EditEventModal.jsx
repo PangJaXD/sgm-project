@@ -58,7 +58,7 @@ export default function EditEventModal({
   const [providedTools, setProvidedTools] = useState(["", "", ""]);
 
   const [shifts, setShifts] = useState([
-    { guards: "", startTime: "", endTime: "", headGuard: "" },
+    { guards: "", shiftDate: "", startTime: "", endTime: "", headGuard: "" },
   ]);
 
   useEffect(() => {
@@ -125,6 +125,11 @@ export default function EditEventModal({
 
           const mappedShifts = sortedShifts.map((st) => ({
             guards: st.maximum_guards?.toString() || "",
+            shiftDate: st.shift_date
+              ? st.shift_date.split("T")[0]
+              : st.start_time
+                ? st.start_time.split("T")[0]
+                : "",
             startTime: st.start_time
               ? st.start_time.split("T")[1]?.substring(0, 5)
               : "",
@@ -139,7 +144,7 @@ export default function EditEventModal({
           setShifts(mappedShifts);
         } else {
           setShifts([
-            { guards: "", startTime: "", endTime: "", headGuard: "" },
+            { guards: "", shiftDate: "", startTime: "", endTime: "", headGuard: "" },
           ]);
         }
       }
@@ -154,7 +159,7 @@ export default function EditEventModal({
   const handleAddShift = () => {
     setShifts([
       ...shifts,
-      { guards: "", startTime: "", endTime: "", headGuard: "" },
+      { guards: "", shiftDate: startDate || "", startTime: "", endTime: "", headGuard: "" },
     ]);
   };
 
@@ -435,6 +440,17 @@ export default function EditEventModal({
                       className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400"
                     />
                   </div>
+                </div>
+                <div className="grid grid-cols-[140px_1fr] items-center gap-2">
+                  <label className="font-semibold">วันที่ปฏิบัติงาน:</label>
+                  <input
+                    type="date"
+                    value={shift.shiftDate || ""}
+                    onChange={(e) =>
+                      updateShift(idx, "shiftDate", e.target.value)
+                    }
+                    className="w-full h-[30px] border border-gray-400 rounded-full px-4 outline-none text-gray-600"
+                  />
                 </div>
                 <div className="grid grid-cols-[140px_1fr] items-center gap-2">
                   <label className="font-semibold">เวลาเริ่มปฏิบัติงาน:</label>
