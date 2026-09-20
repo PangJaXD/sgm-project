@@ -1,6 +1,7 @@
 package org.sgm_project.demo.Model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -55,6 +56,7 @@ public class Events {
     private Set<String> provided_tools;
     @Column(nullable = false)
     private Integer required_guards;
+    @JsonProperty("company_id")
     @Column(name = "company_id")
     private Integer company_id;
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, mappedBy = "event")

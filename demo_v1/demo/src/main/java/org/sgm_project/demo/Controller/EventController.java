@@ -24,8 +24,7 @@ public class EventController {
     @GetMapping
     public ResponseEntity<List<Events>> getAllEvents(
             @RequestParam(required = false) Integer companyId,
-            @RequestParam(required = false) String company
-    ) {
+            @RequestParam(required = false) String company) {
         if (companyId != null) {
             return ResponseEntity.ok(eventService.getEventsByCompany(companyId));
         }

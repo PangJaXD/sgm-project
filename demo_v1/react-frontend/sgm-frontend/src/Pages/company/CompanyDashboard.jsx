@@ -223,7 +223,7 @@ function CompanyDashboard() {
     currentUser?.username,
   ]);
 
-  // 🌟 ป้องกันกรณี response.data ไม่ใช่ Array
+  // 🌟 ป้องกันกรณี response.data ไม่ใช่ Array และกรองอีเว้นท์ของบริษัทอย่างถูกต้อง
   const fetchEvents = useCallback(async () => {
     try {
       setIsLoading(true);
@@ -236,29 +236,63 @@ function CompanyDashboard() {
         "";
 
       const response = await axios.get("http://localhost:8080/api/events", {
-        params: compId
-          ? { companyId: compId }
-          : queryCompany
-            ? { company: queryCompany }
-            : {},
+        params: {
+          ...(compId ? { companyId: compId } : {}),
+          ...(queryCompany ? { company: queryCompany } : {}),
+        },
       });
 
-      if (Array.isArray(response.data)) {
-        const filtered = response.data.filter((ev) => {
-          if (!compId) return true;
-          return ev.company_id == compId;
-        });
-        setEvents(filtered);
-      } else if (response.data && typeof response.data === "object") {
-        const item = response.data;
-        if (!compId || item.company_id == compId) {
-          setEvents([item]);
-        } else {
-          setEvents([]);
+      const rawEvents = Array.isArray(response.data)
+        ? response.data
+        : response.data && typeof response.data === "object"
+          ? [response.data]
+          : [];
+
+      const filtered = rawEvents.filter((ev) => {
+        // หากไม่มีข้อมูลระบุบริษัท ให้แสดงทั้งหมด
+        if (!compId && !queryCompany) return true;
+
+        // 1. ตรวจสอบ company_id โดยตรง
+        const evCompId = ev.company_id != null ? ev.company_id : ev.companyId;
+        if (compId && evCompId != null && evCompId == compId) {
+          return true;
         }
-      } else {
-        setEvents([]);
-      }
+
+        // 2. ตรวจสอบกะงาน (shift_times) ว่ามีหัวหน้ารปภ. สังกัดบริษัทนี้หรือไม่
+        if (Array.isArray(ev.shift_times) && ev.shift_times.length > 0) {
+          const hasMatchingShift = ev.shift_times.some((st) => {
+            const hg = st.headGuard || st.head_guard;
+            if (!hg) return false;
+            const hgComp = hg.company_name;
+            if (!hgComp) return false;
+            return (
+              hgComp === queryCompany ||
+              hgComp === currentUser?.company_name ||
+              hgComp === companyProfile?.company_name ||
+              hgComp === currentUser?.username ||
+              hgComp === companyProfile?.username
+            );
+          });
+          if (hasMatchingShift) return true;
+        }
+
+        // 3. ตรวจสอบชื่อบริษัทใน event
+        if (
+          queryCompany &&
+          (ev.company_name === queryCompany || ev.contractor === queryCompany)
+        ) {
+          return true;
+        }
+
+        // 4. กรณีที่ backend กรองมาให้แล้ว (ถ้าไม่มี company_id และไม่มี shift_times ขัดแย้ง)
+        if (!evCompId && (!ev.shift_times || ev.shift_times.length === 0)) {
+          return true;
+        }
+
+        return false;
+      });
+
+      setEvents(filtered);
     } catch (error) {
       console.error("Error fetching events:", error);
       setEvents([]);
@@ -429,16 +463,15 @@ function CompanyDashboard() {
     );
   });
 
-  // 🌟 บรรทัดที่เคยพัง: ป้องกัน events ไม่ใช่ Array ก่อนเรียก .filter()
+  // 🌟 ค้นหาอีเว้นท์ตามคำค้นหา (keyword)
   const filteredEvents = (Array.isArray(events) ? events : []).filter((ev) => {
-    const compId = companyProfile?.users_id || currentUser?.users_id;
-    if (compId && ev.company_id != null && ev.company_id != compId) {
-      return false;
-    }
-    const keyword = search.toLowerCase();
+    const keyword = search.trim().toLowerCase();
+    if (!keyword) return true;
     return (
       ev.event_name?.toLowerCase().includes(keyword) ||
-      ev.location?.toLowerCase().includes(keyword)
+      ev.location?.toLowerCase().includes(keyword) ||
+      ev.contractor?.toLowerCase().includes(keyword) ||
+      ev.status?.toLowerCase().includes(keyword)
     );
   });
 

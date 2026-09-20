@@ -62,10 +62,10 @@ public class EventService {
         }
         return companyRepository.findAll().stream()
                 .filter(c -> companyIdentifier.equalsIgnoreCase(c.getUsername())
-                          || companyIdentifier.equalsIgnoreCase(c.getCompany_name()))
+                        || companyIdentifier.equalsIgnoreCase(c.getCompany_name()))
                 .findFirst()
                 .map(company -> eventRepository.findByCompanyId(company.getUsers_id()))
-                .orElseGet(List::of);
+                .orElseGet(() -> eventRepository.findEventsByCompanyName(companyIdentifier.trim()));
     }
 
     @Transactional(readOnly = true)
@@ -74,8 +74,8 @@ public class EventService {
                 .orElseThrow(() -> new RuntimeException("Event not found"));
     }
 
-    //this would be a challenge for you
-    //same as before i use dto again
+    // this would be a challenge for you
+    // same as before i use dto again
     @Transactional
     public Events createEvent(CreateEventRequest request) {
         Events event = new Events();
@@ -91,22 +91,21 @@ public class EventService {
         event.setProvided_tools(request.getProvided_tools());
         event.setRequired_guards(request.getRequired_guards());
         event.setCompany_id(request.getCompany_id());
-        //this is a shorthand if
+        // this is a shorthand if
         event.setStatus(request.getStatus() != null ? request.getStatus() : "PENDING");
-        //setting default img
+        // setting default img
         event.setEvent_img("default.png");
-
 
         Set<ShiftTime> shiftTimes = new HashSet<>();
 
-        //if you did not select the date
-        //it's gonna use current time
+        // if you did not select the date
+        // it's gonna use current time
         LocalDate finalStartDate = request.getStart_date() != null && !request.getStart_date().isEmpty()
                 ? LocalDate.parse(request.getStart_date())
                 : LocalDate.now();
 
-        //if you did not select the date
-        //it's gonna use current time
+        // if you did not select the date
+        // it's gonna use current time
         LocalDate finalEndDate = request.getEnd_date() != null && !request.getEnd_date().isEmpty()
                 ? LocalDate.parse(request.getEnd_date())
                 : finalStartDate;
@@ -114,8 +113,8 @@ public class EventService {
         event.setStart_date(finalStartDate);
         event.setEnd_date(finalEndDate);
 
-        //if the event gets shift time while saving
-        //they gonna save each shift times
+        // if the event gets shift time while saving
+        // they gonna save each shift times
         if (request.getShift_times() != null) {
             for (ShiftTimeDTO dto : request.getShift_times()) {
                 ShiftTime st = new ShiftTime();
@@ -123,19 +122,24 @@ public class EventService {
                 // 🌟 4. ผูก Event เข้ากับ ShiftTime (Bidirectional Mapping)
                 st.setEvent(event);
 
-                st.setMaximum_guards(Integer.parseInt(dto.getGuards() != null && !dto.getGuards().isEmpty() ? dto.getGuards() : "0"));
+                st.setMaximum_guards(Integer
+                        .parseInt(dto.getGuards() != null && !dto.getGuards().isEmpty() ? dto.getGuards() : "0"));
 
-                LocalTime sTime = dto.getStartTime() != null && !dto.getStartTime().isEmpty() ? LocalTime.parse(dto.getStartTime()) : LocalTime.of(8, 0);
-                LocalTime eTime = dto.getEndTime() != null && !dto.getEndTime().isEmpty() ? LocalTime.parse(dto.getEndTime()) : LocalTime.of(17, 0);
+                LocalTime sTime = dto.getStartTime() != null && !dto.getStartTime().isEmpty()
+                        ? LocalTime.parse(dto.getStartTime())
+                        : LocalTime.of(8, 0);
+                LocalTime eTime = dto.getEndTime() != null && !dto.getEndTime().isEmpty()
+                        ? LocalTime.parse(dto.getEndTime())
+                        : LocalTime.of(17, 0);
 
                 st.setShift_date(finalStartDate.atStartOfDay());
                 st.setStart_time(LocalDateTime.of(finalStartDate, sTime));
                 st.setEnd_time(LocalDateTime.of(finalEndDate, eTime));
 
                 // 🌟 5. ดึง Object HeadGuard จาก DB เพื่อมาผูกกับ ShiftTime
-                //find the head id
-                //query the headguard
-                //and set them for the shift
+                // find the head id
+                // query the headguard
+                // and set them for the shift
                 if (dto.getHeadGuard() != null && !dto.getHeadGuard().isEmpty()) {
                     Integer headGuardId = Integer.parseInt(dto.getHeadGuard());
                     HeadGuard headGuardObj = headGuardRepository.findById(headGuardId).orElse(null);
@@ -151,16 +155,18 @@ public class EventService {
         return eventRepository.save(event);
     }
 
-    //this would be a challenge for you
-    //same as before i use dto again
+    // this would be a challenge for you
+    // same as before i use dto again
     @Transactional
-    //Annotation สำหรับจัดการ Transaction แบบประกาศ (Declarative Transaction Management)
-    // ที่ช่วยให้เราควบคุมการทำงานกับฐานข้อมูล (เช่น Commit หรือ Rollback) ได้อย่างอัตโนมัติ
+    // Annotation สำหรับจัดการ Transaction แบบประกาศ (Declarative Transaction
+    // Management)
+    // ที่ช่วยให้เราควบคุมการทำงานกับฐานข้อมูล (เช่น Commit หรือ Rollback)
+    // ได้อย่างอัตโนมัติ
     // โดยไม่ต้องเขียนโค้ดจัดการ Connection, Commit หรือ Rollback ด้วยตัวเอง
     public Events updateEvent(Integer id, CreateEventRequest request) {
-        //instead we create empty event
-        //we use an existing event
-        //cus we need to show current data first
+        // instead we create empty event
+        // we use an existing event
+        // cus we need to show current data first
         Events existingEvent = eventRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Event not found"));
 
@@ -179,7 +185,7 @@ public class EventService {
             existingEvent.setCompany_id(request.getCompany_id());
         }
 
-        if(request.getStatus() != null) {
+        if (request.getStatus() != null) {
             existingEvent.setStatus(request.getStatus());
         }
 
@@ -203,10 +209,15 @@ public class EventService {
                 // 🌟 6. ผูก Event เข้ากับ ShiftTime สำหรับตอน Update
                 st.setEvent(existingEvent);
 
-                st.setMaximum_guards(Integer.parseInt(dto.getGuards() != null && !dto.getGuards().isEmpty() ? dto.getGuards() : "0"));
+                st.setMaximum_guards(Integer
+                        .parseInt(dto.getGuards() != null && !dto.getGuards().isEmpty() ? dto.getGuards() : "0"));
 
-                LocalTime sTime = dto.getStartTime() != null && !dto.getStartTime().isEmpty() ? LocalTime.parse(dto.getStartTime()) : LocalTime.of(8, 0);
-                LocalTime eTime = dto.getEndTime() != null && !dto.getEndTime().isEmpty() ? LocalTime.parse(dto.getEndTime()) : LocalTime.of(17, 0);
+                LocalTime sTime = dto.getStartTime() != null && !dto.getStartTime().isEmpty()
+                        ? LocalTime.parse(dto.getStartTime())
+                        : LocalTime.of(8, 0);
+                LocalTime eTime = dto.getEndTime() != null && !dto.getEndTime().isEmpty()
+                        ? LocalTime.parse(dto.getEndTime())
+                        : LocalTime.of(17, 0);
 
                 st.setShift_date(finalStartDate.atStartOfDay());
                 st.setStart_time(LocalDateTime.of(finalStartDate, sTime));
