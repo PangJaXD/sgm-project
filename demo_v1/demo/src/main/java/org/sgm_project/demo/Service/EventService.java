@@ -50,7 +50,8 @@ public class EventService {
     public List<Events> getEventsForGuardOrTeam(Integer guardId, Integer headId, String headName, String company) {
         if (headId != null) {
             List<Events> evts = eventRepository.findEventsByShiftHeadGuardId(headId);
-            if (!evts.isEmpty()) return evts;
+            if (!evts.isEmpty())
+                return evts;
         }
 
         if (guardId != null) {
@@ -63,7 +64,8 @@ public class EventService {
                 Guards g = gOpt.get();
                 if (g.getHead_name() != null && !g.getHead_name().trim().isEmpty()) {
                     List<Events> byHead = eventRepository.findEventsByHeadName(g.getHead_name().trim());
-                    if (!byHead.isEmpty()) return byHead;
+                    if (!byHead.isEmpty())
+                        return byHead;
                 }
                 if (g.getCompany_name() != null && !g.getCompany_name().trim().isEmpty()) {
                     return getEventsByCompanyIdentifier(g.getCompany_name().trim());
@@ -73,7 +75,8 @@ public class EventService {
 
         if (headName != null && !headName.trim().isEmpty()) {
             List<Events> byHead = eventRepository.findEventsByHeadName(headName.trim());
-            if (!byHead.isEmpty()) return byHead;
+            if (!byHead.isEmpty())
+                return byHead;
         }
 
         if (company != null && !company.trim().isEmpty()) {
@@ -85,7 +88,8 @@ public class EventService {
 
     @Transactional(readOnly = true)
     public String getHeadNameForGuard(Integer guardId) {
-        if (guardId == null) return null;
+        if (guardId == null)
+            return null;
         return guardRepository.findById(guardId).map(Guards::getHead_name).orElse(null);
     }
 
@@ -140,8 +144,11 @@ public class EventService {
         event.setCompany_id(request.getCompany_id());
         // this is a shorthand if
         event.setStatus(request.getStatus() != null ? request.getStatus() : "PENDING");
-        // setting default img
-        event.setEvent_img("default.png");
+        // setting event img
+        event.setEvent_img(
+                request.getEvent_img() != null && !request.getEvent_img().trim().isEmpty()
+                        ? request.getEvent_img().trim()
+                        : "default.png");
 
         Set<ShiftTime> shiftTimes = new HashSet<>();
 
@@ -240,6 +247,11 @@ public class EventService {
         if (request.getStatus() != null) {
             existingEvent.setStatus(request.getStatus());
         }
+
+        if (request.getEvent_img() != null && !request.getEvent_img().trim().isEmpty()) {
+            existingEvent.setEvent_img(request.getEvent_img().trim());
+        }
+
 
         LocalDate finalStartDate = request.getStart_date() != null && !request.getStart_date().isEmpty()
                 ? LocalDate.parse(request.getStart_date())

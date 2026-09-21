@@ -20,7 +20,8 @@ public class EventController {
         this.eventService = eventService;
     }
 
-    // 1. ดึงข้อมูลงานทั้งหมด (GET /api/events?companyId=... หรือ ?company=... หรือ ?guardId=... หรือ ?headName=...)
+    // 1. ดึงข้อมูลงานทั้งหมด (GET /api/events?companyId=... หรือ ?company=... หรือ
+    // ?guardId=... หรือ ?headName=...)
     @GetMapping
     public ResponseEntity<List<Events>> getAllEvents(
             @RequestParam(required = false) Integer companyId,
@@ -90,11 +91,14 @@ public class EventController {
                     continue;
                 }
                 if (resolvedHeadName != null && !resolvedHeadName.trim().isEmpty() && st.getHeadGuard() != null) {
-                    String hgFullName = (st.getHeadGuard().getFirst_name() != null ? st.getHeadGuard().getFirst_name() : "") + " "
+                    String hgFullName = (st.getHeadGuard().getFirst_name() != null ? st.getHeadGuard().getFirst_name()
+                            : "") + " "
                             + (st.getHeadGuard().getLast_name() != null ? st.getHeadGuard().getLast_name() : "");
                     hgFullName = hgFullName.trim();
-                    String hgUsername = st.getHeadGuard().getUsername() != null ? st.getHeadGuard().getUsername().trim() : "";
-                    if (!resolvedHeadName.trim().equalsIgnoreCase(hgFullName) && !resolvedHeadName.trim().equalsIgnoreCase(hgUsername)) {
+                    String hgUsername = st.getHeadGuard().getUsername() != null ? st.getHeadGuard().getUsername().trim()
+                            : "";
+                    if (!resolvedHeadName.trim().equalsIgnoreCase(hgFullName)
+                            && !resolvedHeadName.trim().equalsIgnoreCase(hgUsername)) {
                         continue;
                     }
                 }
@@ -125,7 +129,8 @@ public class EventController {
                 result.add(map);
             }
 
-            // Fallback: If strict filtering resulted in 0 shifts (e.g. shifts have no headGuard assigned yet), return all shifts for the event
+            // Fallback: If strict filtering resulted in 0 shifts (e.g. shifts have no
+            // headGuard assigned yet), return all shifts for the event
             if (result.isEmpty() && !event.getShift_times().isEmpty()) {
                 for (org.sgm_project.demo.Model.ShiftTime st : event.getShift_times()) {
                     java.util.Map<String, Object> map = new java.util.LinkedHashMap<>();

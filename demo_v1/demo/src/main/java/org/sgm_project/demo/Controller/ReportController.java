@@ -12,6 +12,16 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
+import org.springframework.http.MediaType;
+import org.springframework.util.StringUtils;
+import org.springframework.web.multipart.MultipartFile;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
+import java.util.UUID;
+
 @RestController
 @RequestMapping("/api/report")
 @CrossOrigin(originPatterns = "*", allowCredentials = "true")
@@ -23,10 +33,10 @@ public class ReportController {
         this.reportRepository = reportRepository;
     }
 
-    // 1. ส่งรายงานสถานการณ์/เหตุฉุกเฉินจาก Mobile (POST /api/report)
-    @PostMapping
+    // 1.1 ส่งรายงานสถานการณ์/เหตุฉุกเฉินแบบ JSON (POST /api/report)
+    @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
     @Transactional
-    public ResponseEntity<Report> submitReport(@RequestBody Map<String, Object> body) {
+    public ResponseEntity<Report> submitReportJson(@RequestBody Map<String, Object> body) {
         Report report = new Report();
 
         Boolean isNormal = true;
@@ -60,6 +70,55 @@ public class ReportController {
         Report saved = reportRepository.save(report);
         return ResponseEntity.status(HttpStatus.CREATED).body(saved);
     }
+
+    // 1.2 ส่งรายงานสถานการณ์พร้อมแนบไฟล์รูปจริงแบบ Multipart Form-Data (POST /api/report)
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @Transactional
+    public ResponseEntity<Report> submitReportMultipart(
+            @RequestParam("guard_id") Integer guardId,
+            @RequestParam("shift_id") Integer shiftId,
+            @RequestParam(value = "report_type", defaultValue = "ทั่วไป") String reportType,
+            @RequestParam(value = "description", required = false, defaultValue = "") String description,
+            @RequestParam(value = "is_normal", defaultValue = "true") Boolean isNormal,
+            @RequestParam(value = "report_img", required = false) String reportImg,
+            @RequestParam(value = "file", required = false) MultipartFile file
+    ) {
+        Report report = new Report();
+        report.setGuard_id(guardId);
+        report.setShift_id(shiftId);
+        report.setReport_type(reportType);
+        report.setReport_desc(description);
+        report.set_normal(isNormal);
+        report.setReport_time(LocalDateTime.now());
+
+        String finalImage = reportImg != null && !reportImg.trim().isEmpty() ? reportImg.trim() : "default_report.jpg";
+
+        if (file != null && !file.isEmpty()) {
+            try {
+                Path uploadPath = Paths.get("uploads", "reports");
+                if (!Files.exists(uploadPath)) {
+                    Files.createDirectories(uploadPath);
+                }
+
+                String originalFilename = StringUtils.cleanPath(file.getOriginalFilename() != null ? file.getOriginalFilename() : "report.jpg");
+                String cleanOriginalName = originalFilename.replaceAll("[^a-zA-Z0-9._-]", "_");
+                String uniqueFilename = UUID.randomUUID().toString() + "_" + cleanOriginalName;
+
+                Path targetLocation = uploadPath.resolve(uniqueFilename);
+                Files.copy(file.getInputStream(), targetLocation, StandardCopyOption.REPLACE_EXISTING);
+
+                finalImage = "reports/" + uniqueFilename;
+            } catch (IOException e) {
+                // Log and keep default if save fails
+                System.err.println("Failed to save uploaded report image: " + e.getMessage());
+            }
+        }
+
+        report.setReport_img(finalImage);
+        Report saved = reportRepository.save(report);
+        return ResponseEntity.status(HttpStatus.CREATED).body(saved);
+    }
+
 
     // 2. ดึงประวัติรายงานของ Guard (GET /api/report/guard/{guardId})
     @GetMapping("/guard/{guardId}")

@@ -95,28 +95,32 @@ class ReportService extends ChangeNotifier {
     required String description,
     required bool isNormal,
     List<String> images = const [],
+    List<dynamic> imageFiles = const [], // List<XFile>
   }) async {
     final now = DateTime.now();
     final timeStr =
         '${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')} น.';
 
-    final reportItem = SituationReportItem(
-      reportId: 0,
-      guardId: guardId,
-      shiftId: shiftId,
-      reportType: reportType,
-      urgency: urgency,
-      location: location,
-      description: description,
-      isNormal: isNormal,
-      reportTime: timeStr,
-      images: images,
-    );
-
     try {
-      final response = await _createDio().post(
-        '/report',
-        data: {
+      dynamic postData;
+      Options? requestOptions;
+
+      if (imageFiles.isNotEmpty) {
+        final firstFile = imageFiles.first;
+        final filePath = firstFile.path as String;
+        final fileName = firstFile.name as String;
+
+        final formData = FormData.fromMap({
+          'guard_id': guardId,
+          'shift_id': shiftId,
+          'report_type': reportType,
+          'description': description,
+          'is_normal': isNormal,
+          'file': await MultipartFile.fromFile(filePath, filename: fileName),
+        });
+        postData = formData;
+      } else {
+        postData = {
           'guard_id': guardId,
           'shift_id': shiftId,
           'report_type': reportType,
@@ -124,11 +128,39 @@ class ReportService extends ChangeNotifier {
           'is_normal': isNormal,
           'report_img': images.isNotEmpty
               ? images.first
-              : 'report_${now.millisecondsSinceEpoch}.jpg',
-        },
+              : 'default_report.jpg',
+        };
+      }
+
+      final response = await _createDio().post(
+        '/report',
+        data: postData,
+        options: requestOptions,
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
+        String savedImg = 'default_report.jpg';
+        if (response.data is Map && response.data['report_img'] != null) {
+          savedImg = response.data['report_img'].toString();
+        } else if (images.isNotEmpty) {
+          savedImg = images.first;
+        }
+
+        final reportItem = SituationReportItem(
+          reportId: (response.data is Map && response.data['report_id'] != null)
+              ? response.data['report_id'] as int
+              : 0,
+          guardId: guardId,
+          shiftId: shiftId,
+          reportType: reportType,
+          urgency: urgency,
+          location: location,
+          description: description,
+          isNormal: isNormal,
+          reportTime: timeStr,
+          images: [savedImg],
+        );
+
         _submittedReports.insert(0, reportItem);
         notifyListeners();
         return true;

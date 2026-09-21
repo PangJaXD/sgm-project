@@ -167,7 +167,8 @@ public class AssignmentController {
         return ResponseEntity.status(HttpStatus.CREATED).body(mapAssignmentToDTO(saved));
     }
 
-    // 4. ถอนตัวจากกะงาน (POST /api/assignment/{id}/withdraw หรือ POST /api/assignment/withdraw)
+    // 4. ถอนตัวจากกะงาน (POST /api/assignment/{id}/withdraw หรือ POST
+    // /api/assignment/withdraw)
     @PostMapping("/{id}/withdraw")
     @Transactional
     public ResponseEntity<?> withdrawAssignment(
@@ -178,7 +179,8 @@ public class AssignmentController {
             try {
                 int gId = Integer.parseInt(body.get("guard_id").toString());
                 assignment = assignmentRepository.findByGuardIdAndShiftId(gId, id).orElse(null);
-            } catch (Exception ignored) {}
+            } catch (Exception ignored) {
+            }
         }
         if (assignment == null) {
             assignment = assignmentRepository.findById(id).orElse(null);
@@ -206,7 +208,8 @@ public class AssignmentController {
         int gId = Integer.parseInt(body.get("guard_id").toString());
         int sId = Integer.parseInt(body.get("shift_id").toString());
         Assignments assignment = assignmentRepository.findByGuardIdAndShiftId(gId, sId)
-                .orElseThrow(() -> new ResourceNotFoundException("Assignment for guard " + gId + " and shift", "id", sId));
+                .orElseThrow(
+                        () -> new ResourceNotFoundException("Assignment for guard " + gId + " and shift", "id", sId));
 
         assignment.setAssignment_status("WITHDRAWN");
         if (body.containsKey("reason")) {

@@ -59,10 +59,7 @@ class UserService extends ChangeNotifier {
     notifyListeners();
 
     if (data['users_id'] != null && data['role'] != null) {
-      await fetchUserProfile(
-        data['users_id'] as int,
-        data['role']?.toString(),
-      );
+      await fetchUserProfile(data['users_id'] as int, data['role']?.toString());
     }
   }
 

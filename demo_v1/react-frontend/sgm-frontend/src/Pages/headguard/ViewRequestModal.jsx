@@ -71,23 +71,42 @@ export default function ViewRequestModal({ isOpen, onClose, requestData }) {
 
           {/* ภาพประกอบเหตุการณ์ (ถ้ามี) */}
           {requestData.report_img &&
-            requestData.report_img !== "no-image.png" && (
+            requestData.report_img !== "no-image.png" &&
+            requestData.report_img !== "default_report.jpg" && (
               <div>
-                <div className="flex items-center gap-2 mb-2 font-semibold text-gray-700">
-                  <ImageIcon size={16} className="text-blue-400" /> ภาพประกอบ
+                <div className="flex items-center justify-between mb-2">
+                  <span className="flex items-center gap-2 font-semibold text-gray-700">
+                    <ImageIcon size={16} className="text-blue-400" /> ภาพประกอบเหตุการณ์
+                  </span>
+                  <span className="text-[11px] text-gray-400">คลิกที่ภาพเพื่อดูรูปขนาดเต็ม</span>
                 </div>
-                <div className="w-full h-[180px] bg-gray-100 rounded-xl border border-gray-300 overflow-hidden flex items-center justify-center">
-                  <img
-                    src={`http://localhost:8080/uploads/${requestData.report_img}`}
-                    alt="Report Evidence"
-                    className="w-full h-full object-cover"
-                    onError={(e) => {
-                      e.target.style.display = "none";
-                    }}
-                  />
-                </div>
+                {(() => {
+                  const rawImg = requestData.report_img;
+                  const imgSrc = rawImg.startsWith("http://") || rawImg.startsWith("https://")
+                    ? rawImg
+                    : rawImg.startsWith("/uploads/")
+                    ? `http://localhost:8080${rawImg}`
+                    : rawImg.startsWith("/")
+                    ? `http://localhost:8080/uploads${rawImg}`
+                    : `http://localhost:8080/uploads/${rawImg}`;
+
+                  return (
+                    <div className="w-full h-[200px] bg-gray-100 rounded-xl border border-gray-300 overflow-hidden flex items-center justify-center group relative cursor-pointer">
+                      <img
+                        src={imgSrc}
+                        alt="Report Evidence"
+                        className="w-full h-full object-cover group-hover:scale-105 transition duration-300"
+                        onClick={() => window.open(imgSrc, "_blank")}
+                        onError={(e) => {
+                          e.target.style.display = "none";
+                        }}
+                      />
+                    </div>
+                  );
+                })()}
               </div>
             )}
+
 
           <div className="flex mt-6 items-center justify-between pt-5 border-t border-gray-200">
             <span className="text-red-600 font-semibold px-3 py-1 bg-red-100 rounded-full text-[11px]">

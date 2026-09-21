@@ -62,7 +62,9 @@ class AssignmentModel {
     final shiftTitle = json['shift_name'] ?? 'กะงานที่ $shiftIdVal';
     final parsedEventId = json['event_id'] != null
         ? int.tryParse(json['event_id'].toString())
-        : (json['eventId'] != null ? int.tryParse(json['eventId'].toString()) : null);
+        : (json['eventId'] != null
+              ? int.tryParse(json['eventId'].toString())
+              : null);
 
     return AssignmentModel(
       assignmentId: json['assignment_id'] ?? json['id'] ?? 0,

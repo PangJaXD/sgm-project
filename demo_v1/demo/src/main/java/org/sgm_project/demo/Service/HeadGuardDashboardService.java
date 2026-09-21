@@ -87,7 +87,8 @@ public class HeadGuardDashboardService {
             if (r.getShift_id() != null && shiftToEventName.containsKey(r.getShift_id())) {
                 name = shiftToEventName.get(r.getShift_id());
             }
-            if ((name == null || name.equals("ไม่ระบุชื่องาน")) && r.getShift() != null && r.getShift().getEvent() != null) {
+            if ((name == null || name.equals("ไม่ระบุชื่องาน")) && r.getShift() != null
+                    && r.getShift().getEvent() != null) {
                 name = r.getShift().getEvent().getEvent_name();
             }
             if ((name == null || name.equals("ไม่ระบุชื่องาน")) && r.getShift_id() != null) {

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import {
   X,
@@ -59,6 +59,37 @@ export default function AddEventModal({
     { guards: "", shiftDate: "", startTime: "", endTime: "", headGuard: "" },
   ]);
 
+  const [eventImg, setEventImg] = useState("");
+  const [imagePreview, setImagePreview] = useState("");
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
+  const fileInputRef = useRef(null);
+
+  const handleImageChange = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setImagePreview(URL.createObjectURL(file));
+
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("folder", "events");
+
+    setIsUploadingImage(true);
+    try {
+      const res = await axios.post("http://localhost:8080/api/upload", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+      if (res.data && res.data.fileName) {
+        setEventImg(res.data.fileName);
+      }
+    } catch (err) {
+      console.error("Upload event image failed:", err);
+      alert("อัปโหลดรูปภาพไม่สำเร็จ กรุณาลองใหม่อีกครั้ง");
+    } finally {
+      setIsUploadingImage(false);
+    }
+  };
+
   useEffect(() => {
     if (isOpen) {
       const fetchHeadGuards = async () => {
@@ -96,6 +127,9 @@ export default function AddEventModal({
       setPosition(null);
       setRequiredTools(["", "", ""]);
       setProvidedTools(["", "", ""]);
+      setEventImg("");
+      setImagePreview("");
+      setIsUploadingImage(false);
       setShifts([
         {
           guards: "",
@@ -107,6 +141,7 @@ export default function AddEventModal({
       ]);
     }
   }, [isOpen, companyName]);
+
 
   if (!isOpen) return null;
 
@@ -192,7 +227,9 @@ export default function AddEventModal({
       end_date: endDate,
       status: status,
       company_id: companyId,
+      event_img: eventImg || "default.png",
     };
+
 
     if (onSave) onSave(payload);
   };
@@ -325,16 +362,50 @@ export default function AddEventModal({
                   <label className="font-semibold flex items-center gap-1 mb-2">
                     <ImageIcon size={16} /> รูปภาพที่เกี่ยวข้องกับงาน
                   </label>
-                  <div className="h-[90px] border-[2px] border-gray-400 border-dashed rounded-[15px] flex flex-col items-center justify-center cursor-pointer hover:bg-gray-50 transition text-gray-500">
-                    <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center mb-1">
-                      <Plus size={20} />
-                    </div>
-                    <span className="text-[11px]">คลิกเพื่ออัปโหลด</span>
-                    <span className="text-[10px] text-gray-400">
-                      รองรับไฟล์ JPG, PNG
-                    </span>
+                  <input
+                    type="file"
+                    ref={fileInputRef}
+                    onChange={handleImageChange}
+                    accept="image/*"
+                    className="hidden"
+                  />
+                  <div
+                    onClick={() => fileInputRef.current?.click()}
+                    className="h-[90px] border-[2px] border-gray-400 border-dashed rounded-[15px] flex flex-col items-center justify-center cursor-pointer hover:bg-gray-50 transition text-gray-500 overflow-hidden relative group"
+                  >
+                    {imagePreview ? (
+                      <div className="w-full h-full relative">
+                        <img
+                          src={imagePreview}
+                          alt="Event Preview"
+                          className="w-full h-full object-cover"
+                        />
+                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition flex items-center justify-center text-white text-[11px] font-medium">
+                          คลิกเพื่อเปลี่ยนรูป
+                        </div>
+                      </div>
+                    ) : (
+                      <>
+                        <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center mb-1">
+                          {isUploadingImage ? (
+                            <div className="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+                          ) : (
+                            <Plus size={20} />
+                          )}
+                        </div>
+                        <span className="text-[11px]">
+                          {isUploadingImage
+                            ? "กำลังอัปโหลด..."
+                            : "คลิกเพื่ออัปโหลด"}
+                        </span>
+                        <span className="text-[10px] text-gray-400">
+                          รองรับไฟล์ JPG, PNG
+                        </span>
+                      </>
+                    )}
                   </div>
                 </div>
+
 
                 {/* Map Box */}
                 <div>

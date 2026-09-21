@@ -1,4 +1,7 @@
+import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import '../Model/notification_model.dart';
 import '../Service/api_exception.dart';
 import '../Service/event_service.dart';
@@ -24,6 +27,7 @@ class ReportSituationScreen extends StatefulWidget {
 class _ReportSituationScreenState extends State<ReportSituationScreen> {
   final ReportService _reportService = ReportService.instance;
   final UserService _userService = UserService();
+  final ImagePicker _picker = ImagePicker();
 
   final TextEditingController _locationController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
@@ -31,7 +35,8 @@ class _ReportSituationScreenState extends State<ReportSituationScreen> {
   String _selectedUrgency = 'ปานกลาง'; // ด่วนมาก, ปานกลาง, ทั่วไป
   String? _selectedCategory;
   bool _isSubmitting = false;
-  final List<String> _attachedImages = [];
+  final List<XFile> _attachedImages = [];
+
 
   final List<String> _categories = [
     'ตรวจความเรียบร้อยทั่วไป (Routine)',
@@ -57,17 +62,103 @@ class _ReportSituationScreenState extends State<ReportSituationScreen> {
     super.dispose();
   }
 
-  void _addMockPhoto() {
-    setState(() {
-      _attachedImages.add('photo_${_attachedImages.length + 1}.jpg');
-    });
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('แนบรูปถ่ายประกอบเรียบร้อยแล้ว'),
-        duration: Duration(seconds: 1),
+  Future<void> _pickImage(ImageSource source) async {
+    try {
+      final XFile? photo = await _picker.pickImage(
+        source: source,
+        imageQuality: 80,
+        maxWidth: 1600,
+      );
+      if (photo != null) {
+        setState(() {
+          _attachedImages.add(photo);
+        });
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('แนบรูปถ่ายประกอบเรียบร้อยแล้ว'),
+              duration: Duration(seconds: 1),
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      debugPrint('[ReportSituationScreen] pickImage error: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('ไม่สามารถเลือกรูปได้: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
+  void _showPhotoSourceSheet() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
+          child: Wrap(
+            children: [
+              const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                child: Text(
+                  'เลือกภาพประกอบเหตุการณ์',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF1E293B),
+                  ),
+                ),
+              ),
+              ListTile(
+                leading: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFEFF6FF),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: const Icon(Icons.camera_alt, color: Color(0xFF2563EB)),
+                ),
+                title: const Text('ถ่ายภาพด้วยกล้อง (Camera)',
+                    style: TextStyle(fontWeight: FontWeight.w600)),
+                subtitle: const Text('ถ่ายภาพเหตุการณ์สดเพื่อเป็นหลักฐาน'),
+                onTap: () {
+                  Navigator.pop(ctx);
+                  _pickImage(ImageSource.camera);
+                },
+              ),
+              ListTile(
+                leading: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF1F5F9),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: const Icon(Icons.photo_library, color: Color(0xFF475569)),
+                ),
+                title: const Text('เลือกจากคลังภาพ (Gallery)',
+                    style: TextStyle(fontWeight: FontWeight.w600)),
+                subtitle: const Text('เลือกภาพถ่ายที่มีอยู่แล้วในอุปกรณ์'),
+                onTap: () {
+                  Navigator.pop(ctx);
+                  _pickImage(ImageSource.gallery);
+                },
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
+
 
   Future<void> _handleSubmit() async {
     if (_selectedCategory == null) {
@@ -106,8 +197,10 @@ class _ReportSituationScreenState extends State<ReportSituationScreen> {
         location: _locationController.text.trim(),
         description: _descriptionController.text.trim(),
         isNormal: isNormal,
-        images: _attachedImages,
+        images: _attachedImages.map((e) => e.name).toList(),
+        imageFiles: _attachedImages,
       );
+
 
       // Create confirmation notification in NotificationService
       NotificationService.instance.addNotification(
@@ -474,7 +567,7 @@ class _ReportSituationScreenState extends State<ReportSituationScreen> {
                     ),
                     const SizedBox(height: 10),
                     InkWell(
-                      onTap: _addMockPhoto,
+                      onTap: _showPhotoSourceSheet,
                       borderRadius: BorderRadius.circular(16),
                       child: Container(
                         width: double.infinity,
@@ -498,7 +591,7 @@ class _ReportSituationScreenState extends State<ReportSituationScreen> {
                             Text(
                               _attachedImages.isEmpty
                                   ? 'คลิกเพื่อถ่ายภาพหรือเลือกไฟล์รูป'
-                                  : 'แนบแล้ว ${_attachedImages.length} รูป (คลิกเพิ่ม)',
+                                  : 'แนบแล้ว ${_attachedImages.length} รูป (คลิกเพื่อเพิ่มอีก)',
                               style: const TextStyle(
                                 fontSize: 13,
                                 color: Color(0xFF64748B),
@@ -510,25 +603,70 @@ class _ReportSituationScreenState extends State<ReportSituationScreen> {
                     ),
 
                     if (_attachedImages.isNotEmpty) ...[
-                      const SizedBox(height: 12),
+                      const SizedBox(height: 14),
                       Wrap(
-                        spacing: 8,
-                        children: _attachedImages
-                            .map(
-                              (img) => Chip(
-                                avatar: const Icon(Icons.image, size: 16),
-                                label: Text(
-                                  img,
-                                  style: const TextStyle(fontSize: 12),
+                        spacing: 12,
+                        runSpacing: 12,
+                        children: _attachedImages.map((file) {
+                          return Stack(
+                            clipBehavior: Clip.none,
+                            children: [
+                              Container(
+                                width: 84,
+                                height: 84,
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(12),
+                                  border: Border.all(
+                                    color: const Color(0xFFCBD5E1),
+                                    width: 1.5,
+                                  ),
                                 ),
-                                onDeleted: () {
-                                  setState(() => _attachedImages.remove(img));
-                                },
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(10.5),
+                                  child: kIsWeb
+                                      ? Image.network(
+                                          file.path,
+                                          fit: BoxFit.cover,
+                                        )
+                                      : Image.file(
+                                          File(file.path),
+                                          fit: BoxFit.cover,
+                                        ),
+                                ),
                               ),
-                            )
-                            .toList(),
+                              Positioned(
+                                top: -6,
+                                right: -6,
+                                child: GestureDetector(
+                                  onTap: () {
+                                    setState(() => _attachedImages.remove(file));
+                                  },
+                                  child: Container(
+                                    padding: const EdgeInsets.all(4),
+                                    decoration: const BoxDecoration(
+                                      color: Colors.red,
+                                      shape: BoxShape.circle,
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: Colors.black26,
+                                          blurRadius: 4,
+                                        ),
+                                      ],
+                                    ),
+                                    child: const Icon(
+                                      Icons.close,
+                                      size: 14,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          );
+                        }).toList(),
                       ),
                     ],
+
 
                     const SizedBox(height: 32),
 

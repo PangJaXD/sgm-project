@@ -426,11 +426,7 @@ class EventService {
       } else {
         response = await _createDio().post(
           '/assignment/${assignmentId ?? shiftId}/withdraw',
-          data: {
-            'guard_id': ?guardId,
-            'reason': reason,
-            'details': details,
-          },
+          data: {'guard_id': ?guardId, 'reason': reason, 'details': details},
         );
       }
       if (response.statusCode == 200) {

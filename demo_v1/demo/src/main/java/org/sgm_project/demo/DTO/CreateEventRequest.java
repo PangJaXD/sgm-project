@@ -18,6 +18,7 @@ public class CreateEventRequest {
     private String contractor;
     private String contact;
     private String event_detail;
+    private String event_img;
     private Set<String> required_tools;
     private Set<String> provided_tools;
     private Integer required_guards;
