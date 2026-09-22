@@ -35,13 +35,13 @@ class NotificationService extends ChangeNotifier {
 
   static const AndroidNotificationChannel _emergencyChannel =
       AndroidNotificationChannel(
-    emergencyChannelId,
-    emergencyChannelName,
-    description: emergencyChannelDesc,
-    importance: Importance.max,
-    playSound: true,
-    enableVibration: true,
-  );
+        emergencyChannelId,
+        emergencyChannelName,
+        description: emergencyChannelDesc,
+        importance: Importance.max,
+        playSound: true,
+        enableVibration: true,
+      );
 
   String? _fcmToken;
   String? get fcmToken => _fcmToken;
@@ -54,14 +54,14 @@ class NotificationService extends ChangeNotifier {
 
   int get unreadCount => _notifications.where((n) => !n.isRead).length;
 
-
   void _initializeDefaultMockNotifications() {
     final now = DateTime.now();
     _notifications.addAll([
       NotificationItem(
         id: 'mock-1',
         title: 'อัปเดตจุดตรวจด่วน!',
-        body: 'มีการเปลี่ยนแปลงจุดเดินตรวจบริเวณประตูหลัก กรุณาตรวจสอบ View Assignment ในระบบ',
+        body:
+            'มีการเปลี่ยนแปลงจุดเดินตรวจบริเวณประตูหลัก กรุณาตรวจสอบ View Assignment ในระบบ',
         timestamp: now.subtract(const Duration(minutes: 10)),
         type: NotificationType.urgent,
         isRead: false,
@@ -69,7 +69,8 @@ class NotificationService extends ChangeNotifier {
       NotificationItem(
         id: 'mock-2',
         title: 'อนุมัติคำร้องรับกะงาน',
-        body: 'คำร้องเข้าทำงานรอบดึก (16:00) ของคุณได้รับการอนุมัติเรียบร้อยแล้ว',
+        body:
+            'คำร้องเข้าทำงานรอบดึก (16:00) ของคุณได้รับการอนุมัติเรียบร้อยแล้ว',
         timestamp: now.subtract(const Duration(hours: 2)),
         type: NotificationType.approval,
         isRead: true,
@@ -77,7 +78,8 @@ class NotificationService extends ChangeNotifier {
       NotificationItem(
         id: 'mock-3',
         title: 'ประกาศจากฝ่ายบุคคล',
-        body: 'ขอให้เจ้าหน้าที่ทุกท่านทำการอัปเดตแอปพลิเคชัน SGM เป็นเวอร์ชันล่าสุดเพื่อการใช้งานที่เสถียรขึ้น',
+        body:
+            'ขอให้เจ้าหน้าที่ทุกท่านทำการอัปเดตแอปพลิเคชัน SGM เป็นเวอร์ชันล่าสุดเพื่อการใช้งานที่เสถียรขึ้น',
         timestamp: now.subtract(const Duration(days: 1)),
         type: NotificationType.announcement,
         isRead: true,
@@ -136,15 +138,18 @@ class NotificationService extends ChangeNotifier {
       // 5. Handle foreground notifications
       // 5. Initialize Local Notifications & High Priority Channel
       try {
-        const androidSettings =
-            AndroidInitializationSettings('@mipmap/ic_launcher');
+        const androidSettings = AndroidInitializationSettings(
+          '@mipmap/ic_launcher',
+        );
         const iosSettings = DarwinInitializationSettings(
           requestAlertPermission: true,
           requestBadgePermission: true,
           requestSoundPermission: true,
         );
-        const initSettings =
-            InitializationSettings(android: androidSettings, iOS: iosSettings);
+        const initSettings = InitializationSettings(
+          android: androidSettings,
+          iOS: iosSettings,
+        );
 
         await _localNotifications.initialize(
           initSettings,
@@ -155,7 +160,8 @@ class NotificationService extends ChangeNotifier {
 
         final androidPlugin = _localNotifications
             .resolvePlatformSpecificImplementation<
-                AndroidFlutterLocalNotificationsPlugin>();
+              AndroidFlutterLocalNotificationsPlugin
+            >();
         if (androidPlugin != null) {
           await androidPlugin.createNotificationChannel(_emergencyChannel);
         }
@@ -165,13 +171,17 @@ class NotificationService extends ChangeNotifier {
 
       // 6. Handle foreground notifications
       FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-        debugPrint('[FCM] Foreground notification: ${message.notification?.title}');
+        debugPrint(
+          '[FCM] Foreground notification: ${message.notification?.title}',
+        );
         _handleRemoteMessage(message, fromForeground: true);
       });
 
       // 7. Handle notification click when app is opened from background
       FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
-        debugPrint('[FCM] Notification opened app: ${message.notification?.title}');
+        debugPrint(
+          '[FCM] Notification opened app: ${message.notification?.title}',
+        );
         _handleRemoteMessage(message);
       });
 
@@ -185,9 +195,14 @@ class NotificationService extends ChangeNotifier {
     }
   }
 
-  void _handleRemoteMessage(RemoteMessage message, {bool fromForeground = false}) {
-
-    final title = message.notification?.title ?? message.data['title'] ?? 'การแจ้งเตือนใหม่';
+  void _handleRemoteMessage(
+    RemoteMessage message, {
+    bool fromForeground = false,
+  }) {
+    final title =
+        message.notification?.title ??
+        message.data['title'] ??
+        'การแจ้งเตือนใหม่';
     final body = message.notification?.body ?? message.data['body'] ?? '';
     final typeString = message.data['type'] as String?;
     final type = NotificationType.fromString(typeString);
@@ -261,7 +276,9 @@ class NotificationService extends ChangeNotifier {
         payload: payload,
       );
     } catch (e) {
-      debugPrint('[NotificationService] showHighPriorityNotification error: $e');
+      debugPrint(
+        '[NotificationService] showHighPriorityNotification error: $e',
+      );
     }
   }
 
@@ -304,7 +321,6 @@ class NotificationService extends ChangeNotifier {
       payload: alertId,
     );
   }
-
 
   // State manipulation methods
   void addNotification(NotificationItem item) {
@@ -361,4 +377,3 @@ class NotificationService extends ChangeNotifier {
     );
   }
 }
-

@@ -9,11 +9,7 @@ class NotificationScreen extends StatefulWidget {
   final bool isTab;
   final VoidCallback? onBack;
 
-  const NotificationScreen({
-    super.key,
-    this.isTab = false,
-    this.onBack,
-  });
+  const NotificationScreen({super.key, this.isTab = false, this.onBack});
 
   @override
   State<NotificationScreen> createState() => _NotificationScreenState();
@@ -109,8 +105,6 @@ class _NotificationScreenState extends State<NotificationScreen> {
                           fontWeight: (!item.isRead || item.isUrgent)
                               ? FontWeight.w600
                               : FontWeight.normal,
-
-
                         ),
                       ),
                     ],
@@ -139,12 +133,16 @@ class _NotificationScreenState extends State<NotificationScreen> {
                 ),
                 child: Text(
                   'ข้อมูลเพิ่มเติม: ${item.data}',
-                  style: const TextStyle(fontSize: 12, color: Color(0xFF64748B)),
+                  style: const TextStyle(
+                    fontSize: 12,
+                    color: Color(0xFF64748B),
+                  ),
                 ),
               ),
             ],
             const SizedBox(height: 24),
-            if (item.body.contains('Assignment') || item.title.contains('จุดตรวจ')) ...[
+            if (item.body.contains('Assignment') ||
+                item.title.contains('จุดตรวจ')) ...[
               SizedBox(
                 width: double.infinity,
                 height: 48,
@@ -164,14 +162,16 @@ class _NotificationScreenState extends State<NotificationScreen> {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => AssignmentDetailScreen(
-                          event: event,
-                          shift: shift,
-                        ),
+                        builder: (context) =>
+                            AssignmentDetailScreen(event: event, shift: shift),
                       ),
                     );
                   },
-                  icon: const Icon(Icons.pin_drop_rounded, color: Colors.white, size: 18),
+                  icon: const Icon(
+                    Icons.pin_drop_rounded,
+                    color: Colors.white,
+                    size: 18,
+                  ),
                   label: const Text(
                     'เปิดดูหน้าที่รับผิดชอบ (View Assignment)',
                     style: TextStyle(
@@ -190,7 +190,8 @@ class _NotificationScreenState extends State<NotificationScreen> {
                 ),
               ),
               const SizedBox(height: 10),
-            ] else if (item.type == NotificationType.approval || item.title.contains('กะงาน')) ...[
+            ] else if (item.type == NotificationType.approval ||
+                item.title.contains('กะงาน')) ...[
               SizedBox(
                 width: double.infinity,
                 height: 48,
@@ -210,14 +211,16 @@ class _NotificationScreenState extends State<NotificationScreen> {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => ShiftDetailScreen(
-                          event: event,
-                          shift: shift,
-                        ),
+                        builder: (context) =>
+                            ShiftDetailScreen(event: event, shift: shift),
                       ),
                     );
                   },
-                  icon: const Icon(Icons.assignment_turned_in_rounded, color: Colors.white, size: 18),
+                  icon: const Icon(
+                    Icons.assignment_turned_in_rounded,
+                    color: Colors.white,
+                    size: 18,
+                  ),
                   label: const Text(
                     'ดูกะงานที่ได้รับมอบหมาย (View Shift)',
                     style: TextStyle(
@@ -337,7 +340,10 @@ class _NotificationScreenState extends State<NotificationScreen> {
                     Align(
                       alignment: Alignment.centerRight,
                       child: PopupMenuButton<String>(
-                        icon: const Icon(Icons.more_vert_rounded, color: Colors.white),
+                        icon: const Icon(
+                          Icons.more_vert_rounded,
+                          color: Colors.white,
+                        ),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(16),
                         ),
@@ -349,14 +355,17 @@ class _NotificationScreenState extends State<NotificationScreen> {
                           } else if (value == 'test_fcm') {
                             _service.simulateTestNotification(
                               title: 'อัปเดตงานด่วน!',
-                              body: 'มีการเพิ่มกะงานใหม่ในพื้นที่ของคุณ กรุณาตรวจสอบ',
+                              body:
+                                  'มีการเพิ่มกะงานใหม่ในพื้นที่ของคุณ กรุณาตรวจสอบ',
                               type: NotificationType.urgent,
                             );
                           } else if (value == 'test_sos') {
                             _service.triggerSOSAlert(
-                              location: 'อาคารเฉลิมพระเกียรติ ชั้น 1 (จุดตรวจหลัก)',
+                              location:
+                                  'อาคารเฉลิมพระเกียรติ ชั้น 1 (จุดตรวจหลัก)',
                               guardName: 'สมชาย ใจดี',
-                              note: 'ทดสอบการส่งสัญญาณเหตุฉุกเฉินระดับสูงสุด (High Priority SOS Alert)',
+                              note:
+                                  'ทดสอบการส่งสัญญาณเหตุฉุกเฉินระดับสูงสุด (High Priority SOS Alert)',
                             );
                           }
                         },
@@ -365,7 +374,11 @@ class _NotificationScreenState extends State<NotificationScreen> {
                             value: 'read_all',
                             child: Row(
                               children: [
-                                Icon(Icons.done_all_rounded, size: 20, color: Color(0xFF2563EB)),
+                                Icon(
+                                  Icons.done_all_rounded,
+                                  size: 20,
+                                  color: Color(0xFF2563EB),
+                                ),
                                 SizedBox(width: 10),
                                 Text('อ่านทั้งหมด'),
                               ],
@@ -375,7 +388,11 @@ class _NotificationScreenState extends State<NotificationScreen> {
                             value: 'test_sos',
                             child: Row(
                               children: [
-                                Icon(Icons.emergency_rounded, size: 20, color: Color(0xFFDC2626)),
+                                Icon(
+                                  Icons.emergency_rounded,
+                                  size: 20,
+                                  color: Color(0xFFDC2626),
+                                ),
                                 SizedBox(width: 10),
                                 Text('ทดสอบส่งสัญญาณ SOS (High Priority)'),
                               ],
@@ -385,7 +402,11 @@ class _NotificationScreenState extends State<NotificationScreen> {
                             value: 'test_fcm',
                             child: Row(
                               children: [
-                                Icon(Icons.add_alert_rounded, size: 20, color: Color(0xFF16A34A)),
+                                Icon(
+                                  Icons.add_alert_rounded,
+                                  size: 20,
+                                  color: Color(0xFF16A34A),
+                                ),
                                 SizedBox(width: 10),
                                 Text('จำลองแจ้งเตือนทั่วไป (Test)'),
                               ],
@@ -395,14 +416,17 @@ class _NotificationScreenState extends State<NotificationScreen> {
                             value: 'clear_all',
                             child: Row(
                               children: [
-                                Icon(Icons.delete_outline_rounded, size: 20, color: Colors.red),
+                                Icon(
+                                  Icons.delete_outline_rounded,
+                                  size: 20,
+                                  color: Colors.red,
+                                ),
                                 SizedBox(width: 10),
                                 Text('ล้างการแจ้งเตือนทั้งหมด'),
                               ],
                             ),
                           ),
                         ],
-
                       ),
                     ),
                   ],
@@ -466,7 +490,6 @@ class _NotificationScreenState extends State<NotificationScreen> {
   Widget _buildNotificationCard(NotificationItem item) {
     final isUrgentOrUnread = !item.isRead || item.isUrgent;
 
-
     return Dismissible(
       key: Key(item.id),
       direction: DismissDirection.endToStart,
@@ -478,7 +501,11 @@ class _NotificationScreenState extends State<NotificationScreen> {
           color: const Color(0xFFFEE2E2),
           borderRadius: BorderRadius.circular(18),
         ),
-        child: const Icon(Icons.delete_outline_rounded, color: Color(0xFFDC2626), size: 28),
+        child: const Icon(
+          Icons.delete_outline_rounded,
+          color: Color(0xFFDC2626),
+          size: 28,
+        ),
       ),
       onDismissed: (_) {
         _service.deleteNotification(item.id);
@@ -487,7 +514,9 @@ class _NotificationScreenState extends State<NotificationScreen> {
             content: const Text('ลบการแจ้งเตือนเรียบร้อยแล้ว'),
             duration: const Duration(seconds: 2),
             behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
           ),
         );
       },
@@ -612,4 +641,3 @@ class _NotificationScreenState extends State<NotificationScreen> {
     );
   }
 }
-

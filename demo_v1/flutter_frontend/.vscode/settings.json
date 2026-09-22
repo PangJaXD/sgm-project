@@ -10,5 +10,6 @@
   ],
   "antigravity.files.autoSave": "workspaceOnly",
   "antigravity.workspace.restrictToRoot": true,
-    "cmake.ignoreCMakeListsMissing": true
+    "cmake.ignoreCMakeListsMissing": true,
+    "java.configuration.updateBuildConfiguration": "automatic"
 }
