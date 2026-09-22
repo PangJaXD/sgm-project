@@ -229,7 +229,7 @@ class _SendRequestScreenState extends State<SendRequestScreen> {
                           'สถานที่',
                           widget.event.location.isNotEmpty
                               ? widget.event.location
-                              : 'มหาวิทยาลัยแม่โจ้',
+                              : 'ไม่ระบุสถานที่',
                         ),
                         const SizedBox(height: 14),
                         _buildRow('วันที่', widget.shift.formattedDateThai),

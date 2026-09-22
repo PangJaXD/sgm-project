@@ -513,6 +513,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                           AssignmentDetailScreen(
                                             event: activeEvent,
                                             shift: activeShift,
+                                            assignment: _activeAssignment,
                                           ),
                                     ),
                                   );
@@ -651,6 +652,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 builder: (context) => AssignmentDetailScreen(
                                   event: activeEvent,
                                   shift: activeShift,
+                                  assignment: _activeAssignment,
                                 ),
                               ),
                             );

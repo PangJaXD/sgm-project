@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../Model/notification_model.dart';
 import '../Service/event_service.dart';
 import '../Service/notification_service.dart';
+import '../Service/user_service.dart';
 import './assignment_detail_screen.dart';
 import './shift_detail_screen.dart';
 
@@ -147,25 +148,46 @@ class _NotificationScreenState extends State<NotificationScreen> {
                 width: double.infinity,
                 height: 48,
                 child: ElevatedButton.icon(
-                  onPressed: () {
+                  onPressed: () async {
                     Navigator.pop(context);
-                    final event = EventModel(
-                      id: 2,
-                      title: 'งานเกษตรแม่โจ้ ประจำปี',
-                      location: 'มหาวิทยาลัยแม่โจ้ (ประตูหลัก)',
-                    );
-                    final shift = ShiftTimeModel(
-                      shiftId: 101,
-                      title: 'กะเช้า (Morning Shift)',
-                      dutyLocation: 'ประตูหลัก คณะเกษตรศาสตร์',
-                    );
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) =>
-                            AssignmentDetailScreen(event: event, shift: shift),
-                      ),
-                    );
+                    final user = UserService().currentUser;
+                    final activeAssign = await EventService.instance
+                        .fetchActiveAssignment(user.usersId);
+                    if (!context.mounted) return;
+                    if (activeAssign != null) {
+                      final event = EventModel(
+                        id: activeAssign.eventId ?? activeAssign.shiftId,
+                        title: activeAssign.eventName.isNotEmpty
+                            ? activeAssign.eventName
+                            : 'งานรักษาความปลอดภัย',
+                        location: activeAssign.dutyLocation.isNotEmpty
+                            ? activeAssign.dutyLocation
+                            : 'จุดตรวจหลัก',
+                      );
+                      final shift = ShiftTimeModel(
+                        shiftId: activeAssign.shiftId,
+                        title: activeAssign.shiftName.isNotEmpty
+                            ? activeAssign.shiftName
+                            : 'กะการทำงาน',
+                        dutyLocation: activeAssign.dutyLocation,
+                      );
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => AssignmentDetailScreen(
+                            event: event,
+                            shift: shift,
+                            assignment: activeAssign,
+                          ),
+                        ),
+                      );
+                    } else {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('ไม่พบข้อมูลกะงานที่มอบหมายในขณะนี้'),
+                        ),
+                      );
+                    }
                   },
                   icon: const Icon(
                     Icons.pin_drop_rounded,
@@ -196,25 +218,45 @@ class _NotificationScreenState extends State<NotificationScreen> {
                 width: double.infinity,
                 height: 48,
                 child: ElevatedButton.icon(
-                  onPressed: () {
+                  onPressed: () async {
                     Navigator.pop(context);
-                    final event = EventModel(
-                      id: 2,
-                      title: 'งานเกษตรแม่โจ้ ประจำปี',
-                      location: 'มหาวิทยาลัยแม่โจ้',
-                    );
-                    final shift = ShiftTimeModel(
-                      shiftId: 101,
-                      title: 'กะดึก (Night Shift)',
-                      dutyLocation: 'โซนเต็นท์นิทรรศการ',
-                    );
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) =>
-                            ShiftDetailScreen(event: event, shift: shift),
-                      ),
-                    );
+                    final user = UserService().currentUser;
+                    final activeAssign = await EventService.instance
+                        .fetchActiveAssignment(user.usersId);
+                    if (!context.mounted) return;
+                    if (activeAssign != null) {
+                      final event = EventModel(
+                        id: activeAssign.eventId ?? activeAssign.shiftId,
+                        title: activeAssign.eventName.isNotEmpty
+                            ? activeAssign.eventName
+                            : 'งานรักษาความปลอดภัย',
+                        location: activeAssign.dutyLocation.isNotEmpty
+                            ? activeAssign.dutyLocation
+                            : 'จุดตรวจหลัก',
+                      );
+                      final shift = ShiftTimeModel(
+                        shiftId: activeAssign.shiftId,
+                        title: activeAssign.shiftName.isNotEmpty
+                            ? activeAssign.shiftName
+                            : 'กะการทำงาน',
+                        dutyLocation: activeAssign.dutyLocation,
+                      );
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) =>
+                              ShiftDetailScreen(event: event, shift: shift),
+                        ),
+                      );
+                    } else {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text(
+                            'ไม่พบข้อมูลกะงานที่กำลังปฏิบัติหน้าที่ในขณะนี้',
+                          ),
+                        ),
+                      );
+                    }
                   },
                   icon: const Icon(
                     Icons.assignment_turned_in_rounded,
