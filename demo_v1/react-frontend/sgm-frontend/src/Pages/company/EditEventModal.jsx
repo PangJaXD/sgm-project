@@ -32,6 +32,8 @@ function LocationSelector({ position, setPosition }) {
   return position ? <Marker position={position} /> : null;
 }
 
+const EMAIL_REGEX = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+
 export default function EditEventModal({
   isOpen,
   onClose,
@@ -247,6 +249,20 @@ export default function EditEventModal({
   };
 
   const handleSubmit = () => {
+    if (!eventName.trim()) {
+      alert("กรุณาระบุชื่องานอีเว้นท์");
+      return;
+    }
+
+    if (!contactInfo || !contactInfo.trim()) {
+      alert("กรุณาระบุช่องทางติดต่อ (อีเมล)");
+      return;
+    }
+
+    if (!EMAIL_REGEX.test(contactInfo.trim())) {
+      alert("รูปแบบอีเมลไม่ถูกต้อง");
+      return;
+    }
     const totalRequiredGuards = shifts.reduce(
       (sum, shift) => sum + (parseInt(shift.guards) || 0),
       0,
@@ -377,11 +393,14 @@ export default function EditEventModal({
                 />
               </div>
               <div className="flex flex-col mb-2">
-                <label className="font-semibold mb-1">ช่องทางติดต่อ</label>
+                <label className="font-semibold mb-1">
+                  ช่องทางติดต่อ (อีเมล) <span className="text-red-500">*</span>
+                </label>
                 <input
-                  type="text"
+                  type="email"
                   value={contactInfo}
                   onChange={(e) => setContactInfo(e.target.value)}
+                  placeholder="เช่น example@email.com"
                   className="w-full h-[32px] border border-gray-400 rounded-full px-4 outline-none focus:border-blue-500"
                 />
               </div>

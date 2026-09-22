@@ -17,6 +17,8 @@ import {
   MapPin,
 } from "lucide-react";
 
+const EMAIL_REGEX = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+
 function CompanyDashboard() {
   const [activeMenu, setActiveMenu] = useState("headguard");
   const [search, setSearch] = useState("");
@@ -74,6 +76,7 @@ function CompanyDashboard() {
     firstName: "",
     lastName: "",
     phone: "",
+    email: "",
     userDetail: "",
     startDate: "",
     address: "",
@@ -318,7 +321,12 @@ function CompanyDashboard() {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+      ...(name === "email" ? { userDetail: value } : {}),
+      ...(name === "userDetail" ? { email: value } : {}),
+    }));
   };
 
   const clearForm = () => {
@@ -328,6 +336,7 @@ function CompanyDashboard() {
       firstName: "",
       lastName: "",
       phone: "",
+      email: "",
       userDetail: "",
       startDate: "",
       address: "",
@@ -342,12 +351,22 @@ function CompanyDashboard() {
   };
 
   const handleSaveData = async () => {
+    const emailValue = (formData.email || formData.userDetail || "").trim();
+    if (!emailValue) {
+      alert("กรุณากรอกอีเมล");
+      return;
+    }
+    if (!EMAIL_REGEX.test(emailValue)) {
+      alert("รูปแบบอีเมลไม่ถูกต้อง");
+      return;
+    }
+
     const payload = {
       first_name: formData.firstName,
       last_name: formData.lastName,
       phone: formData.phone,
       address: formData.address,
-      user_detail: formData.userDetail || "-",
+      user_detail: emailValue,
       start_date: formData.startDate
         ? `${formData.startDate}T00:00:00`
         : new Date().toISOString(),
@@ -389,6 +408,7 @@ function CompanyDashboard() {
       firstName: raw.first_name || "",
       lastName: raw.last_name || "",
       phone: raw.phone || "",
+      email: raw.user_detail || "",
       userDetail: raw.user_detail || "",
       startDate: startDateStr,
       address: raw.address || "",
@@ -409,12 +429,22 @@ function CompanyDashboard() {
   };
 
   const handleUpdateData = async () => {
+    const emailValue = (formData.email || formData.userDetail || "").trim();
+    if (!emailValue) {
+      alert("กรุณากรอกอีเมล");
+      return;
+    }
+    if (!EMAIL_REGEX.test(emailValue)) {
+      alert("รูปแบบอีเมลไม่ถูกต้อง");
+      return;
+    }
+
     const payload = {
       first_name: formData.firstName,
       last_name: formData.lastName,
       phone: formData.phone,
       address: formData.address,
-      user_detail: formData.userDetail || "-",
+      user_detail: emailValue,
       start_date: formData.startDate ? `${formData.startDate}T00:00:00` : null,
       quit_date:
         formData.status === "ปฏิบัติงาน"
@@ -822,6 +852,19 @@ function CompanyDashboard() {
                   </div>
                   <div className="flex items-center">
                     <label className="w-[120px] font-semibold">
+                      อีเมล <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="email"
+                      name="email"
+                      value={formData.email}
+                      onChange={handleInputChange}
+                      placeholder="example@email.com"
+                      className="flex-1 h-[28px] border border-gray-400 rounded-full px-3 text-center outline-none focus:border-blue-500"
+                    />
+                  </div>
+                  <div className="flex items-center">
+                    <label className="w-[120px] font-semibold">
                       วันที่เริ่มทำงาน
                     </label>
                     <input
@@ -908,6 +951,10 @@ function CompanyDashboard() {
         companyName={currentCompanyName}
         companyId={companyProfile?.users_id || currentUser?.users_id}
         onSave={async (payload) => {
+          if (!payload.contact || !EMAIL_REGEX.test(payload.contact.trim())) {
+            alert("รูปแบบอีเมลไม่ถูกต้อง");
+            return;
+          }
           try {
             const compId = companyProfile?.users_id || currentUser?.users_id;
             const fullPayload = {
@@ -944,6 +991,10 @@ function CompanyDashboard() {
         companyName={currentCompanyName}
         companyId={companyProfile?.users_id || currentUser?.users_id}
         onSave={async (payload) => {
+          if (!payload.contact || !EMAIL_REGEX.test(payload.contact.trim())) {
+            alert("รูปแบบอีเมลไม่ถูกต้อง");
+            return;
+          }
           try {
             const compId = companyProfile?.users_id || currentUser?.users_id;
             const fullPayload = {
@@ -1047,6 +1098,17 @@ function CompanyDashboard() {
                       type="text"
                       readOnly
                       value={formData.phone}
+                      className="flex-1 h-[28px] border border-gray-400 rounded-full px-3 text-center bg-gray-50 outline-none cursor-default"
+                    />
+                  </div>
+                  <div className="flex items-center">
+                    <label className="w-[120px] font-semibold">
+                      อีเมล
+                    </label>
+                    <input
+                      type="text"
+                      readOnly
+                      value={formData.email || formData.userDetail}
                       className="flex-1 h-[28px] border border-gray-400 rounded-full px-3 text-center bg-gray-50 outline-none cursor-default"
                     />
                   </div>
@@ -1230,6 +1292,19 @@ function CompanyDashboard() {
                       value={formData.phone}
                       onChange={handleInputChange}
                       maxLength="10"
+                      className="flex-1 h-[28px] border border-gray-400 rounded-full px-3 text-center outline-none focus:border-blue-500"
+                    />
+                  </div>
+                  <div className="flex items-center">
+                    <label className="w-[120px] font-semibold">
+                      อีเมล <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="email"
+                      name="email"
+                      value={formData.email}
+                      onChange={handleInputChange}
+                      placeholder="example@email.com"
                       className="flex-1 h-[28px] border border-gray-400 rounded-full px-3 text-center outline-none focus:border-blue-500"
                     />
                   </div>
