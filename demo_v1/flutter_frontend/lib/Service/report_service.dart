@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import '../Model/auth_api_screen.dart';
 import './api_exception.dart';
+import './notification_service.dart';
 
 class SituationReportItem {
   final int reportId;
@@ -126,9 +127,7 @@ class ReportService extends ChangeNotifier {
           'report_type': reportType,
           'description': description,
           'is_normal': isNormal,
-          'report_img': images.isNotEmpty
-              ? images.first
-              : 'default_report.jpg',
+          'report_img': images.isNotEmpty ? images.first : 'default_report.jpg',
         };
       }
 
@@ -176,14 +175,14 @@ class ReportService extends ChangeNotifier {
     return false;
   }
 
-  /// Emergency SOS submission
+  /// Emergency SOS submission with high-priority notification trigger
   Future<bool> sendEmergencySOS({
     required int guardId,
     required int shiftId,
     required String location,
     String? note,
   }) async {
-    return submitReport(
+    final success = await submitReport(
       guardId: guardId,
       shiftId: shiftId,
       reportType: 'เหตุฉุกเฉิน / SOS',
@@ -194,7 +193,21 @@ class ReportService extends ChangeNotifier {
           'ส่งสัญญาณแจ้งขอความช่วยเหลือฉุกเฉินทันทีจากตำแหน่งปฏิบัติการ ($location)',
       isNormal: false,
     );
+
+    if (success) {
+      try {
+        await NotificationService.instance.triggerSOSAlert(
+          location: location,
+          note: note,
+        );
+      } catch (e) {
+        debugPrint('[ReportService] Error triggering SOS alert notification: $e');
+      }
+    }
+
+    return success;
   }
+
 
   /// Fetch history of reports for this guard from backend: GET /api/report/guard/{guardId}
   Future<List<SituationReportItem>> fetchGuardReports(int guardId) async {

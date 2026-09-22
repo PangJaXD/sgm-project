@@ -76,9 +76,13 @@ export default function AddEventModal({
 
     setIsUploadingImage(true);
     try {
-      const res = await axios.post("http://localhost:8080/api/upload", formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
+      const res = await axios.post(
+        "http://localhost:8080/api/upload",
+        formData,
+        {
+          headers: { "Content-Type": "multipart/form-data" },
+        },
+      );
       if (res.data && res.data.fileName) {
         setEventImg(res.data.fileName);
       }
@@ -141,7 +145,6 @@ export default function AddEventModal({
       ]);
     }
   }, [isOpen, companyName]);
-
 
   if (!isOpen) return null;
 
@@ -229,7 +232,6 @@ export default function AddEventModal({
       company_id: companyId,
       event_img: eventImg || "default.png",
     };
-
 
     if (onSave) onSave(payload);
   };
@@ -405,7 +407,6 @@ export default function AddEventModal({
                     )}
                   </div>
                 </div>
-
 
                 {/* Map Box */}
                 <div>

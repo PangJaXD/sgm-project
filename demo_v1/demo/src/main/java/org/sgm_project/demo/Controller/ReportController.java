@@ -71,7 +71,8 @@ public class ReportController {
         return ResponseEntity.status(HttpStatus.CREATED).body(saved);
     }
 
-    // 1.2 ส่งรายงานสถานการณ์พร้อมแนบไฟล์รูปจริงแบบ Multipart Form-Data (POST /api/report)
+    // 1.2 ส่งรายงานสถานการณ์พร้อมแนบไฟล์รูปจริงแบบ Multipart Form-Data (POST
+    // /api/report)
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @Transactional
     public ResponseEntity<Report> submitReportMultipart(
@@ -81,8 +82,7 @@ public class ReportController {
             @RequestParam(value = "description", required = false, defaultValue = "") String description,
             @RequestParam(value = "is_normal", defaultValue = "true") Boolean isNormal,
             @RequestParam(value = "report_img", required = false) String reportImg,
-            @RequestParam(value = "file", required = false) MultipartFile file
-    ) {
+            @RequestParam(value = "file", required = false) MultipartFile file) {
         Report report = new Report();
         report.setGuard_id(guardId);
         report.setShift_id(shiftId);
@@ -100,7 +100,8 @@ public class ReportController {
                     Files.createDirectories(uploadPath);
                 }
 
-                String originalFilename = StringUtils.cleanPath(file.getOriginalFilename() != null ? file.getOriginalFilename() : "report.jpg");
+                String originalFilename = StringUtils
+                        .cleanPath(file.getOriginalFilename() != null ? file.getOriginalFilename() : "report.jpg");
                 String cleanOriginalName = originalFilename.replaceAll("[^a-zA-Z0-9._-]", "_");
                 String uniqueFilename = UUID.randomUUID().toString() + "_" + cleanOriginalName;
 
@@ -118,7 +119,6 @@ public class ReportController {
         Report saved = reportRepository.save(report);
         return ResponseEntity.status(HttpStatus.CREATED).body(saved);
     }
-
 
     // 2. ดึงประวัติรายงานของ Guard (GET /api/report/guard/{guardId})
     @GetMapping("/guard/{guardId}")

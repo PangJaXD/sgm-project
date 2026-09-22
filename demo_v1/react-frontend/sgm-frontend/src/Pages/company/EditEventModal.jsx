@@ -77,9 +77,13 @@ export default function EditEventModal({
 
     setIsUploadingImage(true);
     try {
-      const res = await axios.post("http://localhost:8080/api/upload", formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
+      const res = await axios.post(
+        "http://localhost:8080/api/upload",
+        formData,
+        {
+          headers: { "Content-Type": "multipart/form-data" },
+        },
+      );
       if (res.data && res.data.fileName) {
         setEventImg(res.data.fileName);
       }
@@ -90,7 +94,6 @@ export default function EditEventModal({
       setIsUploadingImage(false);
     }
   };
-
 
   useEffect(() => {
     if (isOpen) {
@@ -195,10 +198,10 @@ export default function EditEventModal({
           const previewSrc = existingImg.startsWith("http")
             ? existingImg
             : existingImg.startsWith("/uploads/")
-            ? `http://localhost:8080${existingImg}`
-            : existingImg.startsWith("/")
-            ? `http://localhost:8080/uploads${existingImg}`
-            : `http://localhost:8080/uploads/${existingImg}`;
+              ? `http://localhost:8080${existingImg}`
+              : existingImg.startsWith("/")
+                ? `http://localhost:8080/uploads${existingImg}`
+                : `http://localhost:8080/uploads/${existingImg}`;
           setImagePreview(previewSrc);
         } else {
           setImagePreview("");
@@ -206,7 +209,6 @@ export default function EditEventModal({
       }
     }
   }, [isOpen, eventData, companyName]);
-
 
   if (!isOpen) return null;
 
@@ -266,9 +268,8 @@ export default function EditEventModal({
       end_date: endDate,
       status: status,
       company_id: companyId || eventData?.company_id,
-      event_img: eventImg || (eventData?.event_img || "default.png"),
+      event_img: eventImg || eventData?.event_img || "default.png",
     };
-
 
     if (onSave) onSave(payload);
   };
@@ -433,7 +434,6 @@ export default function EditEventModal({
                     )}
                   </div>
                 </div>
-
 
                 <div>
                   <label className="font-semibold flex items-center gap-1 mb-2">

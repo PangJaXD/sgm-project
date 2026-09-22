@@ -25,4 +25,4 @@ public class CorsConfig implements WebMvcConfigurer {
     }
 }
 
-//config เอาไว้แก้ปัญหา cors และ static file serving
+// config เอาไว้แก้ปัญหา cors และ static file serving

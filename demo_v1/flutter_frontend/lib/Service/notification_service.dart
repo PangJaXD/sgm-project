@@ -1,7 +1,10 @@
 import 'dart:async';
 import 'package:flutter/foundation.dart';
+
+import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import '../Model/notification_model.dart';
 
 // Top-level background message handler required by FCM
@@ -22,6 +25,24 @@ class NotificationService extends ChangeNotifier {
     _initializeDefaultMockNotifications();
   }
 
+  final FlutterLocalNotificationsPlugin _localNotifications =
+      FlutterLocalNotificationsPlugin();
+
+  static const String emergencyChannelId = 'sgm_emergency_channel';
+  static const String emergencyChannelName = 'SGM Emergency & SOS Alerts';
+  static const String emergencyChannelDesc =
+      'High priority channel for SOS emergency alarms and urgent incident reports';
+
+  static const AndroidNotificationChannel _emergencyChannel =
+      AndroidNotificationChannel(
+    emergencyChannelId,
+    emergencyChannelName,
+    description: emergencyChannelDesc,
+    importance: Importance.max,
+    playSound: true,
+    enableVibration: true,
+  );
+
   String? _fcmToken;
   String? get fcmToken => _fcmToken;
 
@@ -32,6 +53,7 @@ class NotificationService extends ChangeNotifier {
   List<NotificationItem> get notifications => List.unmodifiable(_notifications);
 
   int get unreadCount => _notifications.where((n) => !n.isRead).length;
+
 
   void _initializeDefaultMockNotifications() {
     final now = DateTime.now();
@@ -111,19 +133,48 @@ class NotificationService extends ChangeNotifier {
         debugPrint('[FCM] Topic subscription note: $e');
       }
 
-      // 5. Handle foreground notifications
+      // 5. Initialize Local Notifications & High Priority Channel
+      try {
+        const androidSettings =
+            AndroidInitializationSettings('@mipmap/ic_launcher');
+        const iosSettings = DarwinInitializationSettings(
+          requestAlertPermission: true,
+          requestBadgePermission: true,
+          requestSoundPermission: true,
+        );
+        const initSettings =
+            InitializationSettings(android: androidSettings, iOS: iosSettings);
+
+        await _localNotifications.initialize(
+          initSettings,
+          onDidReceiveNotificationResponse: (NotificationResponse response) {
+            debugPrint('[LocalNotification] Clicked: ${response.payload}');
+          },
+        );
+
+        final androidPlugin = _localNotifications
+            .resolvePlatformSpecificImplementation<
+                AndroidFlutterLocalNotificationsPlugin>();
+        if (androidPlugin != null) {
+          await androidPlugin.createNotificationChannel(_emergencyChannel);
+        }
+      } catch (e) {
+        debugPrint('[NotificationService] Local notification init error: $e');
+      }
+
+      // 6. Handle foreground notifications
       FirebaseMessaging.onMessage.listen((RemoteMessage message) {
         debugPrint('[FCM] Foreground notification: ${message.notification?.title}');
-        _handleRemoteMessage(message);
+        _handleRemoteMessage(message, fromForeground: true);
       });
 
-      // 6. Handle notification click when app is opened from background
+      // 7. Handle notification click when app is opened from background
       FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
         debugPrint('[FCM] Notification opened app: ${message.notification?.title}');
         _handleRemoteMessage(message);
       });
 
-      // 7. Check if app was opened directly by tapping a notification from terminated state
+      // 8. Check if app was opened directly by tapping a notification from terminated state
       RemoteMessage? initialMessage = await messaging.getInitialMessage();
       if (initialMessage != null) {
         _handleRemoteMessage(initialMessage);
@@ -133,7 +184,7 @@ class NotificationService extends ChangeNotifier {
     }
   }
 
-  void _handleRemoteMessage(RemoteMessage message) {
+  void _handleRemoteMessage(RemoteMessage message, {bool fromForeground = false}) {
     final title = message.notification?.title ?? message.data['title'] ?? 'การแจ้งเตือนใหม่';
     final body = message.notification?.body ?? message.data['body'] ?? '';
     final typeString = message.data['type'] as String?;
@@ -150,7 +201,108 @@ class NotificationService extends ChangeNotifier {
     );
 
     addNotification(item);
+
+    // If foreground or SOS/urgent, pop high-priority heads-up notification with sound & vibration
+    if (fromForeground || item.isHighPriority) {
+      showHighPriorityNotification(
+        id: (message.messageId.hashCode).abs(),
+        title: title,
+        body: body,
+        type: type,
+        payload: item.id,
+      );
+    }
   }
+
+  /// Show high-priority heads-up banner with sound & vibration
+  Future<void> showHighPriorityNotification({
+    required int id,
+    required String title,
+    required String body,
+    NotificationType type = NotificationType.sos,
+    String? payload,
+  }) async {
+    try {
+      final androidDetails = AndroidNotificationDetails(
+        emergencyChannelId,
+        emergencyChannelName,
+        channelDescription: emergencyChannelDesc,
+        importance: Importance.max,
+        priority: Priority.high,
+        ticker: 'SGM EMERGENCY ALERT',
+        fullScreenIntent: true,
+        enableVibration: true,
+        vibrationPattern: Int64List.fromList([0, 500, 200, 500, 200, 500]),
+        color: const Color(0xFFDC2626),
+        ledColor: const Color(0xFFDC2626),
+        ledOnMs: 1000,
+        ledOffMs: 500,
+      );
+
+      const iosDetails = DarwinNotificationDetails(
+        presentAlert: true,
+        presentBadge: true,
+        presentSound: true,
+        interruptionLevel: InterruptionLevel.critical,
+      );
+
+      final notificationDetails = NotificationDetails(
+        android: androidDetails,
+        iOS: iosDetails,
+      );
+
+      await _localNotifications.show(
+        id,
+        title,
+        body,
+        notificationDetails,
+        payload: payload,
+      );
+    } catch (e) {
+      debugPrint('[NotificationService] showHighPriorityNotification error: $e');
+    }
+  }
+
+  /// Trigger a high-priority SOS emergency alert both in-app and system notification
+  Future<void> triggerSOSAlert({
+    required String location,
+    String? guardName,
+    String? note,
+  }) async {
+    final now = DateTime.now();
+    final alertId = 'sos-${now.millisecondsSinceEpoch}';
+    final title = '🚨 แจ้งเหตุฉุกเฉิน / SOS ด่วนที่สุด!';
+    final body = guardName != null && guardName.isNotEmpty
+        ? 'เจ้าหน้าที่ $guardName ส่งสัญญาณขอความช่วยเหลือฉุกเฉิน ณ จุดเกิดเหตุ: $location'
+        : 'มีการส่งสัญญาณขอความช่วยเหลือฉุกเฉิน ณ จุดเกิดเหตุ: $location';
+
+    // 1. In-app notification item
+    final item = NotificationItem(
+      id: alertId,
+      title: title,
+      body: body,
+      timestamp: now,
+      type: NotificationType.sos,
+      isRead: false,
+      data: {
+        'location': location,
+        'type': 'sos',
+        'urgency': 'ด่วนมาก',
+        'note': note ?? '',
+      },
+    );
+    addNotification(item);
+
+    // 2. High-priority system heads-up notification with sound & vibration
+    await showHighPriorityNotification(
+      id: (now.millisecondsSinceEpoch ~/ 1000) & 0x7FFFFFFF,
+      title: title,
+      body: body,
+      type: NotificationType.sos,
+      payload: alertId,
+    );
+  }
+
 
   // State manipulation methods
   void addNotification(NotificationItem item) {

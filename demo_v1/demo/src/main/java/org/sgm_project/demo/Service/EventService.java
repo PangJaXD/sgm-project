@@ -252,7 +252,6 @@ public class EventService {
             existingEvent.setEvent_img(request.getEvent_img().trim());
         }
 
-
         LocalDate finalStartDate = request.getStart_date() != null && !request.getStart_date().isEmpty()
                 ? LocalDate.parse(request.getStart_date())
                 : existingEvent.getStart_date();

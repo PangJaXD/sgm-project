@@ -103,12 +103,13 @@ class _NotificationScreenState extends State<NotificationScreen> {
                         item.timeAgo,
                         style: TextStyle(
                           fontSize: 13,
-                          color: (!item.isRead || item.type == NotificationType.urgent)
+                          color: (!item.isRead || item.isUrgent)
                               ? const Color(0xFFDC2626)
                               : const Color(0xFF94A3B8),
-                          fontWeight: (!item.isRead || item.type == NotificationType.urgent)
+                          fontWeight: (!item.isRead || item.isUrgent)
                               ? FontWeight.w600
                               : FontWeight.normal,
+
                         ),
                       ),
                     ],
@@ -350,6 +351,12 @@ class _NotificationScreenState extends State<NotificationScreen> {
                               body: 'มีการเพิ่มกะงานใหม่ในพื้นที่ของคุณ กรุณาตรวจสอบ',
                               type: NotificationType.urgent,
                             );
+                          } else if (value == 'test_sos') {
+                            _service.triggerSOSAlert(
+                              location: 'อาคารเฉลิมพระเกียรติ ชั้น 1 (จุดตรวจหลัก)',
+                              guardName: 'สมชาย ใจดี',
+                              note: 'ทดสอบการส่งสัญญาณเหตุฉุกเฉินระดับสูงสุด (High Priority SOS Alert)',
+                            );
                           }
                         },
                         itemBuilder: (context) => [
@@ -364,12 +371,22 @@ class _NotificationScreenState extends State<NotificationScreen> {
                             ),
                           ),
                           const PopupMenuItem(
+                            value: 'test_sos',
+                            child: Row(
+                              children: [
+                                Icon(Icons.emergency_rounded, size: 20, color: Color(0xFFDC2626)),
+                                SizedBox(width: 10),
+                                Text('ทดสอบส่งสัญญาณ SOS (High Priority)'),
+                              ],
+                            ),
+                          ),
+                          const PopupMenuItem(
                             value: 'test_fcm',
                             child: Row(
                               children: [
                                 Icon(Icons.add_alert_rounded, size: 20, color: Color(0xFF16A34A)),
                                 SizedBox(width: 10),
-                                Text('จำลองแจ้งเตือน (Test)'),
+                                Text('จำลองแจ้งเตือนทั่วไป (Test)'),
                               ],
                             ),
                           ),
@@ -384,6 +401,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
                             ),
                           ),
                         ],
+
                       ),
                     ),
                   ],
@@ -445,7 +463,8 @@ class _NotificationScreenState extends State<NotificationScreen> {
   }
 
   Widget _buildNotificationCard(NotificationItem item) {
-    final isUrgentOrUnread = !item.isRead || item.type == NotificationType.urgent;
+    final isUrgentOrUnread = !item.isRead || item.isUrgent;
+
 
     return Dismissible(
       key: Key(item.id),

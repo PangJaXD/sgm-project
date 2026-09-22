@@ -37,7 +37,6 @@ class _ReportSituationScreenState extends State<ReportSituationScreen> {
   bool _isSubmitting = false;
   final List<XFile> _attachedImages = [];
 
-
   final List<String> _categories = [
     'ตรวจความเรียบร้อยทั่วไป (Routine)',
     'พบบุคคลน่าสงสัย (Suspicious Person)',
@@ -127,8 +126,10 @@ class _ReportSituationScreenState extends State<ReportSituationScreen> {
                   ),
                   child: const Icon(Icons.camera_alt, color: Color(0xFF2563EB)),
                 ),
-                title: const Text('ถ่ายภาพด้วยกล้อง (Camera)',
-                    style: TextStyle(fontWeight: FontWeight.w600)),
+                title: const Text(
+                  'ถ่ายภาพด้วยกล้อง (Camera)',
+                  style: TextStyle(fontWeight: FontWeight.w600),
+                ),
                 subtitle: const Text('ถ่ายภาพเหตุการณ์สดเพื่อเป็นหลักฐาน'),
                 onTap: () {
                   Navigator.pop(ctx);
@@ -142,10 +143,15 @@ class _ReportSituationScreenState extends State<ReportSituationScreen> {
                     color: const Color(0xFFF1F5F9),
                     borderRadius: BorderRadius.circular(10),
                   ),
-                  child: const Icon(Icons.photo_library, color: Color(0xFF475569)),
+                  child: const Icon(
+                    Icons.photo_library,
+                    color: Color(0xFF475569),
+                  ),
                 ),
-                title: const Text('เลือกจากคลังภาพ (Gallery)',
-                    style: TextStyle(fontWeight: FontWeight.w600)),
+                title: const Text(
+                  'เลือกจากคลังภาพ (Gallery)',
+                  style: TextStyle(fontWeight: FontWeight.w600),
+                ),
                 subtitle: const Text('เลือกภาพถ่ายที่มีอยู่แล้วในอุปกรณ์'),
                 onTap: () {
                   Navigator.pop(ctx);
@@ -158,7 +164,6 @@ class _ReportSituationScreenState extends State<ReportSituationScreen> {
       ),
     );
   }
-
 
   Future<void> _handleSubmit() async {
     if (_selectedCategory == null) {
@@ -200,7 +205,6 @@ class _ReportSituationScreenState extends State<ReportSituationScreen> {
         images: _attachedImages.map((e) => e.name).toList(),
         imageFiles: _attachedImages,
       );
-
 
       // Create confirmation notification in NotificationService
       NotificationService.instance.addNotification(
@@ -639,7 +643,9 @@ class _ReportSituationScreenState extends State<ReportSituationScreen> {
                                 right: -6,
                                 child: GestureDetector(
                                   onTap: () {
-                                    setState(() => _attachedImages.remove(file));
+                                    setState(
+                                      () => _attachedImages.remove(file),
+                                    );
                                   },
                                   child: Container(
                                     padding: const EdgeInsets.all(4),
@@ -666,7 +672,6 @@ class _ReportSituationScreenState extends State<ReportSituationScreen> {
                         }).toList(),
                       ),
                     ],
-
 
                     const SizedBox(height: 32),
 

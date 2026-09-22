@@ -27,8 +27,7 @@ public class FileUploadController {
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<Map<String, Object>> uploadFile(
             @RequestParam("file") MultipartFile file,
-            @RequestParam(value = "folder", defaultValue = "general") String folder
-    ) {
+            @RequestParam(value = "folder", defaultValue = "general") String folder) {
         if (file.isEmpty()) {
             Map<String, Object> error = new HashMap<>();
             error.put("error", "File is empty");
@@ -47,7 +46,8 @@ public class FileUploadController {
                 Files.createDirectories(uploadPath);
             }
 
-            String originalFilename = StringUtils.cleanPath(file.getOriginalFilename() != null ? file.getOriginalFilename() : "upload.jpg");
+            String originalFilename = StringUtils
+                    .cleanPath(file.getOriginalFilename() != null ? file.getOriginalFilename() : "upload.jpg");
             // Keep safe characters in filename
             String cleanOriginalName = originalFilename.replaceAll("[^a-zA-Z0-9._-]", "_");
             String uniqueFilename = UUID.randomUUID().toString() + "_" + cleanOriginalName;
@@ -55,7 +55,8 @@ public class FileUploadController {
             Path targetLocation = uploadPath.resolve(uniqueFilename);
             Files.copy(file.getInputStream(), targetLocation, StandardCopyOption.REPLACE_EXISTING);
 
-            // Relative path suitable for storage in DB e.g. "reports/uuid_pic.jpg" or "events/uuid_pic.jpg"
+            // Relative path suitable for storage in DB e.g. "reports/uuid_pic.jpg" or
+            // "events/uuid_pic.jpg"
             String relativeStoredPath = safeFolder + "/" + uniqueFilename;
             String publicUrl = "/uploads/" + relativeStoredPath;
 

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 enum NotificationType {
+  sos,
   urgent,
   approval,
   announcement,
@@ -8,6 +9,9 @@ enum NotificationType {
 
   static NotificationType fromString(String? type) {
     switch (type?.toLowerCase()) {
+      case 'sos':
+      case 'emergency':
+        return NotificationType.sos;
       case 'urgent':
       case 'warning':
       case 'alert':
@@ -45,6 +49,11 @@ class NotificationItem {
     this.data = const {},
   });
 
+  bool get isHighPriority =>
+      type == NotificationType.sos || type == NotificationType.urgent;
+
+  bool get isUrgent => isHighPriority;
+
   NotificationItem copyWith({
     String? id,
     String? title,
@@ -68,6 +77,8 @@ class NotificationItem {
   // Visual styling helpers matching the UI mockup
   IconData get icon {
     switch (type) {
+      case NotificationType.sos:
+        return Icons.emergency_rounded;
       case NotificationType.urgent:
         return Icons.warning_rounded;
       case NotificationType.approval:
@@ -81,6 +92,8 @@ class NotificationItem {
 
   Color get iconColor {
     switch (type) {
+      case NotificationType.sos:
+        return const Color(0xFFDC2626); // Strong Red
       case NotificationType.urgent:
         return const Color(0xFFEF4444); // Red
       case NotificationType.approval:
@@ -94,6 +107,8 @@ class NotificationItem {
 
   Color get iconBgColor {
     switch (type) {
+      case NotificationType.sos:
+        return const Color(0xFFFFE4E6); // Light Rose Red
       case NotificationType.urgent:
         return const Color(0xFFFEE2E2); // Light Red / Pink
       case NotificationType.approval:
@@ -104,6 +119,7 @@ class NotificationItem {
         return const Color(0xFFEEF2FF); // Light Indigo
     }
   }
+
 
   // Relative Thai time formatting
   String get timeAgo {

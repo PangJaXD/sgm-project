@@ -76,19 +76,24 @@ export default function ViewRequestModal({ isOpen, onClose, requestData }) {
               <div>
                 <div className="flex items-center justify-between mb-2">
                   <span className="flex items-center gap-2 font-semibold text-gray-700">
-                    <ImageIcon size={16} className="text-blue-400" /> ภาพประกอบเหตุการณ์
+                    <ImageIcon size={16} className="text-blue-400" />{" "}
+                    ภาพประกอบเหตุการณ์
                   </span>
-                  <span className="text-[11px] text-gray-400">คลิกที่ภาพเพื่อดูรูปขนาดเต็ม</span>
+                  <span className="text-[11px] text-gray-400">
+                    คลิกที่ภาพเพื่อดูรูปขนาดเต็ม
+                  </span>
                 </div>
                 {(() => {
                   const rawImg = requestData.report_img;
-                  const imgSrc = rawImg.startsWith("http://") || rawImg.startsWith("https://")
-                    ? rawImg
-                    : rawImg.startsWith("/uploads/")
-                    ? `http://localhost:8080${rawImg}`
-                    : rawImg.startsWith("/")
-                    ? `http://localhost:8080/uploads${rawImg}`
-                    : `http://localhost:8080/uploads/${rawImg}`;
+                  const imgSrc =
+                    rawImg.startsWith("http://") ||
+                    rawImg.startsWith("https://")
+                      ? rawImg
+                      : rawImg.startsWith("/uploads/")
+                        ? `http://localhost:8080${rawImg}`
+                        : rawImg.startsWith("/")
+                          ? `http://localhost:8080/uploads${rawImg}`
+                          : `http://localhost:8080/uploads/${rawImg}`;
 
                   return (
                     <div className="w-full h-[200px] bg-gray-100 rounded-xl border border-gray-300 overflow-hidden flex items-center justify-center group relative cursor-pointer">
@@ -106,7 +111,6 @@ export default function ViewRequestModal({ isOpen, onClose, requestData }) {
                 })()}
               </div>
             )}
-
 
           <div className="flex mt-6 items-center justify-between pt-5 border-t border-gray-200">
             <span className="text-red-600 font-semibold px-3 py-1 bg-red-100 rounded-full text-[11px]">

@@ -37,6 +37,7 @@ public class CreateEventRequest {
     private Integer company_id;
 }
 
-//@JsonProperty (Jackson): Maps a specific JSON key to a specific Java field
-// , especially useful when the JSON key name doesn't match your Java variable name.
-//prevent some misunderstanding to both name
+// @JsonProperty (Jackson): Maps a specific JSON key to a specific Java field
+// , especially useful when the JSON key name doesn't match your Java variable
+// name.
+// prevent some misunderstanding to both name
