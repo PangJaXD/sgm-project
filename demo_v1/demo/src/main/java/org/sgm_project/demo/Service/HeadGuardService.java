@@ -26,6 +26,7 @@ public class HeadGuardService {
             CreateHeadGuardRequest request) {
         org.sgm_project.demo.Util.UserValidationUtil.validateUsername(request.getUsername());
         org.sgm_project.demo.Util.UserValidationUtil.validatePassword(request.getPassword());
+        org.sgm_project.demo.Util.UserValidationUtil.validatePhone(request.getPhone());
 
         HeadGuard headGuard = new HeadGuard();
 
@@ -66,7 +67,10 @@ public class HeadGuardService {
 
         existingHeadGuard.setFirst_name(headGuard.getFirst_name());
         existingHeadGuard.setLast_name(headGuard.getLast_name());
-        existingHeadGuard.setPhone(headGuard.getPhone());
+        if (headGuard.getPhone() != null && !headGuard.getPhone().trim().isEmpty()) {
+            org.sgm_project.demo.Util.UserValidationUtil.validatePhone(headGuard.getPhone());
+            existingHeadGuard.setPhone(headGuard.getPhone().trim());
+        }
         existingHeadGuard.setAddress(headGuard.getAddress());
         existingHeadGuard.setUser_detail(headGuard.getUser_detail());
         existingHeadGuard.setStart_date(headGuard.getStart_date());

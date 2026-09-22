@@ -32,7 +32,7 @@ function LocationSelector({ position, setPosition }) {
   return position ? <Marker position={position} /> : null;
 }
 
-const EMAIL_REGEX = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+const PHONE_REGEX = /^0[689]\d{8}$/;
 
 export default function EditEventModal({
   isOpen,
@@ -254,15 +254,13 @@ export default function EditEventModal({
       return;
     }
 
-    if (!contactInfo || !contactInfo.trim()) {
-      alert("กรุณาระบุช่องทางติดต่อ (อีเมล)");
+    if (!contactInfo || !PHONE_REGEX.test(contactInfo.trim())) {
+      alert(
+        "กรุณากรอกเบอร์โทรศัพท์ผู้ว่าจ้างให้ถูกต้อง (ต้องขึ้นต้นด้วย 06, 08 หรือ 09 และมีความยาว 10 หลัก)",
+      );
       return;
     }
 
-    if (!EMAIL_REGEX.test(contactInfo.trim())) {
-      alert("รูปแบบอีเมลไม่ถูกต้อง");
-      return;
-    }
     const totalRequiredGuards = shifts.reduce(
       (sum, shift) => sum + (parseInt(shift.guards) || 0),
       0,
@@ -394,13 +392,16 @@ export default function EditEventModal({
               </div>
               <div className="flex flex-col mb-2">
                 <label className="font-semibold mb-1">
-                  ช่องทางติดต่อ (อีเมล) <span className="text-red-500">*</span>
+                  เบอร์โทรศัพท์ผู้ว่าจ้าง <span className="text-red-500">*</span>
                 </label>
                 <input
-                  type="email"
+                  type="text"
                   value={contactInfo}
-                  onChange={(e) => setContactInfo(e.target.value)}
-                  placeholder="เช่น example@email.com"
+                  onChange={(e) =>
+                    setContactInfo(e.target.value.replace(/\D/g, ""))
+                  }
+                  maxLength="10"
+                  placeholder="เช่น 0812345678 (ขึ้นต้นด้วย 06, 08, 09)"
                   className="w-full h-[32px] border border-gray-400 rounded-full px-4 outline-none focus:border-blue-500"
                 />
               </div>

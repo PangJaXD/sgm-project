@@ -136,6 +136,9 @@ public class EventService {
         event.setLatitude(request.getLatitude());
         event.setLongitude(request.getLongitude());
         event.setContractor(request.getContractor());
+        if (request.getContact() != null && !request.getContact().trim().isEmpty()) {
+            org.sgm_project.demo.Util.UserValidationUtil.validatePhone(request.getContact());
+        }
         event.setContact(request.getContact());
         event.setEvent_detail(request.getEvent_detail());
         event.setRequired_tools(request.getRequired_tools());
@@ -234,6 +237,9 @@ public class EventService {
         existingEvent.setLatitude(request.getLatitude());
         existingEvent.setLongitude(request.getLongitude());
         existingEvent.setContractor(request.getContractor());
+        if (request.getContact() != null && !request.getContact().trim().isEmpty()) {
+            org.sgm_project.demo.Util.UserValidationUtil.validatePhone(request.getContact());
+        }
         existingEvent.setContact(request.getContact());
         existingEvent.setEvent_detail(request.getEvent_detail());
         existingEvent.setRequired_tools(request.getRequired_tools());

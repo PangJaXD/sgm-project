@@ -12,6 +12,9 @@ public class UserValidationUtil {
     // ตัวอักษร และไม่เกิน 16 ตัวอักษร, ไม่มีเว้นวรรค, ไม่เป็นค่าว่าง
     private static final Pattern PASSWORD_PATTERN = Pattern.compile("^[a-zA-Z0-9!#_.]{8,16}$");
 
+    // 3. เบอร์โทรศัพท์: ^0[689]\d{8}$
+    private static final Pattern PHONE_PATTERN = Pattern.compile("^0[689]\\d{8}$");
+
     public static void validateUsername(String username) {
         if (username == null || username.trim().isEmpty()) {
             throw new IllegalArgumentException("ชื่อผู้ใช้งานต้องไม่เป็นค่าว่าง");
@@ -40,6 +43,13 @@ public class UserValidationUtil {
         if (!PASSWORD_PATTERN.matcher(password).matches()) {
             throw new IllegalArgumentException(
                     "รหัสผ่านต้องเป็นตัวอักษรภาษาอังกฤษ ตัวเลข หรืออักขระพิเศษ [ !#_. ] เท่านั้น");
+        }
+    }
+
+    public static void validatePhone(String phone) {
+        if (phone == null || !PHONE_PATTERN.matcher(phone.trim()).matches()) {
+            throw new IllegalArgumentException(
+                    "เบอร์โทรศัพท์ไม่ถูกต้อง ต้องขึ้นต้นด้วย 06, 08 หรือ 09 และมีความยาว 10 หลัก (เช่น 0812345678)");
         }
     }
 }

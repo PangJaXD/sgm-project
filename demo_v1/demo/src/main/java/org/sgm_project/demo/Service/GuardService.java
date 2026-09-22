@@ -25,6 +25,7 @@ public class GuardService {
             CreateGuardRequest request) {
         org.sgm_project.demo.Util.UserValidationUtil.validateUsername(request.getUsername());
         org.sgm_project.demo.Util.UserValidationUtil.validatePassword(request.getPassword());
+        org.sgm_project.demo.Util.UserValidationUtil.validatePhone(request.getPhone());
 
         Guards guard = new Guards();
 
@@ -71,7 +72,10 @@ public class GuardService {
 
         existingGuard.setFirst_name(guard.getFirst_name());
         existingGuard.setLast_name(guard.getLast_name());
-        existingGuard.setPhone(guard.getPhone());
+        if (guard.getPhone() != null && !guard.getPhone().trim().isEmpty()) {
+            org.sgm_project.demo.Util.UserValidationUtil.validatePhone(guard.getPhone());
+            existingGuard.setPhone(guard.getPhone().trim());
+        }
         existingGuard.setAddress(guard.getAddress());
         existingGuard.setUser_detail(guard.getUser_detail());
         existingGuard.setStart_date(guard.getStart_date());

@@ -44,6 +44,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ElevatedButton(
             onPressed: () async {
               final newPhone = controller.text.trim();
+              final phoneRegex = RegExp(r'^0[689]\d{8}$');
+              if (!phoneRegex.hasMatch(newPhone)) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text(
+                      'กรุณากรอกเบอร์โทรศัพท์ให้ถูกต้อง (ต้องขึ้นต้นด้วย 06, 08 หรือ 09 และมีความยาว 10 หลัก)',
+                    ),
+                    backgroundColor: Colors.red,
+                  ),
+                );
+                return;
+              }
               if (newPhone.isNotEmpty) {
                 try {
                   await _userService.updatePhone(newPhone);

@@ -130,7 +130,7 @@ export default function ViewEventModal({ isOpen, onClose, eventData }) {
               </div>
               <div className="flex flex-col mb-2">
                 <label className="font-semibold text-gray-500 mb-1">
-                  ช่องทางติดต่อ (อีเมล)
+                  เบอร์โทรศัพท์ผู้ว่าจ้าง
                 </label>
                 <div className="w-full h-[32px] bg-gray-50 border border-gray-300 rounded-full px-4 flex items-center text-gray-700">
                   {eventData.contact}
