@@ -201,13 +201,14 @@ class ReportService extends ChangeNotifier {
           note: note,
         );
       } catch (e) {
-        debugPrint('[ReportService] Error triggering SOS alert notification: $e');
+        debugPrint(
+          '[ReportService] Error triggering SOS alert notification: $e',
+        );
       }
     }
 
     return success;
   }
-
 
   /// Fetch history of reports for this guard from backend: GET /api/report/guard/{guardId}
   Future<List<SituationReportItem>> fetchGuardReports(int guardId) async {

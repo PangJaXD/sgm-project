@@ -133,6 +133,7 @@ class NotificationService extends ChangeNotifier {
         debugPrint('[FCM] Topic subscription note: $e');
       }
 
+      // 5. Handle foreground notifications
       // 5. Initialize Local Notifications & High Priority Channel
       try {
         const androidSettings =
@@ -185,6 +186,7 @@ class NotificationService extends ChangeNotifier {
   }
 
   void _handleRemoteMessage(RemoteMessage message, {bool fromForeground = false}) {
+
     final title = message.notification?.title ?? message.data['title'] ?? 'การแจ้งเตือนใหม่';
     final body = message.notification?.body ?? message.data['body'] ?? '';
     final typeString = message.data['type'] as String?;

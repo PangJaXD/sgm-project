@@ -110,6 +110,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
                               ? FontWeight.w600
                               : FontWeight.normal,
 
+
                         ),
                       ),
                     ],
