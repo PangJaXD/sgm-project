@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import axios from "axios";
 import AddEventModal from "./AddEventModal";
 import ViewEventModal from "./ViewEventModal";
@@ -28,8 +28,14 @@ function CompanyDashboard() {
   const [isLoading, setIsLoading] = useState(true);
 
   // ดึงข้อมูลบริษัทปัจจุบัน
-  const userJson = localStorage.getItem("user");
-  const currentUser = userJson ? JSON.parse(userJson) : null;
+  const currentUser = useMemo(() => {
+    try {
+      const userJson = localStorage.getItem("user");
+      return userJson ? JSON.parse(userJson) : null;
+    } catch {
+      return null;
+    }
+  }, []);
   const [companyProfile, setCompanyProfile] = useState(null);
 
   useEffect(() => {

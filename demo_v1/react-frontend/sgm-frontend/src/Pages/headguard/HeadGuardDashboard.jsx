@@ -42,8 +42,14 @@ function HeadGuardDashboard() {
 
   const [assignmentsList, setAssignmentsList] = useState([]);
 
-  const userJson = localStorage.getItem("user");
-  const currentUser = userJson ? JSON.parse(userJson) : null;
+  const currentUser = useMemo(() => {
+    try {
+      const userJson = localStorage.getItem("user");
+      return userJson ? JSON.parse(userJson) : null;
+    } catch {
+      return null;
+    }
+  }, []);
   const fname = currentUser?.first_name || currentUser?.firstName;
   const lname = currentUser?.last_name || currentUser?.lastName;
   const headGuardName =
@@ -115,29 +121,22 @@ function HeadGuardDashboard() {
   const fetchRequests = useCallback(async () => {
     try {
       setIsLoading(true);
-      const [reqRes, shiftRes] = await Promise.all([
-        axios.get(
-          `http://localhost:8080/api/headguard-dashboard/requests?headGuardId=${headGuardId}`,
-        ),
-        shifts.length === 0
-          ? axios.get(
-              `http://localhost:8080/api/headguard-dashboard/${headGuardId}/shifts`,
-            )
-          : Promise.resolve(null),
-      ]);
+      const reqRes = await axios.get(
+        `http://localhost:8080/api/headguard-dashboard/requests?headGuardId=${headGuardId}`,
+      );
       setRequests(reqRes.data);
-      if (shiftRes && shiftRes.data) {
-        setShifts(shiftRes.data);
-      }
     } catch (error) {
       console.error("Error fetching requests:", error);
     } finally {
       setIsLoading(false);
     }
-  }, [headGuardId, shifts.length]);
+  }, [headGuardId]);
 
   useEffect(() => {
     fetchShifts();
+  }, [fetchShifts]);
+
+  useEffect(() => {
     if (activeMenu === "guard") fetchGuards();
     else if (activeMenu === "event") fetchShifts();
     else if (activeMenu === "request") fetchRequests();

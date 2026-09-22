@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import axios from "axios";
 import {
   Building2,
@@ -57,8 +57,14 @@ function AdminDashboard() {
   });
 
   // Current admin profile
-  const userJson = localStorage.getItem("user");
-  const currentUser = userJson ? JSON.parse(userJson) : null;
+  const currentUser = useMemo(() => {
+    try {
+      const userJson = localStorage.getItem("user");
+      return userJson ? JSON.parse(userJson) : null;
+    } catch {
+      return null;
+    }
+  }, []);
   const adminName =
     currentUser?.first_name || currentUser?.username || "Admin Master";
 
