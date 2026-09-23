@@ -144,10 +144,15 @@ function CompanyDashboard() {
           );
         });
 
-        const formattedData = filtered.map((guard) => {
+        const sorted = [...filtered].sort(
+          (a, b) => (Number(a.users_id) || 0) - (Number(b.users_id) || 0),
+        );
+
+        const formattedData = sorted.map((guard, index) => {
           const isActive = guard.quit_date === null;
+          const ordinalNumber = (index + 1).toString().padStart(3, "0");
           return {
-            id: `HG-${guard.users_id ? guard.users_id.toString().padStart(3, "0") : "000"}`,
+            id: `HG-${ordinalNumber}`,
             name: `${guard.first_name || ""} ${guard.last_name || ""}`.trim(),
             experience: calculateExperience(guard.start_date),
             status: isActive ? "ปฏิบัติงาน" : "พ้นสภาพ/พักงาน",
@@ -200,10 +205,15 @@ function CompanyDashboard() {
           );
         });
 
-        const formattedData = filtered.map((guard) => {
+        const sorted = [...filtered].sort(
+          (a, b) => (Number(a.users_id) || 0) - (Number(b.users_id) || 0),
+        );
+
+        const formattedData = sorted.map((guard, index) => {
           const isActive = guard.quit_date === null;
+          const ordinalNumber = (index + 1).toString().padStart(3, "0");
           return {
-            id: `G-${guard.users_id ? guard.users_id.toString().padStart(3, "0") : "000"}`,
+            id: `G-${ordinalNumber}`,
             name: `${guard.first_name || ""} ${guard.last_name || ""}`.trim(),
             experience: calculateExperience(guard.start_date),
             status: isActive ? "ปฏิบัติงาน" : "พ้นสภาพ/พักงาน",
@@ -788,7 +798,7 @@ function CompanyDashboard() {
                       name="username"
                       value={formData.username}
                       onChange={handleInputChange}
-                      className="flex-1 h-[28px] border border-gray-400 rounded-full px-3 text-center outline-none focus:border-blue-500"
+                      className="flex-1 h-[28px] border border-gray-400 rounded-full px-3 outline-none focus:border-blue-500"
                     />
                   </div>
                   <div className="flex items-center">
@@ -800,7 +810,7 @@ function CompanyDashboard() {
                       name="password"
                       value={formData.password}
                       onChange={handleInputChange}
-                      className="flex-1 h-[28px] border border-gray-400 rounded-full px-3 text-center outline-none focus:border-blue-500"
+                      className="flex-1 h-[28px] border border-gray-400 rounded-full px-3 outline-none focus:border-blue-500"
                     />
                   </div>
                   <div className="flex items-center">
@@ -810,7 +820,7 @@ function CompanyDashboard() {
                       name="firstName"
                       value={formData.firstName}
                       onChange={handleInputChange}
-                      className="flex-1 h-[28px] border border-gray-400 rounded-full px-3 text-center outline-none focus:border-blue-500"
+                      className="flex-1 h-[28px] border border-gray-400 rounded-full px-3 outline-none focus:border-blue-500"
                     />
                   </div>
                   <div className="flex items-center">
@@ -820,24 +830,20 @@ function CompanyDashboard() {
                       name="lastName"
                       value={formData.lastName}
                       onChange={handleInputChange}
-                      className="flex-1 h-[28px] border border-gray-400 rounded-full px-3 text-center outline-none focus:border-blue-500"
+                      className="flex-1 h-[28px] border border-gray-400 rounded-full px-3 outline-none focus:border-blue-500"
                     />
                   </div>
                   <div className="flex items-center">
                     <label className="w-[120px] font-semibold">
-                      เบอร์โทรศัพท์ <span className="text-red-500">*</span>
+                      เบอร์โทรศัพท์
                     </label>
                     <input
                       type="text"
                       name="phone"
                       value={formData.phone}
-                      onChange={(e) => {
-                        const val = e.target.value.replace(/\D/g, "");
-                        setFormData((prev) => ({ ...prev, phone: val }));
-                      }}
+                      onChange={handleInputChange}
                       maxLength="10"
-                      placeholder="เช่น 0812345678"
-                      className="flex-1 h-[28px] border border-gray-400 rounded-full px-3 text-center outline-none focus:border-blue-500"
+                      className="flex-1 h-[28px] border border-gray-400 rounded-full px-3 outline-none focus:border-blue-500"
                     />
                   </div>
                   <div className="flex items-center">
@@ -849,7 +855,7 @@ function CompanyDashboard() {
                       name="startDate"
                       value={formData.startDate}
                       onChange={handleInputChange}
-                      className="flex-1 h-[28px] border border-gray-400 rounded-full px-3 text-center outline-none focus:border-blue-500"
+                      className="flex-1 h-[28px] border border-gray-400 rounded-full px-3 outline-none focus:border-blue-500"
                     />
                   </div>
 
@@ -862,7 +868,7 @@ function CompanyDashboard() {
                         name="headName"
                         value={formData.headName}
                         onChange={handleInputChange}
-                        className="flex-1 h-[28px] border border-gray-400 rounded-full px-3 bg-white outline-none focus:border-blue-500 cursor-pointer text-center text-gray-700"
+                        className="flex-1 h-[28px] border border-gray-400 rounded-full px-3 bg-white outline-none focus:border-blue-500 cursor-pointer text-gray-700"
                       >
                         <option value="">-- ระบุหัวหน้าชุด --</option>
                         {headGuards
@@ -1018,7 +1024,7 @@ function CompanyDashboard() {
                       type="text"
                       readOnly
                       value={editingDisplayId}
-                      className="flex-1 h-[28px] border border-gray-400 rounded-full px-3 text-center bg-gray-100 outline-none cursor-default"
+                      className="flex-1 h-[28px] border border-gray-400 rounded-full px-3 bg-gray-100 outline-none cursor-default"
                     />
                   </div>
                   <div className="flex items-center">
@@ -1029,7 +1035,7 @@ function CompanyDashboard() {
                       type="text"
                       readOnly
                       value={formData.username}
-                      className="flex-1 h-[28px] border border-gray-400 rounded-full px-3 text-center bg-gray-50 outline-none cursor-default"
+                      className="flex-1 h-[28px] border border-gray-400 rounded-full px-3 bg-gray-50 outline-none cursor-default"
                     />
                   </div>
                   <div className="flex items-center">
@@ -1038,7 +1044,7 @@ function CompanyDashboard() {
                       type="password"
                       readOnly
                       value={formData.password}
-                      className="flex-1 h-[28px] border border-gray-400 rounded-full px-3 text-center bg-gray-50 outline-none cursor-default"
+                      className="flex-1 h-[28px] border border-gray-400 rounded-full px-3 bg-gray-50 outline-none cursor-default"
                     />
                   </div>
                   <div className="flex items-center">
@@ -1047,7 +1053,7 @@ function CompanyDashboard() {
                       type="text"
                       readOnly
                       value={formData.firstName}
-                      className="flex-1 h-[28px] border border-gray-400 rounded-full px-3 text-center bg-gray-50 outline-none cursor-default"
+                      className="flex-1 h-[28px] border border-gray-400 rounded-full px-3 bg-gray-50 outline-none cursor-default"
                     />
                   </div>
                   <div className="flex items-center">
@@ -1056,7 +1062,7 @@ function CompanyDashboard() {
                       type="text"
                       readOnly
                       value={formData.lastName}
-                      className="flex-1 h-[28px] border border-gray-400 rounded-full px-3 text-center bg-gray-50 outline-none cursor-default"
+                      className="flex-1 h-[28px] border border-gray-400 rounded-full px-3 bg-gray-50 outline-none cursor-default"
                     />
                   </div>
                   <div className="flex items-center">
@@ -1067,7 +1073,7 @@ function CompanyDashboard() {
                       type="text"
                       readOnly
                       value={formData.phone}
-                      className="flex-1 h-[28px] border border-gray-400 rounded-full px-3 text-center bg-gray-50 outline-none cursor-default"
+                      className="flex-1 h-[28px] border border-gray-400 rounded-full px-3 bg-gray-50 outline-none cursor-default"
                     />
                   </div>
                   <div className="flex items-center">
@@ -1078,7 +1084,7 @@ function CompanyDashboard() {
                       type="date"
                       readOnly
                       value={formData.startDate}
-                      className="flex-1 h-[28px] border border-gray-400 rounded-full px-3 text-center bg-gray-50 outline-none cursor-default"
+                      className="flex-1 h-[28px] border border-gray-400 rounded-full px-3 bg-gray-50 outline-none cursor-default"
                     />
                   </div>
 
@@ -1091,7 +1097,7 @@ function CompanyDashboard() {
                         type="text"
                         readOnly
                         value={formData.headName}
-                        className="flex-1 h-[28px] border border-gray-400 rounded-full px-3 text-center bg-gray-50 outline-none cursor-default"
+                        className="flex-1 h-[28px] border border-gray-400 rounded-full px-3 bg-gray-50 outline-none cursor-default"
                       />
                     </div>
                   )}
@@ -1147,7 +1153,7 @@ function CompanyDashboard() {
                     type="text"
                     readOnly
                     value={formData.status}
-                    className="h-[28px] border border-gray-400 rounded-full px-3 text-center bg-gray-50 outline-none w-[130px] cursor-default"
+                    className="h-[28px] border border-gray-400 rounded-full px-3 bg-gray-50 outline-none w-[130px] cursor-default"
                   />
                 </div>
 
@@ -1194,7 +1200,7 @@ function CompanyDashboard() {
                       type="text"
                       readOnly
                       value={editingDisplayId}
-                      className="flex-1 h-[28px] border border-gray-400 rounded-full px-3 text-center bg-gray-100 outline-none cursor-default"
+                      className="flex-1 h-[28px] border border-gray-400 rounded-full px-3 bg-gray-100 outline-none cursor-default"
                     />
                   </div>
                   <div className="flex items-center">
@@ -1206,7 +1212,7 @@ function CompanyDashboard() {
                       name="username"
                       value={formData.username}
                       onChange={handleInputChange}
-                      className="flex-1 h-[28px] border border-gray-400 rounded-full px-3 text-center outline-none focus:border-blue-500"
+                      className="flex-1 h-[28px] border border-gray-400 rounded-full px-3 outline-none focus:border-blue-500"
                     />
                   </div>
                   <div className="flex items-center relative">
@@ -1217,7 +1223,7 @@ function CompanyDashboard() {
                       value={formData.password}
                       onChange={handleInputChange}
                       placeholder="เว้นว่างหากไม่เปลี่ยน"
-                      className="flex-1 h-[28px] border border-gray-400 rounded-full px-3 text-center outline-none focus:border-blue-500"
+                      className="flex-1 h-[28px] border border-gray-400 rounded-full px-3 outline-none focus:border-blue-500"
                     />
                   </div>
                   <div className="flex items-center">
@@ -1227,7 +1233,7 @@ function CompanyDashboard() {
                       name="firstName"
                       value={formData.firstName}
                       onChange={handleInputChange}
-                      className="flex-1 h-[28px] border border-gray-400 rounded-full px-3 text-center outline-none focus:border-blue-500"
+                      className="flex-1 h-[28px] border border-gray-400 rounded-full px-3 outline-none focus:border-blue-500"
                     />
                   </div>
                   <div className="flex items-center">
@@ -1237,7 +1243,7 @@ function CompanyDashboard() {
                       name="lastName"
                       value={formData.lastName}
                       onChange={handleInputChange}
-                      className="flex-1 h-[28px] border border-gray-400 rounded-full px-3 text-center outline-none focus:border-blue-500"
+                      className="flex-1 h-[28px] border border-gray-400 rounded-full px-3 outline-none focus:border-blue-500"
                     />
                   </div>
                   <div className="flex items-center">
@@ -1254,7 +1260,7 @@ function CompanyDashboard() {
                       }}
                       maxLength="10"
                       placeholder="เช่น 0812345678"
-                      className="flex-1 h-[28px] border border-gray-400 rounded-full px-3 text-center outline-none focus:border-blue-500"
+                      className="flex-1 h-[28px] border border-gray-400 rounded-full px-3 outline-none focus:border-blue-500"
                     />
                   </div>
                   <div className="flex items-center">
@@ -1266,7 +1272,7 @@ function CompanyDashboard() {
                       name="startDate"
                       value={formData.startDate}
                       onChange={handleInputChange}
-                      className="flex-1 h-[28px] border border-gray-400 rounded-full px-3 text-center outline-none focus:border-blue-500"
+                      className="flex-1 h-[28px] border border-gray-400 rounded-full px-3 outline-none focus:border-blue-500"
                     />
                   </div>
 
@@ -1279,7 +1285,7 @@ function CompanyDashboard() {
                         name="headName"
                         value={formData.headName}
                         onChange={handleInputChange}
-                        className="flex-1 h-[28px] border border-gray-400 rounded-full px-3 bg-white outline-none focus:border-blue-500 cursor-pointer text-center text-gray-700"
+                        className="flex-1 h-[28px] border border-gray-400 rounded-full px-3 bg-white outline-none focus:border-blue-500 cursor-pointer text-gray-700"
                       >
                         <option value="">-- ระบุหัวหน้าชุด --</option>
                         {headGuards

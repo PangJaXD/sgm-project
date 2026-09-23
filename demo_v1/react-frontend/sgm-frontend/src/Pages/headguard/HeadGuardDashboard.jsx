@@ -83,10 +83,15 @@ function HeadGuardDashboard() {
       const response = await axios.get(
         `http://localhost:8080/api/headguard-dashboard/guards?headName=${encodeURIComponent(headGuardName)}`,
       );
-      const formattedData = response.data.map((guard) => {
+      const rawList = Array.isArray(response.data) ? response.data : [];
+      const sorted = [...rawList].sort(
+        (a, b) => (Number(a.users_id) || 0) - (Number(b.users_id) || 0),
+      );
+      const formattedData = sorted.map((guard, index) => {
         const isActive = guard.quit_date === null;
+        const ordinalNumber = (index + 1).toString().padStart(3, "0");
         return {
-          id: `G-${guard.users_id.toString().padStart(3, "0")}`,
+          id: `G-${ordinalNumber}`,
           name: `${guard.first_name} ${guard.last_name}`,
           experience: calculateExperience(guard.start_date),
           status: isActive ? "ปฏิบัติงาน" : "พ้นสภาพ",
