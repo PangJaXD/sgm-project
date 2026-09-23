@@ -10,6 +10,8 @@ import {
   Image as ImageIcon,
   Trash2,
   Locate,
+  Search,
+  Loader2,
 } from "lucide-react";
 import {
   MapContainer,
@@ -70,6 +72,10 @@ export default function AddEventModal({
 
   const [isMapOpen, setIsMapOpen] = useState(false);
   const [position, setPosition] = useState(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchResults, setSearchResults] = useState([]);
+  const [isSearching, setIsSearching] = useState(false);
+  const [searchError, setSearchError] = useState("");
 
   const [requiredTools, setRequiredTools] = useState(["", "", ""]);
   const [providedTools, setProvidedTools] = useState(["", "", ""]);
@@ -127,6 +133,48 @@ export default function AddEventModal({
     }
   };
 
+  const handleSearchLocation = async () => {
+    const q = searchQuery.trim();
+    if (!q) return;
+    setIsSearching(true);
+    setSearchError("");
+    setSearchResults([]);
+    try {
+      const response = await fetch(
+        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(q)}&limit=5&addressdetails=1`,
+        {
+          headers: {
+            "Accept-Language": "th,en",
+          },
+        },
+      );
+      if (!response.ok) {
+        throw new Error("Search failed");
+      }
+      const data = await response.json();
+      if (Array.isArray(data) && data.length > 0) {
+        setSearchResults(data);
+        if (data.length === 1) {
+          const item = data[0];
+          setPosition([parseFloat(item.lat), parseFloat(item.lon)]);
+          setSearchResults([]);
+        }
+      } else {
+        setSearchError("ไม่พบสถานที่ที่ค้นหา กรุณาลองใช้คำค้นหาอื่น");
+      }
+    } catch (err) {
+      console.error("Geocoding search failed:", err);
+      setSearchError("เกิดข้อผิดพลาดในการค้นหา กรุณาลองใหม่อีกครั้ง");
+    } finally {
+      setIsSearching(false);
+    }
+  };
+
+  const handleSelectSearchResult = (result) => {
+    setPosition([parseFloat(result.lat), parseFloat(result.lon)]);
+    setSearchResults([]);
+  };
+
   useEffect(() => {
     if (isOpen) {
       // Set default map position to current location when opening modal
@@ -175,6 +223,9 @@ export default function AddEventModal({
       setEventDetail("");
       setStatus("PENDING");
       setPosition(null);
+      setSearchQuery("");
+      setSearchResults([]);
+      setSearchError("");
       setRequiredTools(["", "", ""]);
       setProvidedTools(["", "", ""]);
       setEventImg("");
@@ -402,7 +453,8 @@ export default function AddEventModal({
 
               <div className="flex flex-col mb-2">
                 <label className="font-semibold mb-1">
-                  เบอร์โทรศัพท์ผู้ว่าจ้าง <span className="text-red-500">*</span>
+                  เบอร์โทรศัพท์ผู้ว่าจ้าง{" "}
+                  <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="text"
@@ -718,7 +770,7 @@ export default function AddEventModal({
       {/* ================= MODAL แผนที่ (OSM) ================= */}
       {isMapOpen && (
         <div className="fixed inset-0 bg-black/60 z-[60] flex items-center justify-center p-4">
-          <div className="bg-white rounded-xl w-full max-w-[700px] h-[500px] flex flex-col overflow-hidden shadow-2xl relative">
+          <div className="bg-white rounded-xl w-full max-w-[700px] h-[540px] flex flex-col overflow-hidden shadow-2xl relative">
             <div className="bg-gray-100 p-3 flex justify-between items-center border-b">
               <div className="flex items-center gap-3">
                 <h3 className="font-bold flex items-center gap-2">
@@ -736,11 +788,94 @@ export default function AddEventModal({
               <button
                 type="button"
                 onClick={() => setIsMapOpen(false)}
-                className="text-gray-500 hover:text-black"
+                className="text-gray-500 hover:text-black cursor-pointer"
               >
                 <X />
               </button>
             </div>
+
+            {/* ช่องค้นหาสถานที่ */}
+            <div className="p-2.5 bg-gray-50 border-b relative z-[1000]">
+              <div className="relative flex items-center">
+                <Search
+                  size={16}
+                  className="absolute left-3 text-gray-400 pointer-events-none"
+                />
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => {
+                    setSearchQuery(e.target.value);
+                    if (searchError) setSearchError("");
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      handleSearchLocation();
+                    }
+                  }}
+                  placeholder="ค้นหาสถานที่ (เช่น สยามพารากอน, เชียงใหม่, ถนนสุขุมวิท)..."
+                  className="w-full h-[36px] pl-9 pr-24 bg-white border border-gray-300 rounded-lg text-xs outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition shadow-sm"
+                />
+                <div className="absolute right-1.5 flex items-center gap-1">
+                  {searchQuery && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSearchQuery("");
+                        setSearchResults([]);
+                        setSearchError("");
+                      }}
+                      className="p-1 text-gray-400 hover:text-gray-600 rounded cursor-pointer"
+                      title="ล้างข้อความ"
+                    >
+                      <X size={14} />
+                    </button>
+                  )}
+                  <button
+                    type="button"
+                    onClick={handleSearchLocation}
+                    disabled={isSearching || !searchQuery.trim()}
+                    className="h-[28px] px-3 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 text-white text-xs font-medium rounded-md flex items-center gap-1 transition cursor-pointer disabled:cursor-not-allowed shadow-sm"
+                  >
+                    {isSearching ? (
+                      <Loader2 size={13} className="animate-spin" />
+                    ) : (
+                      "ค้นหา"
+                    )}
+                  </button>
+                </div>
+              </div>
+
+              {/* รายการผลการค้นหา */}
+              {searchResults.length > 0 && (
+                <div className="absolute left-2.5 right-2.5 top-[48px] bg-white border border-gray-200 rounded-lg shadow-2xl max-h-[200px] overflow-y-auto z-[1100] divide-y divide-gray-100">
+                  {searchResults.map((result, idx) => (
+                    <button
+                      key={idx}
+                      type="button"
+                      onClick={() => handleSelectSearchResult(result)}
+                      className="w-full text-left px-3 py-2.5 hover:bg-blue-50 transition flex items-start gap-2.5 text-xs cursor-pointer group"
+                    >
+                      <MapPin
+                        size={15}
+                        className="text-red-500 shrink-0 mt-0.5 group-hover:scale-110 transition-transform"
+                      />
+                      <span className="text-gray-800 line-clamp-2">
+                        {result.display_name}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              )}
+
+              {searchError && (
+                <div className="mt-1.5 text-[11px] text-red-500 px-1 font-medium">
+                  {searchError}
+                </div>
+              )}
+            </div>
+
             <div className="flex-1 bg-gray-200">
               <MapContainer
                 center={position || [13.7563, 100.5018]}
