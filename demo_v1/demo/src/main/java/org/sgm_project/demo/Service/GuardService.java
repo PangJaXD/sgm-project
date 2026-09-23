@@ -29,11 +29,15 @@ public class GuardService {
 
         Guards guard = new Guards();
 
-        guard.setRank(request.getRank() != null && !request.getRank().trim().isEmpty() ? request.getRank().trim() : "-");
-        guard.setTitle(request.getTitle() != null && !request.getTitle().trim().isEmpty() ? request.getTitle().trim() : "-");
+        guard.setRank(
+                request.getRank() != null && !request.getRank().trim().isEmpty() ? request.getRank().trim() : "-");
+        guard.setTitle(
+                request.getTitle() != null && !request.getTitle().trim().isEmpty() ? request.getTitle().trim() : "-");
         guard.setFirst_name(request.getFirst_name());
         guard.setLast_name(request.getLast_name());
-        guard.setGender(request.getGender() != null && !request.getGender().trim().isEmpty() ? request.getGender().trim() : "-");
+        guard.setGender(
+                request.getGender() != null && !request.getGender().trim().isEmpty() ? request.getGender().trim()
+                        : "-");
         guard.setPhone(request.getPhone());
         guard.setAddress(request.getAddress());
         guard.setUser_detail(request.getUser_detail());
@@ -73,11 +77,14 @@ public class GuardService {
         Guards existingGuard = guardRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Guard not found"));
 
-        existingGuard.setRank(guard.getRank() != null && !guard.getRank().trim().isEmpty() ? guard.getRank().trim() : "-");
-        existingGuard.setTitle(guard.getTitle() != null && !guard.getTitle().trim().isEmpty() ? guard.getTitle().trim() : "-");
+        existingGuard
+                .setRank(guard.getRank() != null && !guard.getRank().trim().isEmpty() ? guard.getRank().trim() : "-");
+        existingGuard.setTitle(
+                guard.getTitle() != null && !guard.getTitle().trim().isEmpty() ? guard.getTitle().trim() : "-");
         existingGuard.setFirst_name(guard.getFirst_name());
         existingGuard.setLast_name(guard.getLast_name());
-        existingGuard.setGender(guard.getGender() != null && !guard.getGender().trim().isEmpty() ? guard.getGender().trim() : "-");
+        existingGuard.setGender(
+                guard.getGender() != null && !guard.getGender().trim().isEmpty() ? guard.getGender().trim() : "-");
         if (guard.getPhone() != null && !guard.getPhone().trim().isEmpty()) {
             org.sgm_project.demo.Util.UserValidationUtil.validatePhone(guard.getPhone());
             existingGuard.setPhone(guard.getPhone().trim());

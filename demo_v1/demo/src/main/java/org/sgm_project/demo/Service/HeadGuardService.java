@@ -30,11 +30,15 @@ public class HeadGuardService {
 
         HeadGuard headGuard = new HeadGuard();
 
-        headGuard.setRank(request.getRank() != null && !request.getRank().trim().isEmpty() ? request.getRank().trim() : "-");
-        headGuard.setTitle(request.getTitle() != null && !request.getTitle().trim().isEmpty() ? request.getTitle().trim() : "-");
+        headGuard.setRank(
+                request.getRank() != null && !request.getRank().trim().isEmpty() ? request.getRank().trim() : "-");
+        headGuard.setTitle(
+                request.getTitle() != null && !request.getTitle().trim().isEmpty() ? request.getTitle().trim() : "-");
         headGuard.setFirst_name(request.getFirst_name());
         headGuard.setLast_name(request.getLast_name());
-        headGuard.setGender(request.getGender() != null && !request.getGender().trim().isEmpty() ? request.getGender().trim() : "-");
+        headGuard.setGender(
+                request.getGender() != null && !request.getGender().trim().isEmpty() ? request.getGender().trim()
+                        : "-");
         headGuard.setPhone(request.getPhone());
         headGuard.setAddress(request.getAddress());
         headGuard.setUser_detail(request.getUser_detail());
@@ -68,11 +72,17 @@ public class HeadGuardService {
         HeadGuard existingHeadGuard = headGuardRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("HeadGuard not found"));
 
-        existingHeadGuard.setRank(headGuard.getRank() != null && !headGuard.getRank().trim().isEmpty() ? headGuard.getRank().trim() : "-");
-        existingHeadGuard.setTitle(headGuard.getTitle() != null && !headGuard.getTitle().trim().isEmpty() ? headGuard.getTitle().trim() : "-");
+        existingHeadGuard.setRank(
+                headGuard.getRank() != null && !headGuard.getRank().trim().isEmpty() ? headGuard.getRank().trim()
+                        : "-");
+        existingHeadGuard.setTitle(
+                headGuard.getTitle() != null && !headGuard.getTitle().trim().isEmpty() ? headGuard.getTitle().trim()
+                        : "-");
         existingHeadGuard.setFirst_name(headGuard.getFirst_name());
         existingHeadGuard.setLast_name(headGuard.getLast_name());
-        existingHeadGuard.setGender(headGuard.getGender() != null && !headGuard.getGender().trim().isEmpty() ? headGuard.getGender().trim() : "-");
+        existingHeadGuard.setGender(
+                headGuard.getGender() != null && !headGuard.getGender().trim().isEmpty() ? headGuard.getGender().trim()
+                        : "-");
         if (headGuard.getPhone() != null && !headGuard.getPhone().trim().isEmpty()) {
             org.sgm_project.demo.Util.UserValidationUtil.validatePhone(headGuard.getPhone());
             existingHeadGuard.setPhone(headGuard.getPhone().trim());

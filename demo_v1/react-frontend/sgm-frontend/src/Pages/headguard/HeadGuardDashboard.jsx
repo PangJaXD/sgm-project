@@ -58,16 +58,38 @@ function HeadGuardDashboard() {
       : currentUser?.username || "นาย สมชาย รักดี";
   const headGuardId = currentUser?.users_id || currentUser?.id || 1;
 
-  const calculateExperience = (startDateStr) => {
+  const calculateExperience = (startDateStr, quitDateStr = null) => {
     if (!startDateStr) return "ไม่ระบุ";
     const start = new Date(startDateStr);
-    const now = new Date();
-    let years = now.getFullYear() - start.getFullYear();
-    let months = now.getMonth() - start.getMonth();
-    let days = now.getDate() - start.getDate();
+    if (isNaN(start.getTime())) return "ไม่ระบุ";
+
+    const endDate = quitDateStr ? new Date(quitDateStr) : new Date();
+    const startMidnight = new Date(
+      start.getFullYear(),
+      start.getMonth(),
+      start.getDate(),
+    );
+    const endMidnight = new Date(
+      endDate.getFullYear(),
+      endDate.getMonth(),
+      endDate.getDate(),
+    );
+
+    if (startMidnight > endMidnight) {
+      return "ยังไม่ถึงวันเริ่มงาน";
+    }
+
+    let years = endMidnight.getFullYear() - startMidnight.getFullYear();
+    let months = endMidnight.getMonth() - startMidnight.getMonth();
+    let days = endMidnight.getDate() - startMidnight.getDate();
+
     if (days < 0) {
       months -= 1;
-      const prevMonth = new Date(now.getFullYear(), now.getMonth(), 0);
+      const prevMonth = new Date(
+        endMidnight.getFullYear(),
+        endMidnight.getMonth(),
+        0,
+      );
       days += prevMonth.getDate();
     }
     if (months < 0) {
@@ -96,7 +118,7 @@ function HeadGuardDashboard() {
           title: guard.title || "-",
           name: `${guard.first_name || ""} ${guard.last_name || ""}`.trim(),
           gender: guard.gender || "-",
-          experience: calculateExperience(guard.start_date),
+          experience: calculateExperience(guard.start_date, guard.quit_date),
           status: isActive ? "ปฏิบัติงาน" : "พ้นสภาพ",
           active: isActive,
           headName: guard.head_name || "-",
@@ -530,7 +552,9 @@ function HeadGuardDashboard() {
                         </div>
                         <div>{g.rank}</div>
                         <div>{g.title}</div>
-                        <div className="font-medium text-gray-900">{g.name}</div>
+                        <div className="font-medium text-gray-900">
+                          {g.name}
+                        </div>
                         <div>{g.gender}</div>
                         <div>{g.experience}</div>
                         <div className="flex items-center gap-2">

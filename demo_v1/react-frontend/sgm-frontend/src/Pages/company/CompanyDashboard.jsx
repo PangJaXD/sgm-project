@@ -98,18 +98,38 @@ function CompanyDashboard() {
   const [editingId, setEditingId] = useState(null);
   const [editingDisplayId, setEditingDisplayId] = useState("");
 
-  const calculateExperience = (startDateStr) => {
+  const calculateExperience = (startDateStr, quitDateStr = null) => {
     if (!startDateStr) return "ไม่ระบุ";
     const start = new Date(startDateStr);
-    const now = new Date();
+    if (isNaN(start.getTime())) return "ไม่ระบุ";
 
-    let years = now.getFullYear() - start.getFullYear();
-    let months = now.getMonth() - start.getMonth();
-    let days = now.getDate() - start.getDate();
+    const endDate = quitDateStr ? new Date(quitDateStr) : new Date();
+    const startMidnight = new Date(
+      start.getFullYear(),
+      start.getMonth(),
+      start.getDate(),
+    );
+    const endMidnight = new Date(
+      endDate.getFullYear(),
+      endDate.getMonth(),
+      endDate.getDate(),
+    );
+
+    if (startMidnight > endMidnight) {
+      return "ยังไม่ถึงวันเริ่มงาน";
+    }
+
+    let years = endMidnight.getFullYear() - startMidnight.getFullYear();
+    let months = endMidnight.getMonth() - startMidnight.getMonth();
+    let days = endMidnight.getDate() - startMidnight.getDate();
 
     if (days < 0) {
       months -= 1;
-      const prevMonth = new Date(now.getFullYear(), now.getMonth(), 0);
+      const prevMonth = new Date(
+        endMidnight.getFullYear(),
+        endMidnight.getMonth(),
+        0,
+      );
       days += prevMonth.getDate();
     }
     if (months < 0) {
@@ -160,7 +180,7 @@ function CompanyDashboard() {
             title: guard.title || "-",
             name: `${guard.first_name || ""} ${guard.last_name || ""}`.trim(),
             gender: guard.gender || "-",
-            experience: calculateExperience(guard.start_date),
+            experience: calculateExperience(guard.start_date, guard.quit_date),
             status: isActive ? "ปฏิบัติงาน" : "พ้นสภาพ/พักงาน",
             active: isActive,
             raw: guard,
@@ -224,7 +244,7 @@ function CompanyDashboard() {
             title: guard.title || "-",
             name: `${guard.first_name || ""} ${guard.last_name || ""}`.trim(),
             gender: guard.gender || "-",
-            experience: calculateExperience(guard.start_date),
+            experience: calculateExperience(guard.start_date, guard.quit_date),
             status: isActive ? "ปฏิบัติงาน" : "พ้นสภาพ/พักงาน",
             active: isActive,
             headName: guard.head_name || "-",
@@ -660,7 +680,9 @@ function CompanyDashboard() {
                     </div>
                     <div>{dataItem.rank}</div>
                     <div>{dataItem.title}</div>
-                    <div className="font-medium text-gray-900">{dataItem.name}</div>
+                    <div className="font-medium text-gray-900">
+                      {dataItem.name}
+                    </div>
                     <div>{dataItem.gender}</div>
                     <div>{dataItem.experience}</div>
                     <div className="flex items-center gap-2">
@@ -1084,9 +1106,7 @@ function CompanyDashboard() {
               <div className="flex gap-5">
                 <div className="flex-1 flex flex-col gap-3">
                   <div className="flex items-center">
-                    <label className="w-[120px] font-semibold">
-                      ลำดับที่
-                    </label>
+                    <label className="w-[120px] font-semibold">ลำดับที่</label>
                     <input
                       type="text"
                       readOnly
@@ -1289,9 +1309,7 @@ function CompanyDashboard() {
               <div className="flex gap-5">
                 <div className="flex-1 flex flex-col gap-3">
                   <div className="flex items-center">
-                    <label className="w-[120px] font-semibold">
-                      ลำดับที่
-                    </label>
+                    <label className="w-[120px] font-semibold">ลำดับที่</label>
                     <input
                       type="text"
                       readOnly
