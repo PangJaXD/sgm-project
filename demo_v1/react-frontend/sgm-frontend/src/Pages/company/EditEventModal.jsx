@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import axios from "axios";
 import {
   X,
@@ -178,36 +178,7 @@ export default function EditEventModal({
     setSearchResults([]);
   };
 
-  useEffect(() => {
-    if (isOpen) {
-      // 🌟 ดึงรายชื่อ HeadGuards เตรียมไว้
-      const fetchHeadGuards = async () => {
-        try {
-          const response = await axios.get(
-            "http://localhost:8080/api/headguard",
-            {
-              params: companyName ? { company: companyName } : {},
-            },
-          );
-          if (Array.isArray(response.data)) {
-            const activeGuards = response.data.filter((guard) => {
-              if (guard.quit_date !== null) return false;
-              if (!companyName) return true;
-              const gComp = guard.company_name;
-              return !gComp || gComp === companyName;
-            });
-            setHeadGuardsList(activeGuards);
-          }
-        } catch (error) {
-          console.error("Error fetching head guards:", error);
-        }
-      };
-      fetchHeadGuards();
-      resetToPreviousData();
-    }
-  }, [isOpen, eventData, companyName]);
-
-  const resetToPreviousData = () => {
+  const resetToPreviousData = useCallback(() => {
     if (!eventData) return;
     setEventName(eventData.event_name || "");
     setLocationName(eventData.location || "");
@@ -255,9 +226,7 @@ export default function EditEventModal({
         startTime: st.start_time
           ? st.start_time.split("T")[1]?.substring(0, 5)
           : "",
-        endTime: st.end_time
-          ? st.end_time.split("T")[1]?.substring(0, 5)
-          : "",
+        endTime: st.end_time ? st.end_time.split("T")[1]?.substring(0, 5) : "",
         headGuard:
           st.headGuard?.users_id?.toString() ||
           st.head_guard_id?.toString() ||
@@ -294,7 +263,36 @@ export default function EditEventModal({
     } else {
       setImagePreview("");
     }
-  };
+  }, [eventData]);
+
+  useEffect(() => {
+    if (isOpen) {
+      // 🌟 ดึงรายชื่อ HeadGuards เตรียมไว้
+      const fetchHeadGuards = async () => {
+        try {
+          const response = await axios.get(
+            "http://localhost:8080/api/headguard",
+            {
+              params: companyName ? { company: companyName } : {},
+            },
+          );
+          if (Array.isArray(response.data)) {
+            const activeGuards = response.data.filter((guard) => {
+              if (guard.quit_date !== null) return false;
+              if (!companyName) return true;
+              const gComp = guard.company_name;
+              return !gComp || gComp === companyName;
+            });
+            setHeadGuardsList(activeGuards);
+          }
+        } catch (error) {
+          console.error("Error fetching head guards:", error);
+        }
+      };
+      fetchHeadGuards();
+      resetToPreviousData();
+    }
+  }, [isOpen, resetToPreviousData, companyName]);
 
   const handleCancel = () => {
     resetToPreviousData();
@@ -394,7 +392,10 @@ export default function EditEventModal({
               แก้ไขรายละเอียดงานอีเว้นท์
             </h2>
           </div>
-          <button onClick={handleCancel} className="hover:text-gray-200 transition">
+          <button
+            onClick={handleCancel}
+            className="hover:text-gray-200 transition"
+          >
             <X size={24} strokeWidth={2.5} />
           </button>
         </div>
