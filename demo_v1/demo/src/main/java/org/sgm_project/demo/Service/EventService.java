@@ -136,10 +136,19 @@ public class EventService {
         event.setLatitude(request.getLatitude());
         event.setLongitude(request.getLongitude());
         event.setContractor(request.getContractor());
-        if (request.getContact() != null && !request.getContact().trim().isEmpty()) {
-            org.sgm_project.demo.Util.UserValidationUtil.validatePhone(request.getContact());
+        String phone = request.getContact_phone() != null && !request.getContact_phone().trim().isEmpty()
+                ? request.getContact_phone().trim()
+                : (request.getContact() != null ? request.getContact().trim() : "");
+        if (!phone.isEmpty()) {
+            org.sgm_project.demo.Util.UserValidationUtil.validatePhone(phone);
         }
-        event.setContact(request.getContact());
+        event.setContact_phone(phone);
+
+        String email = request.getContact_email() != null ? request.getContact_email().trim() : "";
+        if (!email.isEmpty()) {
+            org.sgm_project.demo.Util.UserValidationUtil.validateEmail(email);
+        }
+        event.setContact_email(email);
         event.setEvent_detail(request.getEvent_detail());
         event.setRequired_tools(request.getRequired_tools());
         event.setProvided_tools(request.getProvided_tools());
@@ -237,10 +246,19 @@ public class EventService {
         existingEvent.setLatitude(request.getLatitude());
         existingEvent.setLongitude(request.getLongitude());
         existingEvent.setContractor(request.getContractor());
-        if (request.getContact() != null && !request.getContact().trim().isEmpty()) {
-            org.sgm_project.demo.Util.UserValidationUtil.validatePhone(request.getContact());
+        String phone = request.getContact_phone() != null && !request.getContact_phone().trim().isEmpty()
+                ? request.getContact_phone().trim()
+                : (request.getContact() != null ? request.getContact().trim() : "");
+        if (!phone.isEmpty()) {
+            org.sgm_project.demo.Util.UserValidationUtil.validatePhone(phone);
         }
-        existingEvent.setContact(request.getContact());
+        existingEvent.setContact_phone(phone);
+
+        String email = request.getContact_email() != null ? request.getContact_email().trim() : "";
+        if (!email.isEmpty()) {
+            org.sgm_project.demo.Util.UserValidationUtil.validateEmail(email);
+        }
+        existingEvent.setContact_email(email);
         existingEvent.setEvent_detail(request.getEvent_detail());
         existingEvent.setRequired_tools(request.getRequired_tools());
         existingEvent.setProvided_tools(request.getProvided_tools());

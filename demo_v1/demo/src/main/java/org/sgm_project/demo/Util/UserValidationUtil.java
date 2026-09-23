@@ -15,6 +15,9 @@ public class UserValidationUtil {
     // 3. เบอร์โทรศัพท์: ^0[689]\d{8}$
     private static final Pattern PHONE_PATTERN = Pattern.compile("^0[689]\\d{8}$");
 
+    // 4. อีเมล: ^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$
+    private static final Pattern EMAIL_PATTERN = Pattern.compile("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$");
+
     public static void validateUsername(String username) {
         if (username == null || username.trim().isEmpty()) {
             throw new IllegalArgumentException("ชื่อผู้ใช้งานต้องไม่เป็นค่าว่าง");
@@ -50,6 +53,12 @@ public class UserValidationUtil {
         if (phone == null || !PHONE_PATTERN.matcher(phone.trim()).matches()) {
             throw new IllegalArgumentException(
                     "เบอร์โทรศัพท์ไม่ถูกต้อง ต้องขึ้นต้นด้วย 06, 08 หรือ 09 และมีความยาว 10 หลัก (เช่น 0812345678)");
+        }
+    }
+
+    public static void validateEmail(String email) {
+        if (email == null || !EMAIL_PATTERN.matcher(email.trim()).matches()) {
+            throw new IllegalArgumentException("รูปแบบอีเมลไม่ถูกต้อง (เช่น user@example.com)");
         }
     }
 }

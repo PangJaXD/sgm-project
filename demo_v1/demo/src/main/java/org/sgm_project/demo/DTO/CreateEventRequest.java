@@ -17,6 +17,8 @@ public class CreateEventRequest {
     private String longitude;
     private String contractor;
     private String contact;
+    private String contact_phone;
+    private String contact_email;
     private String event_detail;
     private String event_img;
     private Set<String> required_tools;

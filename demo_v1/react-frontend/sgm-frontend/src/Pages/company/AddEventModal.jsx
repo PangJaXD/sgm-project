@@ -12,6 +12,7 @@ import {
   Locate,
   Search,
   Loader2,
+  Trash,
 } from "lucide-react";
 import {
   MapContainer,
@@ -52,6 +53,7 @@ function MapRecenter({ position }) {
 }
 
 const PHONE_REGEX = /^0[689]\d{8}$/;
+const EMAIL_REGEX = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 
 export default function AddEventModal({
   isOpen,
@@ -65,7 +67,8 @@ export default function AddEventModal({
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [contractor, setContractor] = useState("");
-  const [contactInfo, setContactInfo] = useState("");
+  const [contactPhone, setContactPhone] = useState("");
+  const [contactEmail, setContactEmail] = useState("");
   const [eventDetail, setEventDetail] = useState("");
   const [status, setStatus] = useState("PENDING");
   const [headGuardsList, setHeadGuardsList] = useState([]);
@@ -219,7 +222,8 @@ export default function AddEventModal({
       setStartDate("");
       setEndDate("");
       setContractor("");
-      setContactInfo("");
+      setContactPhone("");
+      setContactEmail("");
       setEventDetail("");
       setStatus("PENDING");
       setPosition(null);
@@ -306,10 +310,15 @@ export default function AddEventModal({
       return;
     }
 
-    if (!contactInfo || !PHONE_REGEX.test(contactInfo.trim())) {
+    if (!contactPhone || !PHONE_REGEX.test(contactPhone.trim())) {
       alert(
         "กรุณากรอกเบอร์โทรศัพท์ผู้ว่าจ้างให้ถูกต้อง (ต้องขึ้นต้นด้วย 06, 08 หรือ 09 และมีความยาว 10 หลัก)",
       );
+      return;
+    }
+
+    if (!contactEmail || !EMAIL_REGEX.test(contactEmail.trim())) {
+      alert("กรุณากรอกอีเมลผู้ว่าจ้างให้ถูกต้อง (เช่น user@example.com)");
       return;
     }
 
@@ -324,7 +333,9 @@ export default function AddEventModal({
       latitude: position ? position[0].toString() : "",
       longitude: position ? position[1].toString() : "",
       contractor: contractor,
-      contact: contactInfo,
+      contact_phone: contactPhone,
+      contact_email: contactEmail,
+      contact: contactPhone,
       event_detail: eventDetail,
       required_tools: requiredTools.filter((t) => t.trim() !== ""),
       provided_tools: providedTools.filter((t) => t.trim() !== ""),
@@ -451,19 +462,32 @@ export default function AddEventModal({
                 />
               </div>
 
-              <div className="flex flex-col mb-2">
+              <div className="flex flex-col mb-1">
                 <label className="font-semibold mb-1">
                   เบอร์โทรศัพท์ผู้ว่าจ้าง{" "}
                   <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="text"
-                  value={contactInfo}
+                  value={contactPhone}
                   onChange={(e) =>
-                    setContactInfo(e.target.value.replace(/\D/g, ""))
+                    setContactPhone(e.target.value.replace(/\D/g, ""))
                   }
                   maxLength="10"
                   placeholder="เช่น 0812345678 (ขึ้นต้นด้วย 06, 08, 09)"
+                  className="w-full h-[32px] border border-gray-400 rounded-full px-4 outline-none focus:border-blue-500"
+                />
+              </div>
+
+              <div className="flex flex-col mb-2">
+                <label className="font-semibold mb-1">
+                  อีเมลผู้ว่าจ้าง <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="email"
+                  value={contactEmail}
+                  onChange={(e) => setContactEmail(e.target.value)}
+                  placeholder="เช่น contractor@example.com"
                   className="w-full h-[32px] border border-gray-400 rounded-full px-4 outline-none focus:border-blue-500"
                 />
               </div>
@@ -576,7 +600,7 @@ export default function AddEventModal({
                           onClick={() => handleRemoveRequiredTool(idx)}
                           className="text-gray-400 hover:text-red-500"
                         >
-                          <X size={14} />
+                          <Trash size={14} />
                         </button>
                       )}
                     </div>
@@ -613,7 +637,7 @@ export default function AddEventModal({
                           onClick={() => handleRemoveProvidedTool(idx)}
                           className="text-gray-400 hover:text-red-500"
                         >
-                          <X size={14} />
+                          <Trash size={14} />
                         </button>
                       )}
                     </div>
@@ -644,6 +668,7 @@ export default function AddEventModal({
               title="เพิ่มกะการทำงาน"
             >
               <Plus size={16} />
+              เพิ่มกะการทำงาน
             </button>
           </div>
 

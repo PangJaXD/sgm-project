@@ -31,7 +31,9 @@ public class Events {
         @Column(length = 150, nullable = false)
         private String contractor;
         @Column(nullable = false)
-        private String contact;
+        private String contact_phone;
+        @Column(nullable = false)
+        private String contact_email;
         @Column(nullable = false)
         private String event_img;
         @Column(length = 255, nullable = false)

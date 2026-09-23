@@ -125,15 +125,23 @@ export default function ViewEventModal({ isOpen, onClose, eventData }) {
                   ผู้ว่าจ้าง
                 </label>
                 <div className="w-full h-[32px] bg-gray-50 border border-gray-300 rounded-full px-4 flex items-center text-gray-700">
-                  {eventData.contractor}
+                  {eventData.contractor || "-"}
                 </div>
               </div>
-              <div className="flex flex-col mb-2">
+              <div className="flex flex-col mb-1">
                 <label className="font-semibold text-gray-500 mb-1">
                   เบอร์โทรศัพท์ผู้ว่าจ้าง
                 </label>
                 <div className="w-full h-[32px] bg-gray-50 border border-gray-300 rounded-full px-4 flex items-center text-gray-700">
-                  {eventData.contact}
+                  {eventData.contact_phone || eventData.contact || "-"}
+                </div>
+              </div>
+              <div className="flex flex-col mb-2">
+                <label className="font-semibold text-gray-500 mb-1">
+                  อีเมลผู้ว่าจ้าง
+                </label>
+                <div className="w-full h-[32px] bg-gray-50 border border-gray-300 rounded-full px-4 flex items-center text-gray-700">
+                  {eventData.contact_email || "-"}
                 </div>
               </div>
 

@@ -64,7 +64,9 @@ public class AssignmentController {
                 map.put("event_name", event.getEvent_name());
                 map.put("location", event.getLocation());
                 map.put("contractor", event.getContractor());
-                map.put("contact", event.getContact());
+                map.put("contact_phone", event.getContact_phone());
+                map.put("contact_email", event.getContact_email());
+                map.put("contact", event.getContact_phone());
                 map.put("event_img", event.getEvent_img());
                 map.put("start_date", event.getStart_date() != null ? event.getStart_date().toString() : null);
                 map.put("end_date", event.getEnd_date() != null ? event.getEnd_date().toString() : null);
