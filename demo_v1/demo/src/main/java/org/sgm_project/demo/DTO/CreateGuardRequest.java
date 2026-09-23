@@ -8,8 +8,11 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 public class CreateGuardRequest {
+    private String rank;
+    private String title;
     private String first_name;
     private String last_name;
+    private String gender;
 
     private String phone;
     private String address;

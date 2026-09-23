@@ -60,3 +60,5 @@ firebase_options.dart
 *.env
 *.env.*
 
+# Widget Preview related
+.widget_preview/

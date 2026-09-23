@@ -73,8 +73,11 @@ function CompanyDashboard() {
   const [formData, setFormData] = useState({
     username: "",
     password: "",
+    rank: "",
+    title: "",
     firstName: "",
     lastName: "",
+    gender: "",
     phone: "",
     userDetail: "",
     startDate: "",
@@ -150,10 +153,13 @@ function CompanyDashboard() {
 
         const formattedData = sorted.map((guard, index) => {
           const isActive = guard.quit_date === null;
-          const ordinalNumber = (index + 1).toString().padStart(3, "0");
+          const ordinalNumber = (index + 1).toString();
           return {
-            id: `HG-${ordinalNumber}`,
+            id: `${ordinalNumber}`,
+            rank: guard.rank || "-",
+            title: guard.title || "-",
             name: `${guard.first_name || ""} ${guard.last_name || ""}`.trim(),
+            gender: guard.gender || "-",
             experience: calculateExperience(guard.start_date),
             status: isActive ? "ปฏิบัติงาน" : "พ้นสภาพ/พักงาน",
             active: isActive,
@@ -211,10 +217,13 @@ function CompanyDashboard() {
 
         const formattedData = sorted.map((guard, index) => {
           const isActive = guard.quit_date === null;
-          const ordinalNumber = (index + 1).toString().padStart(3, "0");
+          const ordinalNumber = (index + 1).toString();
           return {
-            id: `G-${ordinalNumber}`,
+            id: `${ordinalNumber}`,
+            rank: guard.rank || "-",
+            title: guard.title || "-",
             name: `${guard.first_name || ""} ${guard.last_name || ""}`.trim(),
+            gender: guard.gender || "-",
             experience: calculateExperience(guard.start_date),
             status: isActive ? "ปฏิบัติงาน" : "พ้นสภาพ/พักงาน",
             active: isActive,
@@ -337,8 +346,11 @@ function CompanyDashboard() {
     setFormData({
       username: "",
       password: "",
+      rank: "",
+      title: "",
       firstName: "",
       lastName: "",
+      gender: "",
       phone: "",
       userDetail: "",
       startDate: "",
@@ -362,8 +374,11 @@ function CompanyDashboard() {
     }
 
     const payload = {
+      rank: formData.rank?.trim() || "-",
+      title: formData.title?.trim() || "-",
       first_name: formData.firstName,
       last_name: formData.lastName,
+      gender: formData.gender?.trim() || "-",
       phone: formData.phone.trim(),
       address: formData.address,
       user_detail: formData.userDetail || "-",
@@ -405,8 +420,11 @@ function CompanyDashboard() {
     setFormData({
       username: raw.username || "",
       password: "********",
+      rank: raw.rank || "-",
+      title: raw.title || "-",
       firstName: raw.first_name || "",
       lastName: raw.last_name || "",
+      gender: raw.gender || "-",
       phone: raw.phone || "",
       userDetail: raw.user_detail || "",
       startDate: startDateStr,
@@ -436,8 +454,11 @@ function CompanyDashboard() {
     }
 
     const payload = {
+      rank: formData.rank?.trim() || "-",
+      title: formData.title?.trim() || "-",
       first_name: formData.firstName,
       last_name: formData.lastName,
+      gender: formData.gender?.trim() || "-",
       phone: formData.phone.trim(),
       address: formData.address,
       user_detail: formData.userDetail || "-",
@@ -482,7 +503,12 @@ function CompanyDashboard() {
     const keyword = search.toLowerCase();
     return (
       item.id?.toLowerCase().includes(keyword) ||
-      item.name?.toLowerCase().includes(keyword)
+      item.rank?.toLowerCase().includes(keyword) ||
+      item.title?.toLowerCase().includes(keyword) ||
+      item.name?.toLowerCase().includes(keyword) ||
+      item.gender?.toLowerCase().includes(keyword) ||
+      item.experience?.toLowerCase().includes(keyword) ||
+      item.status?.toLowerCase().includes(keyword)
     );
   });
 
@@ -589,7 +615,7 @@ function CompanyDashboard() {
                 onClick={handleOpenAddModal}
                 className="h-[38px] px-5 bg-[#42a884] hover:bg-emerald-600 text-white rounded-xl text-sm flex items-center gap-2 transition shadow-sm"
               >
-                <Plus size={18} /> เพิ่ม
+                เพิ่ม
                 {isGuardMenu ? "เจ้าหน้าที่" : "หัวหน้าชุด"}
               </button>
             ) : (
@@ -597,16 +623,19 @@ function CompanyDashboard() {
                 onClick={() => setIsAddEventModalOpen(true)}
                 className="h-[38px] px-5 bg-[#42a884] hover:bg-emerald-600 text-white rounded-xl text-sm flex items-center gap-2 transition shadow-sm"
               >
-                <Plus size={18} /> เพิ่มงานอีเว้นท์
+                เพิ่มงานอีเว้นท์
               </button>
             )}
           </div>
 
           {activeMenu !== "schedule" ? (
             <div className="w-full border border-gray-400 rounded-xl overflow-hidden bg-white/80">
-              <div className="grid grid-cols-[120px_1.5fr_1.5fr_1.2fr_45px] h-[40px] bg-blue-400 text-white items-center text-[12px] font-medium px-4">
-                <div className="text-center">รหัสประจำตัว</div>
+              <div className="grid grid-cols-[80px_100px_90px_1.5fr_80px_1.3fr_1.1fr_45px] h-[40px] bg-blue-400 text-white items-center text-[12px] font-medium px-4">
+                <div className="text-center">ลำดับที่</div>
+                <div>ยศ</div>
+                <div>คำนำหน้า</div>
                 <div>ชื่อ - นามสกุล</div>
+                <div>เพศ</div>
                 <div>ประสบการณ์ทำงาน</div>
                 <div>สถานะการทำงาน</div>
                 <div />
@@ -624,12 +653,15 @@ function CompanyDashboard() {
                 filteredData.map((dataItem) => (
                   <div
                     key={dataItem.id}
-                    className="grid grid-cols-[120px_1.5fr_1.5fr_1.2fr_45px] min-h-[44px] items-center border-t border-gray-300 text-[12px] px-4 hover:bg-gray-50 transition"
+                    className="grid grid-cols-[80px_100px_90px_1.5fr_80px_1.3fr_1.1fr_45px] min-h-[44px] items-center border-t border-gray-300 text-[12px] px-4 hover:bg-gray-50 transition"
                   >
-                    <div className="text-center text-gray-600 bg-gray-200/50 py-1 rounded w-20 mx-auto">
+                    <div className="text-center text-gray-600 bg-gray-200/50 py-1 rounded w-14 mx-auto">
                       {dataItem.id}
                     </div>
-                    <div>{dataItem.name}</div>
+                    <div>{dataItem.rank}</div>
+                    <div>{dataItem.title}</div>
+                    <div className="font-medium text-gray-900">{dataItem.name}</div>
+                    <div>{dataItem.gender}</div>
                     <div>{dataItem.experience}</div>
                     <div className="flex items-center gap-2">
                       <span
@@ -814,6 +846,30 @@ function CompanyDashboard() {
                     />
                   </div>
                   <div className="flex items-center">
+                    <label className="w-[120px] font-semibold">
+                      ยศ (ทหาร/ตำรวจ)
+                    </label>
+                    <input
+                      type="text"
+                      name="rank"
+                      placeholder="เช่น ร.ต.อ. (เว้นว่างหรือ - หากไม่มี)"
+                      value={formData.rank}
+                      onChange={handleInputChange}
+                      className="flex-1 h-[28px] border border-gray-400 rounded-full px-3 outline-none focus:border-blue-500"
+                    />
+                  </div>
+                  <div className="flex items-center">
+                    <label className="w-[120px] font-semibold">คำนำหน้า</label>
+                    <input
+                      type="text"
+                      name="title"
+                      placeholder="เช่น นาย / นาง / นางสาว"
+                      value={formData.title}
+                      onChange={handleInputChange}
+                      className="flex-1 h-[28px] border border-gray-400 rounded-full px-3 outline-none focus:border-blue-500"
+                    />
+                  </div>
+                  <div className="flex items-center">
                     <label className="w-[120px] font-semibold">ชื่อ</label>
                     <input
                       type="text"
@@ -829,6 +885,17 @@ function CompanyDashboard() {
                       type="text"
                       name="lastName"
                       value={formData.lastName}
+                      onChange={handleInputChange}
+                      className="flex-1 h-[28px] border border-gray-400 rounded-full px-3 outline-none focus:border-blue-500"
+                    />
+                  </div>
+                  <div className="flex items-center">
+                    <label className="w-[120px] font-semibold">เพศ</label>
+                    <input
+                      type="text"
+                      name="gender"
+                      placeholder="เช่น ชาย / หญิง"
+                      value={formData.gender}
                       onChange={handleInputChange}
                       className="flex-1 h-[28px] border border-gray-400 rounded-full px-3 outline-none focus:border-blue-500"
                     />
@@ -1018,7 +1085,7 @@ function CompanyDashboard() {
                 <div className="flex-1 flex flex-col gap-3">
                   <div className="flex items-center">
                     <label className="w-[120px] font-semibold">
-                      รหัสประจำตัว
+                      ลำดับที่
                     </label>
                     <input
                       type="text"
@@ -1048,6 +1115,26 @@ function CompanyDashboard() {
                     />
                   </div>
                   <div className="flex items-center">
+                    <label className="w-[120px] font-semibold">
+                      ยศ (ทหาร/ตำรวจ)
+                    </label>
+                    <input
+                      type="text"
+                      readOnly
+                      value={formData.rank || "-"}
+                      className="flex-1 h-[28px] border border-gray-400 rounded-full px-3 bg-gray-50 outline-none cursor-default"
+                    />
+                  </div>
+                  <div className="flex items-center">
+                    <label className="w-[120px] font-semibold">คำนำหน้า</label>
+                    <input
+                      type="text"
+                      readOnly
+                      value={formData.title || "-"}
+                      className="flex-1 h-[28px] border border-gray-400 rounded-full px-3 bg-gray-50 outline-none cursor-default"
+                    />
+                  </div>
+                  <div className="flex items-center">
                     <label className="w-[120px] font-semibold">ชื่อ</label>
                     <input
                       type="text"
@@ -1062,6 +1149,15 @@ function CompanyDashboard() {
                       type="text"
                       readOnly
                       value={formData.lastName}
+                      className="flex-1 h-[28px] border border-gray-400 rounded-full px-3 bg-gray-50 outline-none cursor-default"
+                    />
+                  </div>
+                  <div className="flex items-center">
+                    <label className="w-[120px] font-semibold">เพศ</label>
+                    <input
+                      type="text"
+                      readOnly
+                      value={formData.gender || "-"}
                       className="flex-1 h-[28px] border border-gray-400 rounded-full px-3 bg-gray-50 outline-none cursor-default"
                     />
                   </div>
@@ -1194,7 +1290,7 @@ function CompanyDashboard() {
                 <div className="flex-1 flex flex-col gap-3">
                   <div className="flex items-center">
                     <label className="w-[120px] font-semibold">
-                      รหัสประจำตัว
+                      ลำดับที่
                     </label>
                     <input
                       type="text"
@@ -1227,6 +1323,30 @@ function CompanyDashboard() {
                     />
                   </div>
                   <div className="flex items-center">
+                    <label className="w-[120px] font-semibold">
+                      ยศ (ทหาร/ตำรวจ)
+                    </label>
+                    <input
+                      type="text"
+                      name="rank"
+                      placeholder="เช่น ร.ต.อ. (เว้นว่างหรือ - หากไม่มี)"
+                      value={formData.rank}
+                      onChange={handleInputChange}
+                      className="flex-1 h-[28px] border border-gray-400 rounded-full px-3 outline-none focus:border-blue-500"
+                    />
+                  </div>
+                  <div className="flex items-center">
+                    <label className="w-[120px] font-semibold">คำนำหน้า</label>
+                    <input
+                      type="text"
+                      name="title"
+                      placeholder="เช่น นาย / นาง / นางสาว"
+                      value={formData.title}
+                      onChange={handleInputChange}
+                      className="flex-1 h-[28px] border border-gray-400 rounded-full px-3 outline-none focus:border-blue-500"
+                    />
+                  </div>
+                  <div className="flex items-center">
                     <label className="w-[120px] font-semibold">ชื่อ</label>
                     <input
                       type="text"
@@ -1242,6 +1362,17 @@ function CompanyDashboard() {
                       type="text"
                       name="lastName"
                       value={formData.lastName}
+                      onChange={handleInputChange}
+                      className="flex-1 h-[28px] border border-gray-400 rounded-full px-3 outline-none focus:border-blue-500"
+                    />
+                  </div>
+                  <div className="flex items-center">
+                    <label className="w-[120px] font-semibold">เพศ</label>
+                    <input
+                      type="text"
+                      name="gender"
+                      placeholder="เช่น ชาย / หญิง"
+                      value={formData.gender}
                       onChange={handleInputChange}
                       className="flex-1 h-[28px] border border-gray-400 rounded-full px-3 outline-none focus:border-blue-500"
                     />

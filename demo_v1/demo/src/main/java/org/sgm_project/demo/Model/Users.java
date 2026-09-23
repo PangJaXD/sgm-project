@@ -18,9 +18,15 @@ public class Users {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer users_id;
     @Column
+    private String rank;
+    @Column
+    private String title;
+    @Column
     private String first_name;
     @Column
     private String last_name;
+    @Column
+    private String gender;
     @Column(length = 10,nullable = false)
     private String phone;
     @Column(length = 255,nullable = false)

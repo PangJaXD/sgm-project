@@ -29,7 +29,7 @@ export default function ViewGuardModal({ isOpen, onClose, guardData }) {
             <div className="flex-1 flex flex-col gap-4">
               <div className="flex items-center">
                 <label className="w-[120px] font-semibold text-gray-700">
-                  รหัสประจำตัว
+                  ลำดับที่
                 </label>
                 <input
                   type="text"
@@ -51,12 +51,45 @@ export default function ViewGuardModal({ isOpen, onClose, guardData }) {
               </div>
               <div className="flex items-center">
                 <label className="w-[120px] font-semibold text-gray-700">
+                  ยศ (ทหาร/ตำรวจ)
+                </label>
+                <input
+                  type="text"
+                  readOnly
+                  value={raw.rank || "-"}
+                  className="flex-1 h-[32px] border border-gray-300 rounded-lg px-3 bg-gray-50 outline-none"
+                />
+              </div>
+              <div className="flex items-center">
+                <label className="w-[120px] font-semibold text-gray-700">
+                  คำนำหน้า
+                </label>
+                <input
+                  type="text"
+                  readOnly
+                  value={raw.title || "-"}
+                  className="flex-1 h-[32px] border border-gray-300 rounded-lg px-3 bg-gray-50 outline-none"
+                />
+              </div>
+              <div className="flex items-center">
+                <label className="w-[120px] font-semibold text-gray-700">
                   ชื่อ-นามสกุล
                 </label>
                 <input
                   type="text"
                   readOnly
-                  value={`${raw.first_name || ""} ${raw.last_name || ""}`}
+                  value={`${raw.first_name || ""} ${raw.last_name || ""}`.trim()}
+                  className="flex-1 h-[32px] border border-gray-300 rounded-lg px-3 bg-gray-50 outline-none"
+                />
+              </div>
+              <div className="flex items-center">
+                <label className="w-[120px] font-semibold text-gray-700">
+                  เพศ
+                </label>
+                <input
+                  type="text"
+                  readOnly
+                  value={raw.gender || "-"}
                   className="flex-1 h-[32px] border border-gray-300 rounded-lg px-3 bg-gray-50 outline-none"
                 />
               </div>

@@ -89,10 +89,13 @@ function HeadGuardDashboard() {
       );
       const formattedData = sorted.map((guard, index) => {
         const isActive = guard.quit_date === null;
-        const ordinalNumber = (index + 1).toString().padStart(3, "0");
+        const ordinalNumber = (index + 1).toString();
         return {
-          id: `G-${ordinalNumber}`,
-          name: `${guard.first_name} ${guard.last_name}`,
+          id: `${ordinalNumber}`,
+          rank: guard.rank || "-",
+          title: guard.title || "-",
+          name: `${guard.first_name || ""} ${guard.last_name || ""}`.trim(),
+          gender: guard.gender || "-",
           experience: calculateExperience(guard.start_date),
           status: isActive ? "ปฏิบัติงาน" : "พ้นสภาพ",
           active: isActive,
@@ -150,7 +153,11 @@ function HeadGuardDashboard() {
   const filteredGuards = guards.filter(
     (g) =>
       g.name.toLowerCase().includes(search.toLowerCase()) ||
-      g.id.toLowerCase().includes(search.toLowerCase()),
+      g.id.toLowerCase().includes(search.toLowerCase()) ||
+      g.rank?.toLowerCase().includes(search.toLowerCase()) ||
+      g.title?.toLowerCase().includes(search.toLowerCase()) ||
+      g.gender?.toLowerCase().includes(search.toLowerCase()) ||
+      g.headName?.toLowerCase().includes(search.toLowerCase()),
   );
 
   const filteredShifts = shifts.filter(
@@ -376,7 +383,7 @@ function HeadGuardDashboard() {
 
                 <div className="border border-gray-400 rounded-xl overflow-hidden bg-white">
                   <div className="grid grid-cols-[120px_1.5fr_1.5fr_120px] h-[40px] bg-[#4b5563] text-white items-center text-[12px] font-medium px-6">
-                    <div>รหัสประจำตัว</div>
+                    <div>ลำดับที่</div>
                     <div>ชื่อ</div>
                     <div>ช่วงเวลาการทำงาน</div>
                     <div className="text-center">ข้อมูลงาน</div>
@@ -437,7 +444,6 @@ function HeadGuardDashboard() {
                 <div className="border border-gray-400 rounded-xl overflow-hidden bg-white">
                   <div className="grid grid-cols-[60px_120px_1.5fr_1.5fr_120px] h-[40px] bg-[#4b5563] text-white items-center text-[12px] font-medium px-6">
                     <div>ลำดับ</div>
-                    <div>รหัสประจำตัว</div>
                     <div>ชื่อ</div>
                     <div>ช่วงเวลาการทำงาน</div>
                     <div />
@@ -451,9 +457,6 @@ function HeadGuardDashboard() {
                         className="grid grid-cols-[60px_120px_1.5fr_1.5fr_120px] h-[48px] items-center border-t border-gray-300 text-[12px] px-6"
                       >
                         <div className="text-gray-500">{index + 1}</div>
-                        <div className="font-medium text-gray-700">
-                          {item.guardId}
-                        </div>
                         <div>{item.guardName}</div>
                         <div className="font-semibold text-gray-800">
                           {item.time}
@@ -497,9 +500,12 @@ function HeadGuardDashboard() {
               {/* Tab: รปภ. */}
               {activeMenu === "guard" && (
                 <div className="w-full border border-gray-300 rounded-xl overflow-hidden bg-white shadow-sm">
-                  <div className="grid grid-cols-[120px_1.5fr_1.5fr_1fr_1fr_60px] h-[44px] bg-[#111827] text-white items-center text-[12px] font-medium px-6">
-                    <div className="text-center">รหัสประจำตัว</div>
+                  <div className="grid grid-cols-[80px_100px_90px_1.5fr_80px_1.3fr_100px_120px_50px] h-[44px] bg-[#111827] text-white items-center text-[12px] font-medium px-6">
+                    <div className="text-center">ลำดับที่</div>
+                    <div>ยศ</div>
+                    <div>คำนำหน้า</div>
                     <div>ชื่อ - นามสกุล</div>
+                    <div>เพศ</div>
                     <div>ประสบการณ์ทำงาน</div>
                     <div>สถานะ</div>
                     <div>หัวหน้าชุด</div>
@@ -517,12 +523,15 @@ function HeadGuardDashboard() {
                     filteredGuards.map((g) => (
                       <div
                         key={g.id}
-                        className="grid grid-cols-[120px_1.5fr_1.5fr_1fr_1fr_60px] min-h-[48px] items-center border-t border-gray-200 text-[12px] px-6 hover:bg-gray-50 transition"
+                        className="grid grid-cols-[80px_100px_90px_1.5fr_80px_1.3fr_100px_120px_50px] min-h-[48px] items-center border-t border-gray-200 text-[12px] px-6 hover:bg-gray-50 transition"
                       >
                         <div className="text-center font-medium text-gray-700">
                           {g.id}
                         </div>
-                        <div>{g.name}</div>
+                        <div>{g.rank}</div>
+                        <div>{g.title}</div>
+                        <div className="font-medium text-gray-900">{g.name}</div>
+                        <div>{g.gender}</div>
                         <div>{g.experience}</div>
                         <div className="flex items-center gap-2">
                           <span

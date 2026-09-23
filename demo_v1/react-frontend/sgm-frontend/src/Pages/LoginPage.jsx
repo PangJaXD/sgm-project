@@ -288,14 +288,6 @@ function LoginPage() {
                   >
                     รหัสผ่าน
                   </label>
-
-                  <button
-                    type="button"
-                    onClick={() => alert("หน้าลืมรหัสผ่าน")}
-                    className="text-xs text-[#2864e8] hover:underline cursor-pointer"
-                  >
-                    ลืมรหัสผ่าน?
-                  </button>
                 </div>
 
                 <div className="h-12 flex items-center gap-3 px-4 rounded-lg border border-gray-400 bg-gray-50 focus-within:border-[#2864e8] focus-within:ring-2 focus-within:ring-blue-100 transition">

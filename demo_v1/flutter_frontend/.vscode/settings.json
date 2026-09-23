@@ -1,15 +1,4 @@
 {
-    "antigravity.terminal.approvalMode": "auto",
-  "antigravity.terminal.autoExecuteDenylist": [
-    "rm -rf*",
-    "git push --force*",
-    "git reset --hard*",
-    "drop database*",
-    "shutdown*",
-    "mkfs*"
-  ],
-  "antigravity.files.autoSave": "workspaceOnly",
-  "antigravity.workspace.restrictToRoot": true,
     "cmake.ignoreCMakeListsMissing": true,
     "java.configuration.updateBuildConfiguration": "automatic"
 }

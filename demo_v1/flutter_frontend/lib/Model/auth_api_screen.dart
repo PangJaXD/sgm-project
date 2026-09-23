@@ -14,6 +14,7 @@ class AuthApiService {
           'http://192.168.0.31:8080/api',
           'http://10.0.2.2:8080/api',
           'http://10.100.61.73:8080/api',
+          'http://10.10.13.129:8080/api',
         ]
       : ['http://localhost:8080/api'];
 
