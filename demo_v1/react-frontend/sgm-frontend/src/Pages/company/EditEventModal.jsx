@@ -203,96 +203,103 @@ export default function EditEventModal({
         }
       };
       fetchHeadGuards();
-
-      if (eventData) {
-        setEventName(eventData.event_name || "");
-        setLocationName(eventData.location || "");
-        setContractor(eventData.contractor || "");
-        setContactPhone(eventData.contact_phone || eventData.contact || "");
-        setContactEmail(eventData.contact_email || "");
-        setEventDetail(eventData.event_detail || "");
-        setStatus(eventData.status || "PENDING");
-
-        if (eventData.latitude && eventData.longitude) {
-          setPosition([
-            parseFloat(eventData.latitude),
-            parseFloat(eventData.longitude),
-          ]);
-        } else {
-          setPosition(null);
-        }
-
-        const padTools = (tools) => {
-          const padded = [...(tools || [])];
-          while (padded.length < 3) padded.push("");
-          return padded;
-        };
-        setRequiredTools(padTools(eventData.required_tools));
-        setProvidedTools(padTools(eventData.provided_tools));
-
-        setStartDate(
-          eventData.start_date ? eventData.start_date.split("T")[0] : "",
-        );
-        setEndDate(eventData.end_date ? eventData.end_date.split("T")[0] : "");
-
-        // 🌟 Map กะเวลาเดิมกลับเข้า Form ให้ถูกต้อง
-        if (eventData.shift_times && eventData.shift_times.length > 0) {
-          const sortedShifts = [...eventData.shift_times].sort(
-            (a, b) => new Date(a.start_time) - new Date(b.start_time),
-          );
-
-          const mappedShifts = sortedShifts.map((st) => ({
-            guards: st.maximum_guards?.toString() || "",
-            shiftDate: st.shift_date
-              ? st.shift_date.split("T")[0]
-              : st.start_time
-                ? st.start_time.split("T")[0]
-                : "",
-            startTime: st.start_time
-              ? st.start_time.split("T")[1]?.substring(0, 5)
-              : "",
-            endTime: st.end_time
-              ? st.end_time.split("T")[1]?.substring(0, 5)
-              : "",
-            headGuard:
-              st.headGuard?.users_id?.toString() ||
-              st.head_guard_id?.toString() ||
-              "",
-          }));
-          setShifts(mappedShifts);
-        } else {
-          setShifts([
-            {
-              guards: "",
-              shiftDate: "",
-              startTime: "",
-              endTime: "",
-              headGuard: "",
-            },
-          ]);
-        }
-
-        const existingImg = eventData.event_img || "";
-        setEventImg(existingImg);
-        if (
-          existingImg &&
-          existingImg !== "default.png" &&
-          existingImg !== "no-image.png"
-        ) {
-          const previewSrc = existingImg.startsWith("http")
-            ? existingImg
-            : existingImg.startsWith("/uploads/")
-              ? `http://localhost:8080${existingImg}`
-              : existingImg.startsWith("/")
-                ? `http://localhost:8080/uploads${existingImg}`
-                : `http://localhost:8080/uploads/${existingImg}`;
-          setImagePreview(previewSrc);
-        } else {
-          setImagePreview("");
-        }
-      }
+      resetToPreviousData();
     }
   }, [isOpen, eventData, companyName]);
+
+  const resetToPreviousData = () => {
+    if (!eventData) return;
+    setEventName(eventData.event_name || "");
+    setLocationName(eventData.location || "");
+    setContractor(eventData.contractor || "");
+    setContactPhone(eventData.contact_phone || eventData.contact || "");
+    setContactEmail(eventData.contact_email || "");
+    setEventDetail(eventData.event_detail || "");
+    setStatus(eventData.status || "PENDING");
+
+    if (eventData.latitude && eventData.longitude) {
+      setPosition([
+        parseFloat(eventData.latitude),
+        parseFloat(eventData.longitude),
+      ]);
+    } else {
+      setPosition(null);
+    }
+
+    const padTools = (tools) => {
+      const padded = [...(tools || [])];
+      while (padded.length < 3) padded.push("");
+      return padded;
+    };
+    setRequiredTools(padTools(eventData.required_tools));
+    setProvidedTools(padTools(eventData.provided_tools));
+
+    setStartDate(
+      eventData.start_date ? eventData.start_date.split("T")[0] : "",
+    );
+    setEndDate(eventData.end_date ? eventData.end_date.split("T")[0] : "");
+
+    // 🌟 Map กะเวลาเดิมกลับเข้า Form ให้ถูกต้อง
+    if (eventData.shift_times && eventData.shift_times.length > 0) {
+      const sortedShifts = [...eventData.shift_times].sort(
+        (a, b) => new Date(a.start_time) - new Date(b.start_time),
+      );
+
+      const mappedShifts = sortedShifts.map((st) => ({
+        guards: st.maximum_guards?.toString() || "",
+        shiftDate: st.shift_date
+          ? st.shift_date.split("T")[0]
+          : st.start_time
+            ? st.start_time.split("T")[0]
+            : "",
+        startTime: st.start_time
+          ? st.start_time.split("T")[1]?.substring(0, 5)
+          : "",
+        endTime: st.end_time
+          ? st.end_time.split("T")[1]?.substring(0, 5)
+          : "",
+        headGuard:
+          st.headGuard?.users_id?.toString() ||
+          st.head_guard_id?.toString() ||
+          "",
+      }));
+      setShifts(mappedShifts);
+    } else {
+      setShifts([
+        {
+          guards: "",
+          shiftDate: "",
+          startTime: "",
+          endTime: "",
+          headGuard: "",
+        },
+      ]);
+    }
+
+    const existingImg = eventData.event_img || "";
+    setEventImg(existingImg);
+    if (
+      existingImg &&
+      existingImg !== "default.png" &&
+      existingImg !== "no-image.png"
+    ) {
+      const previewSrc = existingImg.startsWith("http")
+        ? existingImg
+        : existingImg.startsWith("/uploads/")
+          ? `http://localhost:8080${existingImg}`
+          : existingImg.startsWith("/")
+            ? `http://localhost:8080/uploads${existingImg}`
+            : `http://localhost:8080/uploads/${existingImg}`;
+      setImagePreview(previewSrc);
+    } else {
+      setImagePreview("");
+    }
+  };
+
+  const handleCancel = () => {
+    resetToPreviousData();
+    if (onClose) onClose();
+  };
 
   if (!isOpen) return null;
 
@@ -387,7 +394,7 @@ export default function EditEventModal({
               แก้ไขรายละเอียดงานอีเว้นท์
             </h2>
           </div>
-          <button onClick={onClose} className="hover:text-gray-200 transition">
+          <button onClick={handleCancel} className="hover:text-gray-200 transition">
             <X size={24} strokeWidth={2.5} />
           </button>
         </div>
@@ -736,12 +743,20 @@ export default function EditEventModal({
             ))}
           </div>
 
-          <div className="flex justify-end mt-8">
+          <div className="flex justify-end gap-3 mt-8">
             <button
-              onClick={handleSubmit}
-              className="h-[40px] px-8 bg-[#F58220] hover:bg-orange-600 text-white rounded-full font-medium transition shadow-md flex items-center gap-2"
+              type="button"
+              onClick={handleCancel}
+              className="h-[40px] px-6 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-full font-medium transition flex items-center gap-2 cursor-pointer"
             >
-              <Edit size={18} /> ยืนยัน
+              <X size={18} /> ยกเลิก
+            </button>
+            <button
+              type="button"
+              onClick={handleSubmit}
+              className="h-[40px] px-8 bg-[#F58220] hover:bg-orange-600 text-white rounded-full font-medium transition shadow-md flex items-center gap-2 cursor-pointer"
+            >
+              <Edit size={18} /> บันทึกข้อมูล
             </button>
           </div>
         </div>

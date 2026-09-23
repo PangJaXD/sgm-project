@@ -351,6 +351,27 @@ export default function AddEventModal({
     if (onSave) onSave(payload);
   };
 
+  const handleCancel = () => {
+    setEventName("");
+    setLocationName("");
+    setStartDate("");
+    setEndDate("");
+    setContractor("");
+    setContactPhone("");
+    setContactEmail("");
+    setEventDetail("");
+    setStatus("PENDING");
+    setPosition(null);
+    setRequiredTools(["", "", ""]);
+    setProvidedTools(["", "", ""]);
+    setShifts([
+      { guards: "", shiftDate: "", startTime: "", endTime: "", headGuard: "" },
+    ]);
+    setEventImg("");
+    setImagePreview("");
+    if (onClose) onClose();
+  };
+
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-[20px] w-full max-w-[900px] max-h-[95vh] overflow-y-auto shadow-2xl relative scrollbar-hide border-[2px] border-blue-500">
@@ -360,7 +381,11 @@ export default function AddEventModal({
             <CalendarDays size={22} />
             <h2 className="font-semibold text-[18px]">เพิ่มงานอีเว้นท์</h2>
           </div>
-          <button onClick={onClose} className="hover:text-gray-200 transition">
+          <button
+            type="button"
+            onClick={handleCancel}
+            className="hover:text-gray-200 transition cursor-pointer"
+          >
             <X size={24} strokeWidth={2.5} />
           </button>
         </div>
@@ -780,11 +805,18 @@ export default function AddEventModal({
             ))}
           </div>
 
-          <div className="flex justify-end mt-8">
+          <div className="flex justify-end gap-3 mt-8">
+            <button
+              type="button"
+              onClick={handleCancel}
+              className="h-[40px] px-6 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-full font-medium transition flex items-center gap-2 cursor-pointer"
+            >
+              <X size={18} /> ยกเลิก
+            </button>
             <button
               type="button"
               onClick={handleSubmit}
-              className="h-[40px] px-8 bg-[#00a67e] hover:bg-emerald-600 text-white rounded-full font-medium transition shadow-md flex items-center gap-2"
+              className="h-[40px] px-8 bg-[#00a67e] hover:bg-emerald-600 text-white rounded-full font-medium transition shadow-md flex items-center gap-2 cursor-pointer"
             >
               <CalendarDays size={18} /> บันทึกงานอีเว้นท์
             </button>

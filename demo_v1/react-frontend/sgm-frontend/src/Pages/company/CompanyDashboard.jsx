@@ -8,7 +8,6 @@ import {
   Users,
   CalendarDays,
   Search,
-  Plus,
   Eye,
   X,
   User,
@@ -465,6 +464,29 @@ function CompanyDashboard() {
     setIsEditModalOpen(true);
   };
 
+  const handleCancelEdit = () => {
+    if (selectedGuard) {
+      const raw = selectedGuard.raw;
+      const startDateStr = raw.start_date ? raw.start_date.split("T")[0] : "";
+      setFormData({
+        username: raw.username || "",
+        password: "********",
+        rank: raw.rank || "-",
+        title: raw.title || "-",
+        firstName: raw.first_name || "",
+        lastName: raw.last_name || "",
+        gender: raw.gender || "-",
+        phone: raw.phone || "",
+        userDetail: raw.user_detail || "",
+        startDate: startDateStr,
+        address: raw.address || "",
+        status: selectedGuard.status,
+        headName: raw.head_name || "-",
+      });
+    }
+    setIsEditModalOpen(false);
+  };
+
   const handleUpdateData = async () => {
     if (!formData.phone || !PHONE_REGEX.test(formData.phone.trim())) {
       alert(
@@ -826,15 +848,18 @@ function CompanyDashboard() {
           <div className="bg-white rounded-[24px] w-[580px] overflow-hidden shadow-2xl relative border-[2px] border-emerald-500">
             <div className="bg-emerald-600 h-[50px] flex items-center justify-between px-5 text-white">
               <div className="flex items-center gap-2">
-                <Plus size={20} />{" "}
+                {" "}
                 <h2 className="font-medium text-[16px]">
                   เพิ่ม{isGuardMenu ? "เจ้าหน้าที่" : "หัวหน้าชุด"}
                   รักษาความปลอดภัย
                 </h2>
               </div>
               <button
-                onClick={() => setIsAddModalOpen(false)}
-                className="text-white hover:text-gray-200"
+                onClick={() => {
+                  clearForm();
+                  setIsAddModalOpen(false);
+                }}
+                className="text-white hover:text-gray-200 cursor-pointer"
               >
                 <X size={20} strokeWidth={2.5} />
               </button>
@@ -1003,10 +1028,21 @@ function CompanyDashboard() {
                 />
               </div>
 
-              <div className="flex items-center justify-end mt-5 pt-4 border-t border-gray-200">
+              <div className="flex items-center justify-end gap-3 mt-5 pt-4 border-t border-gray-200">
                 <button
+                  type="button"
+                  onClick={() => {
+                    clearForm();
+                    setIsAddModalOpen(false);
+                  }}
+                  className="h-[38px] px-6 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-[10px] font-medium transition flex items-center gap-2 cursor-pointer"
+                >
+                  <X size={18} /> ยกเลิก
+                </button>
+                <button
+                  type="button"
                   onClick={handleSaveData}
-                  className="h-[38px] px-8 bg-[#42a884] hover:bg-emerald-600 text-white rounded-[10px] font-medium transition shadow flex items-center gap-2"
+                  className="h-[38px] px-8 bg-[#42a884] hover:bg-emerald-600 text-white rounded-[10px] font-medium transition shadow flex items-center gap-2 cursor-pointer"
                 >
                   <Plus size={18} /> บันทึกข้อมูล
                 </button>
@@ -1298,8 +1334,8 @@ function CompanyDashboard() {
                 </h2>
               </div>
               <button
-                onClick={() => setIsEditModalOpen(false)}
-                className="text-white hover:text-gray-200"
+                onClick={handleCancelEdit}
+                className="text-white hover:text-gray-200 cursor-pointer"
               >
                 <X size={20} strokeWidth={2.5} />
               </button>
@@ -1508,12 +1544,22 @@ function CompanyDashboard() {
                   </select>
                 </div>
 
-                <button
-                  onClick={handleUpdateData}
-                  className="h-[38px] px-8 bg-[#F58220] hover:bg-orange-600 text-white rounded-[10px] font-medium transition shadow flex items-center gap-2"
-                >
-                  <PenSquare size={18} /> ยืนยัน
-                </button>
+                <div className="flex items-center gap-3">
+                  <button
+                    type="button"
+                    onClick={handleCancelEdit}
+                    className="h-[38px] px-6 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-[10px] font-medium transition flex items-center gap-2 cursor-pointer"
+                  >
+                    <X size={18} /> ยกเลิก
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleUpdateData}
+                    className="h-[38px] px-8 bg-[#F58220] hover:bg-orange-600 text-white rounded-[10px] font-medium transition shadow flex items-center gap-2 cursor-pointer"
+                  >
+                    <PenSquare size={18} /> ยืนยัน
+                  </button>
+                </div>
               </div>
             </div>
           </div>
