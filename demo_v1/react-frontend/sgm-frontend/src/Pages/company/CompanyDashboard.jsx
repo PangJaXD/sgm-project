@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import axios from "axios";
 import AddEventModal from "./AddEventModal";
 import ViewEventModal from "./ViewEventModal";
@@ -28,6 +28,10 @@ function CompanyDashboard() {
   const [events, setEvents] = useState([]);
 
   const [isLoading, setIsLoading] = useState(true);
+
+  const newlyAddedGuardIdsRef = useRef([]);
+  const newlyAddedHeadGuardIdsRef = useRef([]);
+  const newlyAddedEventIdsRef = useRef([]);
 
   // ดึงข้อมูลบริษัทปัจจุบัน
   const currentUser = useMemo(() => {
@@ -139,212 +143,313 @@ function CompanyDashboard() {
     return `${years} ปี ${months} เดือน ${days} วัน`;
   };
 
-  const fetchHeadGuards = useCallback(async () => {
-    try {
-      setIsLoading(true);
-      const queryCompany =
-        companyProfile?.company_name ||
-        currentUser?.company_name ||
-        companyProfile?.username ||
-        currentUser?.username ||
-        "";
+  const fetchHeadGuards = useCallback(
+    async (newlyCreatedId = null) => {
+      if (
+        newlyCreatedId &&
+        !newlyAddedHeadGuardIdsRef.current.includes(newlyCreatedId)
+      ) {
+        newlyAddedHeadGuardIdsRef.current = [
+          newlyCreatedId,
+          ...newlyAddedHeadGuardIdsRef.current,
+        ];
+      }
+      try {
+        setIsLoading(true);
+        const queryCompany =
+          companyProfile?.company_name ||
+          currentUser?.company_name ||
+          companyProfile?.username ||
+          currentUser?.username ||
+          "";
 
-      const response = await axios.get("http://localhost:8080/api/headguard", {
-        params: queryCompany ? { company: queryCompany } : {},
-      });
-
-      if (Array.isArray(response.data)) {
-        const filtered = response.data.filter((guard) => {
-          if (!queryCompany) return true;
-          const gComp = guard.company_name;
-          if (!gComp) return true;
-          return (
-            gComp === queryCompany ||
-            gComp === currentUser?.username ||
-            gComp === companyProfile?.username ||
-            gComp === currentUser?.company_name ||
-            gComp === companyProfile?.company_name
-          );
-        });
-
-        const sorted = [...filtered].sort(
-          (a, b) => (Number(a.users_id) || 0) - (Number(b.users_id) || 0),
+        const response = await axios.get(
+          "http://localhost:8080/api/headguard",
+          {
+            params: queryCompany ? { company: queryCompany } : {},
+          },
         );
 
-        const formattedData = sorted.map((guard, index) => {
-          const isActive = guard.quit_date === null;
-          const ordinalNumber = (index + 1).toString();
-          return {
-            id: `${ordinalNumber}`,
-            rank: guard.rank || "-",
-            title: guard.title || "-",
-            name: `${guard.first_name || ""} ${guard.last_name || ""}`.trim(),
-            gender: guard.gender || "-",
-            experience: calculateExperience(guard.start_date, guard.quit_date),
-            status: isActive ? "ปฏิบัติงาน" : "พ้นสภาพ/พักงาน",
-            active: isActive,
-            raw: guard,
-          };
-        });
-        setHeadGuards(formattedData);
-      } else {
-        setHeadGuards([]);
-      }
-    } catch (error) {
-      console.error("Error fetching head guards:", error);
-      setHeadGuards([]);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [
-    companyProfile?.company_name,
-    companyProfile?.username,
-    currentUser?.company_name,
-    currentUser?.username,
-  ]);
-
-  const fetchGuards = useCallback(async () => {
-    try {
-      setIsLoading(true);
-      const queryCompany =
-        companyProfile?.company_name ||
-        currentUser?.company_name ||
-        companyProfile?.username ||
-        currentUser?.username ||
-        "";
-
-      const response = await axios.get("http://localhost:8080/api/guard", {
-        params: queryCompany ? { company: queryCompany } : {},
-      });
-
-      if (Array.isArray(response.data)) {
-        const filtered = response.data.filter((guard) => {
-          if (!queryCompany) return true;
-          const gComp = guard.company_name;
-          if (!gComp) return true;
-          return (
-            gComp === queryCompany ||
-            gComp === currentUser?.username ||
-            gComp === companyProfile?.username ||
-            gComp === currentUser?.company_name ||
-            gComp === companyProfile?.company_name
-          );
-        });
-
-        const sorted = [...filtered].sort(
-          (a, b) => (Number(a.users_id) || 0) - (Number(b.users_id) || 0),
-        );
-
-        const formattedData = sorted.map((guard, index) => {
-          const isActive = guard.quit_date === null;
-          const ordinalNumber = (index + 1).toString();
-          return {
-            id: `${ordinalNumber}`,
-            rank: guard.rank || "-",
-            title: guard.title || "-",
-            name: `${guard.first_name || ""} ${guard.last_name || ""}`.trim(),
-            gender: guard.gender || "-",
-            experience: calculateExperience(guard.start_date, guard.quit_date),
-            status: isActive ? "ปฏิบัติงาน" : "พ้นสภาพ/พักงาน",
-            active: isActive,
-            headName: guard.head_name || "-",
-            raw: guard,
-          };
-        });
-        setGuards(formattedData);
-      } else {
-        setGuards([]);
-      }
-    } catch (error) {
-      console.error("Error fetching guards:", error);
-      setGuards([]);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [
-    companyProfile?.company_name,
-    companyProfile?.username,
-    currentUser?.company_name,
-    currentUser?.username,
-  ]);
-
-  // 🌟 ป้องกันกรณี response.data ไม่ใช่ Array และกรองอีเว้นท์ของบริษัทอย่างถูกต้อง
-  const fetchEvents = useCallback(async () => {
-    try {
-      setIsLoading(true);
-      const compId = companyProfile?.users_id || currentUser?.users_id;
-      const queryCompany =
-        companyProfile?.company_name ||
-        currentUser?.company_name ||
-        companyProfile?.username ||
-        currentUser?.username ||
-        "";
-
-      const response = await axios.get("http://localhost:8080/api/events", {
-        params: {
-          ...(compId ? { companyId: compId } : {}),
-          ...(queryCompany ? { company: queryCompany } : {}),
-        },
-      });
-
-      const rawEvents = Array.isArray(response.data)
-        ? response.data
-        : response.data && typeof response.data === "object"
-          ? [response.data]
-          : [];
-
-      const filtered = rawEvents.filter((ev) => {
-        // หากไม่มีข้อมูลระบุบริษัท ให้แสดงทั้งหมด
-        if (!compId && !queryCompany) return true;
-
-        // 1. ตรวจสอบ company_id โดยตรง
-        const evCompId = ev.company_id != null ? ev.company_id : ev.companyId;
-        if (compId && evCompId != null && evCompId == compId) {
-          return true;
-        }
-
-        // 2. ตรวจสอบกะงาน (shift_times) ว่ามีหัวหน้ารปภ. สังกัดบริษัทนี้หรือไม่
-        if (Array.isArray(ev.shift_times) && ev.shift_times.length > 0) {
-          const hasMatchingShift = ev.shift_times.some((st) => {
-            const hg = st.headGuard || st.head_guard;
-            if (!hg) return false;
-            const hgComp = hg.company_name;
-            if (!hgComp) return false;
+        if (Array.isArray(response.data)) {
+          const filtered = response.data.filter((guard) => {
+            if (!queryCompany) return true;
+            const gComp = guard.company_name;
+            if (!gComp) return true;
             return (
-              hgComp === queryCompany ||
-              hgComp === currentUser?.company_name ||
-              hgComp === companyProfile?.company_name ||
-              hgComp === currentUser?.username ||
-              hgComp === companyProfile?.username
+              gComp === queryCompany ||
+              gComp === currentUser?.username ||
+              gComp === companyProfile?.username ||
+              gComp === currentUser?.company_name ||
+              gComp === companyProfile?.company_name
             );
           });
-          if (hasMatchingShift) return true;
+
+          const sorted = [...filtered].sort(
+            (a, b) => (Number(a.users_id) || 0) - (Number(b.users_id) || 0),
+          );
+
+          const newIds = newlyAddedHeadGuardIdsRef.current;
+          const newItems = [];
+          const regularItems = [];
+
+          sorted.forEach((guard) => {
+            if (newIds.includes(guard.users_id)) {
+              newItems.push(guard);
+            } else {
+              regularItems.push(guard);
+            }
+          });
+
+          newItems.sort(
+            (a, b) => newIds.indexOf(a.users_id) - newIds.indexOf(b.users_id),
+          );
+          const finalOrderedList = [...newItems, ...regularItems];
+
+          const formattedData = finalOrderedList.map((guard, index) => {
+            const isActive = guard.quit_date === null;
+            const ordinalNumber = (index + 1).toString();
+            return {
+              id: `${ordinalNumber}`,
+              rank: guard.rank || "-",
+              title: guard.title || "-",
+              name: `${guard.first_name || ""} ${guard.last_name || ""}`.trim(),
+              gender: guard.gender || "-",
+              experience: calculateExperience(
+                guard.start_date,
+                guard.quit_date,
+              ),
+              status: isActive ? "ปฏิบัติงาน" : "พ้นสภาพ/พักงาน",
+              active: isActive,
+              raw: guard,
+            };
+          });
+          setHeadGuards(formattedData);
+        } else {
+          setHeadGuards([]);
         }
+      } catch (error) {
+        console.error("Error fetching head guards:", error);
+        setHeadGuards([]);
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [
+      companyProfile?.company_name,
+      companyProfile?.username,
+      currentUser?.company_name,
+      currentUser?.username,
+    ],
+  );
 
-        // 3. ตรวจสอบชื่อบริษัทใน event
-        if (
-          queryCompany &&
-          (ev.company_name === queryCompany || ev.contractor === queryCompany)
-        ) {
-          return true;
+  const fetchGuards = useCallback(
+    async (newlyCreatedId = null) => {
+      if (
+        newlyCreatedId &&
+        !newlyAddedGuardIdsRef.current.includes(newlyCreatedId)
+      ) {
+        newlyAddedGuardIdsRef.current = [
+          newlyCreatedId,
+          ...newlyAddedGuardIdsRef.current,
+        ];
+      }
+      try {
+        setIsLoading(true);
+        const queryCompany =
+          companyProfile?.company_name ||
+          currentUser?.company_name ||
+          companyProfile?.username ||
+          currentUser?.username ||
+          "";
+
+        const response = await axios.get("http://localhost:8080/api/guard", {
+          params: queryCompany ? { company: queryCompany } : {},
+        });
+
+        if (Array.isArray(response.data)) {
+          const filtered = response.data.filter((guard) => {
+            if (!queryCompany) return true;
+            const gComp = guard.company_name;
+            if (!gComp) return true;
+            return (
+              gComp === queryCompany ||
+              gComp === currentUser?.username ||
+              gComp === companyProfile?.username ||
+              gComp === currentUser?.company_name ||
+              gComp === companyProfile?.company_name
+            );
+          });
+
+          const sorted = [...filtered].sort(
+            (a, b) => (Number(a.users_id) || 0) - (Number(b.users_id) || 0),
+          );
+
+          const newIds = newlyAddedGuardIdsRef.current;
+          const newItems = [];
+          const regularItems = [];
+
+          sorted.forEach((guard) => {
+            if (newIds.includes(guard.users_id)) {
+              newItems.push(guard);
+            } else {
+              regularItems.push(guard);
+            }
+          });
+
+          newItems.sort(
+            (a, b) => newIds.indexOf(a.users_id) - newIds.indexOf(b.users_id),
+          );
+          const finalOrderedList = [...newItems, ...regularItems];
+
+          const formattedData = finalOrderedList.map((guard, index) => {
+            const isActive = guard.quit_date === null;
+            const ordinalNumber = (index + 1).toString();
+            return {
+              id: `${ordinalNumber}`,
+              rank: guard.rank || "-",
+              title: guard.title || "-",
+              name: `${guard.first_name || ""} ${guard.last_name || ""}`.trim(),
+              gender: guard.gender || "-",
+              experience: calculateExperience(
+                guard.start_date,
+                guard.quit_date,
+              ),
+              status: isActive ? "ปฏิบัติงาน" : "พ้นสภาพ/พักงาน",
+              active: isActive,
+              headName: guard.head_name || "-",
+              raw: guard,
+            };
+          });
+          setGuards(formattedData);
+        } else {
+          setGuards([]);
         }
+      } catch (error) {
+        console.error("Error fetching guards:", error);
+        setGuards([]);
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [
+      companyProfile?.company_name,
+      companyProfile?.username,
+      currentUser?.company_name,
+      currentUser?.username,
+    ],
+  );
 
-        // 4. กรณีที่ backend กรองมาให้แล้ว (ถ้าไม่มี company_id และไม่มี shift_times ขัดแย้ง)
-        if (!evCompId && (!ev.shift_times || ev.shift_times.length === 0)) {
-          return true;
-        }
+  // 🌟 ป้องกันกรณี response.data ไม่ใช่ Array และกรองอีเว้นท์ของบริษัทอย่างถูกต้อง
+  const fetchEvents = useCallback(
+    async (newlyCreatedId = null) => {
+      if (
+        newlyCreatedId &&
+        !newlyAddedEventIdsRef.current.includes(newlyCreatedId)
+      ) {
+        newlyAddedEventIdsRef.current = [
+          newlyCreatedId,
+          ...newlyAddedEventIdsRef.current,
+        ];
+      }
+      try {
+        setIsLoading(true);
+        const compId = companyProfile?.users_id || currentUser?.users_id;
+        const queryCompany =
+          companyProfile?.company_name ||
+          currentUser?.company_name ||
+          companyProfile?.username ||
+          currentUser?.username ||
+          "";
 
-        return false;
-      });
+        const response = await axios.get("http://localhost:8080/api/events", {
+          params: {
+            ...(compId ? { companyId: compId } : {}),
+            ...(queryCompany ? { company: queryCompany } : {}),
+          },
+        });
 
-      setEvents(filtered);
-    } catch (error) {
-      console.error("Error fetching events:", error);
-      setEvents([]);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [companyProfile, currentUser]);
+        const rawEvents = Array.isArray(response.data)
+          ? response.data
+          : response.data && typeof response.data === "object"
+            ? [response.data]
+            : [];
+
+        const filtered = rawEvents.filter((ev) => {
+          // หากไม่มีข้อมูลระบุบริษัท ให้แสดงทั้งหมด
+          if (!compId && !queryCompany) return true;
+
+          // 1. ตรวจสอบ company_id โดยตรง
+          const evCompId = ev.company_id != null ? ev.company_id : ev.companyId;
+          if (compId && evCompId != null && evCompId == compId) {
+            return true;
+          }
+
+          // 2. ตรวจสอบกะงาน (shift_times) ว่ามีหัวหน้ารปภ. สังกัดบริษัทนี้หรือไม่
+          if (Array.isArray(ev.shift_times) && ev.shift_times.length > 0) {
+            const hasMatchingShift = ev.shift_times.some((st) => {
+              const hg = st.headGuard || st.head_guard;
+              if (!hg) return false;
+              const hgComp = hg.company_name;
+              if (!hgComp) return false;
+              return (
+                hgComp === queryCompany ||
+                hgComp === currentUser?.company_name ||
+                hgComp === companyProfile?.company_name ||
+                hgComp === currentUser?.username ||
+                hgComp === companyProfile?.username
+              );
+            });
+            if (hasMatchingShift) return true;
+          }
+
+          // 3. ตรวจสอบชื่อบริษัทใน event
+          if (
+            queryCompany &&
+            (ev.company_name === queryCompany || ev.contractor === queryCompany)
+          ) {
+            return true;
+          }
+
+          // 4. กรณีที่ backend กรองมาให้แล้ว (ถ้าไม่มี company_id และไม่มี shift_times ขัดแย้ง)
+          if (!evCompId && (!ev.shift_times || ev.shift_times.length === 0)) {
+            return true;
+          }
+
+          return false;
+        });
+
+        const sorted = [...filtered].sort(
+          (a, b) => (Number(a.event_id) || 0) - (Number(b.event_id) || 0),
+        );
+
+        const newEventIds = newlyAddedEventIdsRef.current;
+        const newEvents = [];
+        const regularEvents = [];
+
+        sorted.forEach((ev) => {
+          if (newEventIds.includes(ev.event_id)) {
+            newEvents.push(ev);
+          } else {
+            regularEvents.push(ev);
+          }
+        });
+
+        newEvents.sort(
+          (a, b) =>
+            newEventIds.indexOf(a.event_id) - newEventIds.indexOf(b.event_id),
+        );
+        const finalOrderedEvents = [...newEvents, ...regularEvents];
+
+        setEvents(finalOrderedEvents);
+      } catch (error) {
+        console.error("Error fetching events:", error);
+        setEvents([]);
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [companyProfile, currentUser],
+  );
 
   useEffect(() => {
     if (activeMenu === "headguard") {
@@ -423,7 +528,8 @@ function CompanyDashboard() {
 
       if (response.status === 201 || response.status === 200) {
         setIsAddModalOpen(false);
-        isGuardMenu ? fetchGuards() : fetchHeadGuards();
+        const createdId = response.data?.users_id ?? response.data?.id;
+        isGuardMenu ? fetchGuards(createdId) : fetchHeadGuards(createdId);
       }
     } catch (error) {
       console.error("Save error:", error);
@@ -695,7 +801,7 @@ function CompanyDashboard() {
               ) : (
                 filteredData.map((dataItem) => (
                   <div
-                    key={dataItem.id}
+                    key={dataItem.raw?.users_id || dataItem.id}
                     className="grid grid-cols-[80px_100px_90px_1.5fr_80px_1.3fr_1.1fr_45px] min-h-[44px] items-center border-t border-gray-300 text-[12px] px-4 hover:bg-gray-50 transition"
                   >
                     <div className="text-center text-gray-600 bg-gray-200/50 py-1 rounded w-14 mx-auto">
@@ -1073,7 +1179,9 @@ function CompanyDashboard() {
             if (response.status === 201 || response.status === 200) {
               alert("บันทึกข้อมูลงานอีเว้นท์เรียบร้อยแล้ว!");
               setIsAddEventModalOpen(false);
-              fetchEvents();
+              const createdEventId =
+                response.data?.event_id ?? response.data?.id;
+              fetchEvents(createdEventId);
             }
           } catch (error) {
             console.error("Event Save Error:", error);
