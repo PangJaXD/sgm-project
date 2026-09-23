@@ -9,8 +9,15 @@ import {
   Shield,
   Image as ImageIcon,
   Trash2,
+  Locate,
 } from "lucide-react";
-import { MapContainer, TileLayer, Marker, useMapEvents } from "react-leaflet";
+import {
+  MapContainer,
+  TileLayer,
+  Marker,
+  useMapEvents,
+  useMap,
+} from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 import icon from "leaflet/dist/images/marker-icon.png";
@@ -30,6 +37,16 @@ function LocationSelector({ position, setPosition }) {
     },
   });
   return position ? <Marker position={position} /> : null;
+}
+
+function MapRecenter({ position }) {
+  const map = useMap();
+  useEffect(() => {
+    if (position) {
+      map.setView(position, map.getZoom());
+    }
+  }, [position, map]);
+  return null;
 }
 
 const PHONE_REGEX = /^0[689]\d{8}$/;
@@ -96,8 +113,35 @@ export default function AddEventModal({
     }
   };
 
+  const handleGetCurrentLocation = () => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          setPosition([pos.coords.latitude, pos.coords.longitude]);
+        },
+        (err) => {
+          console.warn("Unable to get current location:", err);
+        },
+        { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 },
+      );
+    }
+  };
+
   useEffect(() => {
     if (isOpen) {
+      // Set default map position to current location when opening modal
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          (pos) => {
+            setPosition([pos.coords.latitude, pos.coords.longitude]);
+          },
+          (err) => {
+            console.warn("Unable to get current location:", err);
+          },
+          { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 },
+        );
+      }
+
       const fetchHeadGuards = async () => {
         try {
           const response = await axios.get(
@@ -676,9 +720,19 @@ export default function AddEventModal({
         <div className="fixed inset-0 bg-black/60 z-[60] flex items-center justify-center p-4">
           <div className="bg-white rounded-xl w-full max-w-[700px] h-[500px] flex flex-col overflow-hidden shadow-2xl relative">
             <div className="bg-gray-100 p-3 flex justify-between items-center border-b">
-              <h3 className="font-bold flex items-center gap-2">
-                <MapPin className="text-red-500" /> คลิกบนแผนที่เพื่อปักหมุด
-              </h3>
+              <div className="flex items-center gap-3">
+                <h3 className="font-bold flex items-center gap-2">
+                  <MapPin className="text-red-500" /> คลิกบนแผนที่เพื่อปักหมุด
+                </h3>
+                <button
+                  type="button"
+                  onClick={handleGetCurrentLocation}
+                  className="text-xs bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 px-2.5 py-1 rounded-md flex items-center gap-1 shadow-sm transition cursor-pointer"
+                  title="ไปยังตำแหน่งปัจจุบัน"
+                >
+                  <Locate size={14} className="text-blue-600" /> ตำแหน่งปัจจุบัน
+                </button>
+              </div>
               <button
                 type="button"
                 onClick={() => setIsMapOpen(false)}
@@ -690,13 +744,14 @@ export default function AddEventModal({
             <div className="flex-1 bg-gray-200">
               <MapContainer
                 center={position || [13.7563, 100.5018]}
-                zoom={12}
+                zoom={14}
                 style={{ height: "100%", width: "100%" }}
               >
                 <TileLayer
                   attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
                   url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                 />
+                <MapRecenter position={position} />
                 <LocationSelector
                   position={position}
                   setPosition={setPosition}
