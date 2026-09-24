@@ -65,7 +65,7 @@ export default function ViewEventModal({ isOpen, onClose, eventData }) {
                 <label className="font-semibold text-gray-500 w-[140px]">
                   ชื่องานอีเว้นท์:
                 </label>
-                <div className="flex-1 h-[32px] bg-gray-50 border border-gray-300 rounded-full px-4 flex items-center text-gray-700">
+                <div className="flex-1 h-[32px] bg-gray-50 border border-gray-300 rounded-lg px-3 flex items-center text-gray-700">
                   {eventData.event_name}
                 </div>
               </div>
@@ -73,7 +73,7 @@ export default function ViewEventModal({ isOpen, onClose, eventData }) {
                 <label className="font-semibold text-gray-500 w-[140px]">
                   สถานที่จัดงาน:
                 </label>
-                <div className="flex-1 h-[32px] bg-gray-50 border border-gray-300 rounded-full px-4 flex items-center text-gray-700 truncate">
+                <div className="flex-1 h-[32px] bg-gray-50 border border-gray-300 rounded-lg px-3 flex items-center text-gray-700 truncate">
                   {eventData.location}
                 </div>
               </div>
@@ -81,7 +81,7 @@ export default function ViewEventModal({ isOpen, onClose, eventData }) {
                 <label className="font-semibold text-gray-500 w-[140px]">
                   วันที่เริ่มปฏิบัติงาน:
                 </label>
-                <div className="flex-1 h-[32px] bg-gray-50 border border-gray-300 rounded-full px-4 flex items-center text-gray-700">
+                <div className="flex-1 h-[32px] bg-gray-50 border border-gray-300 rounded-lg px-3 flex items-center text-gray-700">
                   {formatThaiDate(startDate)}
                 </div>
               </div>
@@ -89,7 +89,7 @@ export default function ViewEventModal({ isOpen, onClose, eventData }) {
                 <label className="font-semibold text-gray-500 w-[140px]">
                   วันที่สิ้นสุดปฏิบัติงาน:
                 </label>
-                <div className="flex-1 h-[32px] bg-gray-50 border border-gray-300 rounded-full px-4 flex items-center text-gray-700">
+                <div className="flex-1 h-[32px] bg-gray-50 border border-gray-300 rounded-lg px-3 flex items-center text-gray-700">
                   {formatThaiDate(endDate)}
                 </div>
               </div>
@@ -98,7 +98,7 @@ export default function ViewEventModal({ isOpen, onClose, eventData }) {
                 <label className="font-semibold text-gray-500 w-[140px]">
                   สถานะงาน:
                 </label>
-                <div className="flex-1 h-[32px] bg-gray-50 border border-gray-300 rounded-full px-4 flex items-center text-gray-700">
+                <div className="flex-1 h-[32px] bg-gray-50 border border-gray-300 rounded-lg px-3 flex items-center text-gray-700">
                   {eventData.status === "ONGOING"
                     ? "กำลังดำเนินการ"
                     : eventData.status === "COMPLETED"
@@ -114,7 +114,7 @@ export default function ViewEventModal({ isOpen, onClose, eventData }) {
                   การมองเห็นหัวหน้าชุด:
                 </label>
                 <div
-                  className={`flex-1 h-[32px] border rounded-full px-4 flex items-center font-medium ${
+                  className={`flex-1 h-[32px] border rounded-lg px-3 flex items-center font-medium ${
                     eventData.headguard_visible
                       ? "bg-emerald-50 border-emerald-300 text-emerald-700"
                       : "bg-gray-50 border-gray-300 text-gray-500"
@@ -130,7 +130,7 @@ export default function ViewEventModal({ isOpen, onClose, eventData }) {
                 <label className="font-semibold text-gray-500 block mb-2">
                   รายละเอียดงาน
                 </label>
-                <div className="w-full h-[120px] bg-gray-50 border border-gray-300 rounded-[15px] p-4 text-gray-700 overflow-y-auto">
+                <div className="w-full h-[120px] bg-gray-50 border border-gray-300 rounded-xl p-3 text-gray-700 overflow-y-auto">
                   {eventData.event_detail}
                 </div>
               </div>
@@ -142,7 +142,7 @@ export default function ViewEventModal({ isOpen, onClose, eventData }) {
                 <label className="font-semibold text-gray-500 mb-1">
                   ผู้ว่าจ้าง
                 </label>
-                <div className="w-full h-[32px] bg-gray-50 border border-gray-300 rounded-full px-4 flex items-center text-gray-700">
+                <div className="w-full h-[32px] bg-gray-50 border border-gray-300 rounded-lg px-3 flex items-center text-gray-700">
                   {eventData.contractor || "-"}
                 </div>
               </div>
@@ -150,7 +150,7 @@ export default function ViewEventModal({ isOpen, onClose, eventData }) {
                 <label className="font-semibold text-gray-500 mb-1">
                   เบอร์โทรศัพท์ผู้ว่าจ้าง
                 </label>
-                <div className="w-full h-[32px] bg-gray-50 border border-gray-300 rounded-full px-4 flex items-center text-gray-700">
+                <div className="w-full h-[32px] bg-gray-50 border border-gray-300 rounded-lg px-3 flex items-center text-gray-700">
                   {eventData.contact_phone || eventData.contact || "-"}
                 </div>
               </div>
@@ -158,7 +158,7 @@ export default function ViewEventModal({ isOpen, onClose, eventData }) {
                 <label className="font-semibold text-gray-500 mb-1">
                   อีเมลผู้ว่าจ้าง
                 </label>
-                <div className="w-full h-[32px] bg-gray-50 border border-gray-300 rounded-full px-4 flex items-center text-gray-700">
+                <div className="w-full h-[32px] bg-gray-50 border border-gray-300 rounded-lg px-3 flex items-center text-gray-700">
                   {eventData.contact_email || "-"}
                 </div>
               </div>

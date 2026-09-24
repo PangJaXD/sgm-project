@@ -403,7 +403,7 @@ export default function AddEventModal({
             {/* ซ้าย */}
             <div className="flex flex-col gap-3">
               <div className="flex items-center justify-between">
-                <label className="font-semibold">
+                <label className="font-semibold w-[140px] shrink-0">
                   ชื่อสถานที่ หรือ ชื่องานอีเว้นท์:
                 </label>
                 <input
@@ -411,19 +411,19 @@ export default function AddEventModal({
                   value={eventName}
                   onChange={(e) => setEventName(e.target.value)}
                   placeholder="เช่น งานอาหารพื้นเมืองภาคเหนือ"
-                  className="w-[60%] h-[32px] border border-gray-400 rounded-full px-4 outline-none focus:border-blue-500"
+                  className="flex-1 h-[32px] border border-gray-300 rounded-lg px-3 bg-white outline-none focus:border-blue-500"
                 />
               </div>
 
               <div className="flex items-center justify-between">
-                <label className="font-semibold">สถานที่จัดงาน:</label>
-                <div className="relative w-[60%]">
+                <label className="font-semibold w-[140px] shrink-0">สถานที่จัดงาน:</label>
+                <div className="relative flex-1">
                   <input
                     type="text"
                     value={locationName}
                     onChange={(e) => setLocationName(e.target.value)}
                     placeholder="ระบุสถานที่จัดงาน"
-                    className="w-full h-[32px] border border-gray-400 rounded-full pl-4 pr-8 outline-none focus:border-blue-500"
+                    className="w-full h-[32px] border border-gray-300 rounded-lg pl-3 pr-8 bg-white outline-none focus:border-blue-500"
                   />
                   <MapPin
                     size={16}
@@ -433,7 +433,7 @@ export default function AddEventModal({
               </div>
 
               <div className="flex items-center justify-between">
-                <label className="font-semibold">วันที่เริ่มปฏิบัติงาน:</label>
+                <label className="font-semibold w-[140px] shrink-0">วันที่เริ่มปฏิบัติงาน:</label>
                 <Flatpickr
                   value={startDate}
                   onChange={([date], dateStr) => setStartDate(dateStr)}
@@ -442,12 +442,12 @@ export default function AddEventModal({
                     allowInput: true,
                   }}
                   placeholder="วว/ดด/ปปปป"
-                  className="w-[60%] h-[32px] border border-gray-400 rounded-full px-4 outline-none focus:border-blue-500 text-gray-700 bg-white text-xs"
+                  className="flex-1 h-[32px] border border-gray-300 rounded-lg px-3 bg-white outline-none focus:border-blue-500 text-gray-700 text-xs"
                 />
               </div>
 
               <div className="flex items-center justify-between">
-                <label className="font-semibold">
+                <label className="font-semibold w-[140px] shrink-0">
                   วันที่สิ้นสุดปฏิบัติงาน:
                 </label>
                 <Flatpickr
@@ -458,16 +458,16 @@ export default function AddEventModal({
                     allowInput: true,
                   }}
                   placeholder="วว/ดด/ปปปป"
-                  className="w-[60%] h-[32px] border border-gray-400 rounded-full px-4 outline-none focus:border-blue-500 text-gray-700 bg-white text-xs"
+                  className="flex-1 h-[32px] border border-gray-300 rounded-lg px-3 bg-white outline-none focus:border-blue-500 text-gray-700 text-xs"
                 />
               </div>
 
               <div className="flex items-center justify-between">
-                <label className="font-semibold">สถานะงานอีเว้นท์:</label>
+                <label className="font-semibold w-[140px] shrink-0">สถานะงานอีเว้นท์:</label>
                 <select
                   value={status}
                   onChange={(e) => setStatus(e.target.value)}
-                  className="w-[60%] h-[32px] border border-gray-400 rounded-full px-4 outline-none focus:border-blue-500 bg-white"
+                  className="flex-1 h-[32px] border border-gray-300 rounded-lg px-3 bg-white outline-none focus:border-blue-500 text-gray-700 cursor-pointer"
                 >
                   <option value="PENDING">รอดำเนินการ</option>
                   <option value="ONGOING">กำลังดำเนินการ</option>
@@ -484,7 +484,7 @@ export default function AddEventModal({
                   value={eventDetail}
                   onChange={(e) => setEventDetail(e.target.value)}
                   placeholder="ระบุรายละเอียดงานอีเว้นท์..."
-                  className="w-full h-[120px] border border-gray-400 rounded-[15px] p-3 outline-none focus:border-blue-500 resize-none"
+                  className="w-full h-[120px] border border-gray-300 rounded-xl p-3 bg-white outline-none focus:border-blue-500 resize-none"
                 />
               </div>
             </div>
@@ -498,7 +498,7 @@ export default function AddEventModal({
                   value={contractor}
                   onChange={(e) => setContractor(e.target.value)}
                   placeholder="ระบุชื่อผู้ว่าจ้างหรือบริษัท"
-                  className="w-full h-[32px] border border-gray-400 rounded-full px-4 outline-none focus:border-blue-500"
+                  className="w-full h-[32px] border border-gray-300 rounded-lg px-3 bg-white outline-none focus:border-blue-500"
                 />
               </div>
 
@@ -515,7 +515,7 @@ export default function AddEventModal({
                   }
                   maxLength="10"
                   placeholder="เช่น 0812345678 (ขึ้นต้นด้วย 06, 08, 09)"
-                  className="w-full h-[32px] border border-gray-400 rounded-full px-4 outline-none focus:border-blue-500"
+                  className="w-full h-[32px] border border-gray-300 rounded-lg px-3 bg-white outline-none focus:border-blue-500"
                 />
               </div>
 
@@ -528,7 +528,7 @@ export default function AddEventModal({
                   value={contactEmail}
                   onChange={(e) => setContactEmail(e.target.value)}
                   placeholder="เช่น contractor@example.com"
-                  className="w-full h-[32px] border border-gray-400 rounded-full px-4 outline-none focus:border-blue-500"
+                  className="w-full h-[32px] border border-gray-300 rounded-lg px-3 bg-white outline-none focus:border-blue-500"
                 />
               </div>
 
@@ -632,7 +632,7 @@ export default function AddEventModal({
                           updateTool("required", idx, e.target.value)
                         }
                         placeholder="ระบุอุปกรณ์"
-                        className="flex-1 h-[26px] border border-gray-400 rounded-full px-3 text-[12px] outline-none focus:border-blue-500"
+                        className="flex-1 h-[30px] border border-gray-300 rounded-lg px-3 text-[12px] bg-white outline-none focus:border-blue-500"
                       />
                       {requiredTools.length > 1 && (
                         <button
@@ -669,7 +669,7 @@ export default function AddEventModal({
                           updateTool("provided", idx, e.target.value)
                         }
                         placeholder="ระบุอุปกรณ์"
-                        className="flex-1 h-[26px] border border-gray-400 rounded-full px-3 text-[12px] outline-none focus:border-blue-500"
+                        className="flex-1 h-[30px] border border-gray-300 rounded-lg px-3 text-[12px] bg-white outline-none focus:border-blue-500"
                       />
                       {providedTools.length > 1 && (
                         <button
@@ -747,7 +747,7 @@ export default function AddEventModal({
                         updateShift(idx, "guards", e.target.value)
                       }
                       placeholder="ระบุจำนวนเจ้าหน้าที่"
-                      className="w-full h-[30px] border border-gray-400 rounded-full pl-4 pr-10 outline-none focus:border-blue-500"
+                      className="w-full h-[32px] border border-gray-300 rounded-lg pl-3 pr-10 outline-none focus:border-blue-500 bg-white text-xs"
                     />
                     <Users
                       size={16}
@@ -768,7 +768,7 @@ export default function AddEventModal({
                       allowInput: true,
                     }}
                     placeholder="วว/ดด/ปปปป"
-                    className="w-full h-[30px] border border-gray-400 rounded-full px-4 outline-none focus:border-blue-500 text-gray-700 bg-white text-xs"
+                    className="w-full h-[32px] border border-gray-300 rounded-lg px-3 outline-none focus:border-blue-500 text-gray-700 bg-white text-xs"
                   />
                 </div>
 
@@ -787,7 +787,7 @@ export default function AddEventModal({
                       allowInput: true,
                     }}
                     placeholder="--:--"
-                    className="w-full h-[30px] border border-gray-400 rounded-full px-4 outline-none focus:border-blue-500 text-gray-700 bg-white text-xs"
+                    className="w-full h-[32px] border border-gray-300 rounded-lg px-3 outline-none focus:border-blue-500 text-gray-700 bg-white text-xs"
                   />
                 </div>
 
@@ -808,7 +808,7 @@ export default function AddEventModal({
                       allowInput: true,
                     }}
                     placeholder="--:--"
-                    className="w-full h-[30px] border border-gray-400 rounded-full px-4 outline-none focus:border-blue-500 text-gray-700 bg-white text-xs"
+                    className="w-full h-[32px] border border-gray-300 rounded-lg px-3 outline-none focus:border-blue-500 text-gray-700 bg-white text-xs"
                   />
                 </div>
 
@@ -821,7 +821,7 @@ export default function AddEventModal({
                     onChange={(e) =>
                       updateShift(idx, "headGuard", e.target.value)
                     }
-                    className="w-full h-[32px] border border-gray-400 rounded-full px-4 outline-none focus:border-blue-500 bg-white text-gray-600"
+                    className="w-full h-[32px] border border-gray-300 rounded-lg px-3 outline-none focus:border-blue-500 bg-white text-gray-600 text-xs cursor-pointer"
                   >
                     <option value="">-- กรุณาเลือกหัวหน้าชุด --</option>
                     {headGuardsList.map((hg) => {
