@@ -154,6 +154,7 @@ public class EventService {
             org.sgm_project.demo.Util.UserValidationUtil.validatePhone(phone);
         }
         event.setContact_phone(phone);
+        event.setContact(phone);
 
         String email = request.getContact_email() != null ? request.getContact_email().trim() : "";
         if (!email.isEmpty()) {
@@ -270,6 +271,7 @@ public class EventService {
             org.sgm_project.demo.Util.UserValidationUtil.validatePhone(phone);
         }
         existingEvent.setContact_phone(phone);
+        existingEvent.setContact(phone);
 
         String email = request.getContact_email() != null ? request.getContact_email().trim() : "";
         if (!email.isEmpty()) {

@@ -166,50 +166,55 @@ public class HeadGuardDashboardService {
         return shifts.stream()
                 .filter(shift -> shift.getEvent() != null && shift.getEvent().isHeadguard_visible())
                 .map(shift -> {
-            DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-            DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("HH:mm");
+                    DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+                    DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("HH:mm");
 
-            // Format เวลาทำงาน (Start - End)
-            String workTimeFormatted = (shift.getStart_time() != null && shift.getEnd_time() != null)
-                    ? shift.getStart_time().format(timeFormatter) + " - " + shift.getEnd_time().format(timeFormatter)
-                            + " น."
-                    : "ไม่ระบุเวลา";
+                    // Format เวลาทำงาน (Start - End)
+                    String workTimeFormatted = (shift.getStart_time() != null && shift.getEnd_time() != null)
+                            ? shift.getStart_time().format(timeFormatter) + " - "
+                                    + shift.getEnd_time().format(timeFormatter)
+                                    + " น."
+                            : "ไม่ระบุเวลา";
 
-            // นับจำนวน รปภ. ในกะนี้
-            int assignedGuardsCount = assignmentsRepository.countByShiftId(shift.getShift_id());
+                    // นับจำนวน รปภ. ในกะนี้
+                    int assignedGuardsCount = assignmentsRepository.countByShiftId(shift.getShift_id());
 
-            // 🌟 รวมชื่อ-นามสกุลของ HeadGuard (ดึงจาก first_name และ last_name ในคลาส
-            // Users)
-            String headFullName = "ยังไม่ระบุหัวหน้า";
-            if (shift.getHeadGuard() != null) {
-                String fName = shift.getHeadGuard().getFirst_name() != null ? shift.getHeadGuard().getFirst_name() : "";
-                String lName = shift.getHeadGuard().getLast_name() != null ? shift.getHeadGuard().getLast_name() : "";
-                headFullName = (fName + " " + lName).trim();
-            }
+                    // 🌟 รวมชื่อ-นามสกุลของ HeadGuard (ดึงจาก first_name และ last_name ในคลาส
+                    // Users)
+                    String headFullName = "ยังไม่ระบุหัวหน้า";
+                    if (shift.getHeadGuard() != null) {
+                        String fName = shift.getHeadGuard().getFirst_name() != null
+                                ? shift.getHeadGuard().getFirst_name()
+                                : "";
+                        String lName = shift.getHeadGuard().getLast_name() != null ? shift.getHeadGuard().getLast_name()
+                                : "";
+                        headFullName = (fName + " " + lName).trim();
+                    }
 
-            // ข้อมูล Event ที่ผูกกับ Shift
-            Events event = shift.getEvent();
-            String eventName = event != null ? event.getEvent_name() : "ไม่ระบุชื่องาน";
-            String location = event != null ? event.getLocation() : "ไม่ระบุสถานที่";
-            String startDate = (event != null && event.getStart_date() != null)
-                    ? event.getStart_date().format(dateFormatter)
-                    : "-";
-            String endDate = (event != null && event.getEnd_date() != null) ? event.getEnd_date().format(dateFormatter)
-                    : "-";
-            String status = event != null ? event.getStatus() : "PENDING";
+                    // ข้อมูล Event ที่ผูกกับ Shift
+                    Events event = shift.getEvent();
+                    String eventName = event != null ? event.getEvent_name() : "ไม่ระบุชื่องาน";
+                    String location = event != null ? event.getLocation() : "ไม่ระบุสถานที่";
+                    String startDate = (event != null && event.getStart_date() != null)
+                            ? event.getStart_date().format(dateFormatter)
+                            : "-";
+                    String endDate = (event != null && event.getEnd_date() != null)
+                            ? event.getEnd_date().format(dateFormatter)
+                            : "-";
+                    String status = event != null ? event.getStatus() : "PENDING";
 
-            return ShiftTimeDashboardResponse.builder()
-                    .shiftId(Long.valueOf(shift.getShift_id()))
-                    .eventName(eventName)
-                    .shiftName("กะงานที่ " + shift.getShift_id())
-                    .location(location)
-                    .startDate(startDate)
-                    .endDate(endDate)
-                    .workTime(workTimeFormatted)
-                    .totalGuards(assignedGuardsCount)
-                    .status(status)
-                    .headGuardName(headFullName)
-                    .build();
-        }).collect(Collectors.toList());
+                    return ShiftTimeDashboardResponse.builder()
+                            .shiftId(Long.valueOf(shift.getShift_id()))
+                            .eventName(eventName)
+                            .shiftName("กะงานที่ " + shift.getShift_id())
+                            .location(location)
+                            .startDate(startDate)
+                            .endDate(endDate)
+                            .workTime(workTimeFormatted)
+                            .totalGuards(assignedGuardsCount)
+                            .status(status)
+                            .headGuardName(headFullName)
+                            .build();
+                }).collect(Collectors.toList());
     }
 }

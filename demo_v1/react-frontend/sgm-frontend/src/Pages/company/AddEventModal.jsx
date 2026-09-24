@@ -794,10 +794,10 @@ export default function AddEventModal({
                   >
                     <option value="">-- กรุณาเลือกหัวหน้าชุด --</option>
                     {headGuardsList.map((hg) => {
-                      const hgDisplayId = `HG-${hg.users_id ? hg.users_id.toString().padStart(3, "0") : ""}`;
+                      // const hgDisplayId = `HG-${hg.users_id ? hg.users_id.toString().padStart(3, "0") : ""}`;
                       return (
                         <option key={hg.users_id} value={hg.users_id}>
-                          {hg.first_name} {hg.last_name} ({hgDisplayId})
+                          {hg.first_name} {hg.last_name}
                         </option>
                       );
                     })}
@@ -811,7 +811,7 @@ export default function AddEventModal({
             <button
               type="button"
               onClick={handleCancel}
-                  className="h-[38px] px-8 bg-red-600 hover:bg-red-600 text-white rounded-[10px] font-medium transition shadow flex items-center gap-2 cursor-pointer"
+              className="h-[38px] px-8 bg-red-600 hover:bg-red-600 text-white rounded-[10px] font-medium transition shadow flex items-center gap-2 cursor-pointer"
             >
               <X size={18} /> ยกเลิก
             </button>

@@ -30,6 +30,8 @@ public class Events {
         private String longitude;
         @Column(length = 150, nullable = false)
         private String contractor;
+        @Column(name = "contact", nullable = true)
+        private String contact;
         @Column(nullable = false)
         private String contact_phone;
         @Column(nullable = false)
@@ -63,6 +65,13 @@ public class Events {
         private Integer company_id;
         @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, mappedBy = "event")
         private Set<ShiftTime> shift_times;
+
+        public String getContact() {
+                if (contact != null && !contact.trim().isEmpty()) {
+                        return contact;
+                }
+                return contact_phone;
+        }
 }
 
 // this annotation is crazy btw
