@@ -21,6 +21,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 public class EventService {
@@ -49,13 +50,17 @@ public class EventService {
     @Transactional(readOnly = true)
     public List<Events> getEventsForGuardOrTeam(Integer guardId, Integer headId, String headName, String company) {
         if (headId != null) {
-            List<Events> evts = eventRepository.findEventsByShiftHeadGuardId(headId);
+            List<Events> evts = eventRepository.findEventsByShiftHeadGuardId(headId).stream()
+                    .filter(Events::isHeadguard_visible)
+                    .collect(Collectors.toList());
             if (!evts.isEmpty())
                 return evts;
         }
 
         if (guardId != null) {
-            List<Events> guardEvents = eventRepository.findEventsByGuardId(guardId);
+            List<Events> guardEvents = eventRepository.findEventsByGuardId(guardId).stream()
+                    .filter(Events::isGuard_visible)
+                    .collect(Collectors.toList());
             if (guardEvents != null && !guardEvents.isEmpty()) {
                 return guardEvents;
             }
@@ -63,18 +68,24 @@ public class EventService {
             if (gOpt.isPresent()) {
                 Guards g = gOpt.get();
                 if (g.getHead_name() != null && !g.getHead_name().trim().isEmpty()) {
-                    List<Events> byHead = eventRepository.findEventsByHeadName(g.getHead_name().trim());
+                    List<Events> byHead = eventRepository.findEventsByHeadName(g.getHead_name().trim()).stream()
+                            .filter(Events::isGuard_visible)
+                            .collect(Collectors.toList());
                     if (!byHead.isEmpty())
                         return byHead;
                 }
                 if (g.getCompany_name() != null && !g.getCompany_name().trim().isEmpty()) {
-                    return getEventsByCompanyIdentifier(g.getCompany_name().trim());
+                    return getEventsByCompanyIdentifier(g.getCompany_name().trim()).stream()
+                            .filter(Events::isGuard_visible)
+                            .collect(Collectors.toList());
                 }
             }
         }
 
         if (headName != null && !headName.trim().isEmpty()) {
-            List<Events> byHead = eventRepository.findEventsByHeadName(headName.trim());
+            List<Events> byHead = eventRepository.findEventsByHeadName(headName.trim()).stream()
+                    .filter(Events::isHeadguard_visible)
+                    .collect(Collectors.toList());
             if (!byHead.isEmpty())
                 return byHead;
         }
@@ -154,6 +165,12 @@ public class EventService {
         event.setProvided_tools(request.getProvided_tools());
         event.setRequired_guards(request.getRequired_guards());
         event.setCompany_id(request.getCompany_id());
+        if (request.getHeadguard_visible() != null) {
+            event.setHeadguard_visible(request.getHeadguard_visible());
+        }
+        if (request.getGuard_visible() != null) {
+            event.setGuard_visible(request.getGuard_visible());
+        }
         // this is a shorthand if
         event.setStatus(request.getStatus() != null ? request.getStatus() : "PENDING");
         // setting event img
@@ -272,6 +289,14 @@ public class EventService {
             existingEvent.setStatus(request.getStatus());
         }
 
+        if (request.getHeadguard_visible() != null) {
+            existingEvent.setHeadguard_visible(request.getHeadguard_visible());
+        }
+
+        if (request.getGuard_visible() != null) {
+            existingEvent.setGuard_visible(request.getGuard_visible());
+        }
+
         if (request.getEvent_img() != null && !request.getEvent_img().trim().isEmpty()) {
             existingEvent.setEvent_img(request.getEvent_img().trim());
         }
@@ -341,5 +366,20 @@ public class EventService {
             throw new RuntimeException("Event not found");
         }
         eventRepository.deleteById(id);
+    }
+
+    @Transactional
+    public Events updateVisibility(Integer id, java.util.Map<String, Boolean> payload) {
+        Events event = eventRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Event not found"));
+        if (payload != null) {
+            if (payload.containsKey("headguard_visible")) {
+                event.setHeadguard_visible(Boolean.TRUE.equals(payload.get("headguard_visible")));
+            }
+            if (payload.containsKey("guard_visible")) {
+                event.setGuard_visible(Boolean.TRUE.equals(payload.get("guard_visible")));
+            }
+        }
+        return eventRepository.save(event);
     }
 }

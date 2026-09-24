@@ -39,7 +39,9 @@ public class HeadGuardDashboardService {
     }
 
     public List<Events> getEventsForHeadGuard(Integer headId) {
-        return eventsRepository.findEventsByShiftHeadGuardId(headId);
+        return eventsRepository.findEventsByShiftHeadGuardId(headId).stream()
+                .filter(Events::isHeadguard_visible)
+                .collect(Collectors.toList());
     }
 
     public List<Report> getUrgentRequests(Integer headGuardId) {
@@ -161,7 +163,9 @@ public class HeadGuardDashboardService {
     public List<ShiftTimeDashboardResponse> getDashboardShifts(Integer headGuardId) {
         List<ShiftTime> shifts = shiftTimeRepository.findByHeadGuardId(headGuardId);
 
-        return shifts.stream().map(shift -> {
+        return shifts.stream()
+                .filter(shift -> shift.getEvent() != null && shift.getEvent().isHeadguard_visible())
+                .map(shift -> {
             DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
             DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("HH:mm");
 

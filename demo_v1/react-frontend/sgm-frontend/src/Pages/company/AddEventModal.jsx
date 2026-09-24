@@ -346,6 +346,8 @@ export default function AddEventModal({
       status: status,
       company_id: companyId,
       event_img: eventImg || "default.png",
+      headguard_visible: false,
+      guard_visible: false,
     };
 
     if (onSave) onSave(payload);
@@ -809,7 +811,7 @@ export default function AddEventModal({
             <button
               type="button"
               onClick={handleCancel}
-              className="h-[40px] px-6 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-full font-medium transition flex items-center gap-2 cursor-pointer"
+                  className="h-[38px] px-8 bg-red-600 hover:bg-red-600 text-white rounded-[10px] font-medium transition shadow flex items-center gap-2 cursor-pointer"
             >
               <X size={18} /> ยกเลิก
             </button>

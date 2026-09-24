@@ -377,6 +377,8 @@ export default function EditEventModal({
       status: status,
       company_id: companyId || eventData?.company_id,
       event_img: eventImg || eventData?.event_img || "default.png",
+      headguard_visible: eventData?.headguard_visible ?? false,
+      guard_visible: eventData?.guard_visible ?? false,
     };
 
     if (onSave) onSave(payload);
@@ -748,7 +750,7 @@ export default function EditEventModal({
             <button
               type="button"
               onClick={handleCancel}
-              className="h-[40px] px-6 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-full font-medium transition flex items-center gap-2 cursor-pointer"
+              className="h-[38px] px-8 bg-red-600 hover:bg-red-600 text-white rounded-[10px] font-medium transition shadow flex items-center gap-2 cursor-pointer"
             >
               <X size={18} /> ยกเลิก
             </button>

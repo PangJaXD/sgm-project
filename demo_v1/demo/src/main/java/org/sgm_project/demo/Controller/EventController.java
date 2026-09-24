@@ -69,6 +69,14 @@ public class EventController {
         return ResponseEntity.noContent().build(); // คืนค่า Status 204 No Content เมื่อลบสำเร็จ
     }
 
+    // 6. อัปเดตการมองเห็นของงานอีเว้นท์ (PUT /api/events/{id}/visibility)
+    @PutMapping("/{id}/visibility")
+    public ResponseEntity<Events> updateEventVisibility(
+            @PathVariable Integer id,
+            @RequestBody java.util.Map<String, Boolean> payload) {
+        return ResponseEntity.ok(eventService.updateVisibility(id, payload));
+    }
+
     // 6. ดึงกะงานทั้งหมดของอีเวนต์นี้ (GET /api/events/{id}/shifts)
     @GetMapping("/{id}/shifts")
     public ResponseEntity<List<java.util.Map<String, Object>>> getEventShifts(

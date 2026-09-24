@@ -37,6 +37,12 @@ public class CreateEventRequest {
 
     @JsonProperty("company_id")
     private Integer company_id;
+
+    @JsonProperty("headguard_visible")
+    private Boolean headguard_visible;
+
+    @JsonProperty("guard_visible")
+    private Boolean guard_visible;
 }
 
 // @JsonProperty (Jackson): Maps a specific JSON key to a specific Java field

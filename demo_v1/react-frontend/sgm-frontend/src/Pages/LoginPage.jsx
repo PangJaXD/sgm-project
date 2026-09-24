@@ -211,7 +211,7 @@ function LoginPage() {
                   : "text-white/90 underline underline-offset-2 hover:text-white"
               }`}
             >
-              {role === "admin" ? "✓ ใช้งานในฐานะ Admin" : "เข้าสู่ระบบ Admin"}
+              {role === "admin" ? "ใช้งานในฐานะ Admin" : "เข้าสู่ระบบ Admin"}
             </button>
           </div>
         </div>

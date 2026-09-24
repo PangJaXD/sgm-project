@@ -44,6 +44,12 @@ public class Events {
         private LocalDate end_date;
         @Column
         private String status;
+        @JsonProperty("headguard_visible")
+        @Column
+        private boolean headguard_visible;
+        @JsonProperty("guard_visible")
+        @Column
+        private boolean guard_visible;
         @ElementCollection
         @CollectionTable(name = "events_required_tools", joinColumns = @JoinColumn(name = "event_id"))
         private Set<String> required_tools;

@@ -5,6 +5,7 @@ import ViewEventModal from "./ViewEventModal";
 import EditEventModal from "./EditEventModal";
 import {
   Shield,
+  ShieldCheck,
   Users,
   CalendarDays,
   Search,
@@ -642,6 +643,38 @@ function CompanyDashboard() {
     }
   };
 
+  const handleToggleHeadGuardVisibility = async (eventItem) => {
+    const currentVis = Boolean(eventItem.headguard_visible);
+    const newVisibility = !currentVis;
+    const confirmMessage = newVisibility
+      ? `ต้องการมอบหมายงาน "${eventItem.event_name}" ให้หัวหน้าชุดมองเห็นใช่หรือไม่?`
+      : `ต้องการยกเลิกการมอบหมายงาน "${eventItem.event_name}" (ซ่อนจากหัวหน้าชุด) ใช่หรือไม่?`;
+
+    if (!window.confirm(confirmMessage)) return;
+
+    try {
+      const response = await axios.put(
+        `http://localhost:8080/api/events/${eventItem.event_id}/visibility`,
+        {
+          headguard_visible: newVisibility,
+        },
+      );
+
+      if (response.status === 200) {
+        setEvents((prevEvents) =>
+          prevEvents.map((ev) =>
+            ev.event_id === eventItem.event_id
+              ? { ...ev, headguard_visible: newVisibility }
+              : ev,
+          ),
+        );
+      }
+    } catch (error) {
+      console.error("Error updating event visibility:", error);
+      alert("เกิดข้อผิดพลาดในการอัปเดตการมอบหมายงาน");
+    }
+  };
+
   const currentDataList = Array.isArray(isGuardMenu ? guards : headGuards)
     ? isGuardMenu
       ? guards
@@ -912,32 +945,58 @@ function CompanyDashboard() {
                           <p className="text-[11px] text-gray-500 mb-1 font-medium">
                             หัวหน้าหน่วยที่รับผิดชอบ
                           </p>
-                          <div className="flex items-center gap-1.5 text-blue-600 font-semibold">
-                            <Shield size={14} />
-                            <span>รอดำเนินการมอบหมาย</span>
+                          <div
+                            className={`flex items-center gap-1.5 font-semibold ${
+                              ev.headguard_visible
+                                ? "text-emerald-600"
+                                : "text-blue-600"
+                            }`}
+                          >
+                            {ev.headguard_visible ? (
+                              <ShieldCheck size={14} />
+                            ) : (
+                              <Shield size={14} />
+                            )}
+                            <span>
+                              {ev.headguard_visible
+                                ? "มอบหมายแล้ว (หัวหน้าชุดมองเห็น)"
+                                : "รอดำเนินการมอบหมาย"}
+                            </span>
                           </div>
                         </div>
                       </div>
                       <div className="flex flex-col gap-2 pt-2">
                         <button
+                          type="button"
                           onClick={(e) => {
                             e.stopPropagation();
                             setSelectedEvent(ev);
                             setIsEditEventModalOpen(true);
                           }}
-                          className="w-full h-[32px] bg-orange-500 hover:bg-orange-600 text-white rounded-xl text-[12px] font-medium transition shadow-sm"
+                          className="w-full h-[32px] bg-orange-500 hover:bg-orange-600 text-white rounded-xl text-[12px] font-medium transition shadow-sm cursor-pointer"
                         >
                           แก้ไขงานอีเว้นท์
                         </button>
                         <button
+                          type="button"
                           onClick={(e) => {
                             e.stopPropagation();
-                            setSelectedEvent(ev);
-                            setIsEditEventModalOpen(true);
+                            handleToggleHeadGuardVisibility(ev);
                           }}
-                          className="w-full h-[32px] bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-[12px] font-medium transition shadow-sm"
+                          className={`w-full h-[32px] rounded-xl text-[12px] font-medium transition shadow-sm flex items-center justify-center gap-1.5 cursor-pointer ${
+                            ev.headguard_visible
+                              ? "bg-emerald-600 hover:bg-emerald-700 text-white"
+                              : "bg-blue-600 hover:bg-blue-700 text-white"
+                          }`}
                         >
-                          มอบหมายงานอีเว้นท์
+                          {ev.headguard_visible ? (
+                            <ShieldCheck size={15} />
+                          ) : (
+                            <Shield size={14} />
+                          )}
+                          {ev.headguard_visible
+                            ? "มอบหมายแล้ว (คลิกเพื่อยกเลิก)"
+                            : "มอบหมายงานอีเว้นท์"}
                         </button>
                       </div>
                     </div>
@@ -1142,7 +1201,7 @@ function CompanyDashboard() {
                     clearForm();
                     setIsAddModalOpen(false);
                   }}
-                  className="h-[38px] px-6 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-[10px] font-medium transition flex items-center gap-2 cursor-pointer"
+                  className="h-[38px] px-8 bg-red-600 hover:bg-red-600 text-white rounded-[10px] font-medium transition shadow flex items-center gap-2 cursor-pointer"
                 >
                   <X size={18} /> ยกเลิก
                 </button>
@@ -1657,7 +1716,7 @@ function CompanyDashboard() {
                   <button
                     type="button"
                     onClick={handleCancelEdit}
-                    className="h-[38px] px-6 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-[10px] font-medium transition flex items-center gap-2 cursor-pointer"
+                    className="h-[38px] px-8 bg-red-600 hover:bg-red-600 text-white rounded-[10px] font-medium transition shadow flex items-center gap-2 cursor-pointer"
                   >
                     <X size={18} /> ยกเลิก
                   </button>

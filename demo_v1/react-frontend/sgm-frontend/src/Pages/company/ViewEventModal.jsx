@@ -108,6 +108,23 @@ export default function ViewEventModal({ isOpen, onClose, eventData }) {
                 </div>
               </div>
 
+              <div className="flex items-center justify-between">
+                <label className="font-semibold text-gray-500 w-[140px]">
+                  การมองเห็นหัวหน้าชุด:
+                </label>
+                <div
+                  className={`flex-1 h-[32px] border rounded-full px-4 flex items-center font-medium ${
+                    eventData.headguard_visible
+                      ? "bg-emerald-50 border-emerald-300 text-emerald-700"
+                      : "bg-gray-50 border-gray-300 text-gray-500"
+                  }`}
+                >
+                  {eventData.headguard_visible
+                    ? "มอบหมายแล้ว (มองเห็น)"
+                    : "ยังไม่มอบหมาย (ซ่อน)"}
+                </div>
+              </div>
+
               <div className="mt-2">
                 <label className="font-semibold text-gray-500 block mb-2">
                   รายละเอียดงาน
