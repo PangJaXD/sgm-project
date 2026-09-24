@@ -1067,7 +1067,7 @@ function CompanyDashboard() {
                       <option value="นางสาว">นางสาว</option>
                       {formData.title &&
                         !["นาย", "นาง", "นางสาว", "-", ""].includes(
-                          formData.title
+                          formData.title,
                         ) && (
                           <option value={formData.title}>
                             {formData.title}
@@ -1106,8 +1106,11 @@ function CompanyDashboard() {
                       <option value="">-- ระบุเพศ --</option>
                       <option value="ชาย">ชาย</option>
                       <option value="หญิง">หญิง</option>
+                      <option value="อื่นๆ">อื่นๆ</option>
                       {formData.gender &&
-                        !["ชาย", "หญิง", "-", ""].includes(formData.gender) && (
+                        !["ชาย", "หญิง", "อื่นๆ", "-", ""].includes(
+                          formData.gender
+                        ) && (
                           <option value={formData.gender}>
                             {formData.gender}
                           </option>
@@ -1324,7 +1327,7 @@ function CompanyDashboard() {
                       type="text"
                       readOnly
                       value={editingDisplayId}
-                      className="flex-1 h-[28px] border border-gray-400 rounded-full px-3 bg-gray-100 outline-none cursor-default"
+                      className="flex-1 h-[32px] border border-gray-300 rounded-lg px-3 bg-gray-100 outline-none"
                     />
                   </div>
                   <div className="flex items-center">
@@ -1335,7 +1338,7 @@ function CompanyDashboard() {
                       type="text"
                       readOnly
                       value={formData.username}
-                      className="flex-1 h-[28px] border border-gray-400 rounded-full px-3 bg-gray-50 outline-none cursor-default"
+                      className="flex-1 h-[32px] border border-gray-300 rounded-lg px-3 bg-gray-100 outline-none"
                     />
                   </div>
                   <div className="flex items-center">
@@ -1344,7 +1347,7 @@ function CompanyDashboard() {
                       type="password"
                       readOnly
                       value={formData.password}
-                      className="flex-1 h-[28px] border border-gray-400 rounded-full px-3 bg-gray-50 outline-none cursor-default"
+                      className="flex-1 h-[32px] border border-gray-300 rounded-lg px-3 bg-gray-100 outline-none"
                     />
                   </div>
                   <div className="flex items-center">
@@ -1360,7 +1363,7 @@ function CompanyDashboard() {
                         firstName: formData.firstName,
                         lastName: formData.lastName,
                       })}
-                      className="flex-1 h-[28px] border border-gray-400 rounded-full px-3 bg-gray-50 outline-none cursor-default"
+                      className="flex-1 h-[32px] border border-gray-300 rounded-lg px-3 bg-gray-100 outline-none"
                     />
                   </div>
                   <div className="flex items-center">
@@ -1369,7 +1372,7 @@ function CompanyDashboard() {
                       type="text"
                       readOnly
                       value={formData.gender || "-"}
-                      className="flex-1 h-[28px] border border-gray-400 rounded-full px-3 bg-gray-50 outline-none cursor-default"
+                      className="flex-1 h-[32px] border border-gray-300 rounded-lg px-3 bg-gray-100 outline-none"
                     />
                   </div>
                   <div className="flex items-center">
@@ -1380,7 +1383,7 @@ function CompanyDashboard() {
                       type="text"
                       readOnly
                       value={formData.phone}
-                      className="flex-1 h-[28px] border border-gray-400 rounded-full px-3 bg-gray-50 outline-none cursor-default"
+                      className="flex-1 h-[32px] border border-gray-300 rounded-lg px-3 bg-gray-100 outline-none"
                     />
                   </div>
                   <div className="flex items-center">
@@ -1391,7 +1394,7 @@ function CompanyDashboard() {
                       type="text"
                       readOnly
                       value={formatThaiDate(formData.startDate)}
-                      className="flex-1 h-[28px] border border-gray-400 rounded-full px-3 bg-gray-50 outline-none cursor-default"
+                      className="flex-1 h-[32px] border border-gray-300 rounded-lg px-3 bg-gray-100 outline-none"
                     />
                   </div>
 
@@ -1404,7 +1407,7 @@ function CompanyDashboard() {
                         type="text"
                         readOnly
                         value={formData.headName}
-                        className="flex-1 h-[28px] border border-gray-400 rounded-full px-3 bg-gray-50 outline-none cursor-default"
+                        className="flex-1 h-[32px] border border-gray-300 rounded-lg px-3 bg-gray-100 outline-none"
                       />
                     </div>
                   )}
@@ -1429,7 +1432,7 @@ function CompanyDashboard() {
                 </div>
               </div>
 
-              <div className="flex mt-4">
+              {/* <div className="flex mt-4">
                 <label className="w-[120px] font-semibold pt-1">
                   รายละเอียดผู้ใช้
                 </label>
@@ -1439,7 +1442,7 @@ function CompanyDashboard() {
                   rows="2"
                   className="flex-1 border border-gray-400 rounded-[12px] p-2 bg-gray-50 outline-none cursor-default resize-none"
                 />
-              </div>
+              </div> */}
 
               <div className="flex mt-3">
                 <label className="w-[120px] font-semibold pt-1">ที่อยู่</label>
@@ -1597,8 +1600,11 @@ function CompanyDashboard() {
                       <option value="">-- ระบุเพศ --</option>
                       <option value="ชาย">ชาย</option>
                       <option value="หญิง">หญิง</option>
+                      <option value="อื่นๆ">อื่นๆ</option>
                       {formData.gender &&
-                        !["ชาย", "หญิง", "-", ""].includes(formData.gender) && (
+                        !["ชาย", "หญิง", "อื่นๆ", "-", ""].includes(
+                          formData.gender
+                        ) && (
                           <option value={formData.gender}>
                             {formData.gender}
                           </option>
@@ -1686,7 +1692,7 @@ function CompanyDashboard() {
                 </div>
               </div>
 
-              <div className="flex mt-4">
+              {/* <div className="flex mt-4">
                 <label className="w-[120px] font-semibold pt-1">
                   รายละเอียดผู้ใช้
                 </label>
@@ -1697,7 +1703,7 @@ function CompanyDashboard() {
                   rows="2"
                   className="flex-1 border border-gray-400 rounded-[12px] p-2 outline-none focus:border-blue-500 resize-none"
                 />
-              </div>
+              </div> */}
 
               <div className="flex mt-3">
                 <label className="w-[120px] font-semibold pt-1">ที่อยู่</label>
