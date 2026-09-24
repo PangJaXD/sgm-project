@@ -3,7 +3,7 @@ import axios from "axios";
 import AddEventModal from "./AddEventModal";
 import ViewEventModal from "./ViewEventModal";
 import EditEventModal from "./EditEventModal";
-import { formatRankAndName } from "../../utils/formatters";
+import { formatRankAndName, formatThaiDate } from "../../utils/formatters";
 import {
   Shield,
   ShieldCheck,
@@ -923,11 +923,11 @@ function CompanyDashboard() {
                         <div className="text-[12px] text-gray-600 space-y-1 mb-3 pb-3 border-b border-gray-200">
                           <div className="flex items-center gap-1.5">
                             <CalendarDays size={14} className="text-gray-400" />
-                            <span>เริ่ม: {ev.start_date || "-"}</span>
+                            <span>เริ่ม: {formatThaiDate(ev.start_date)}</span>
                           </div>
                           <div className="flex items-center gap-1.5">
                             <CalendarDays size={14} className="text-gray-400" />
-                            <span>สิ้นสุด: {ev.end_date || "-"}</span>
+                            <span>สิ้นสุด: {formatThaiDate(ev.end_date)}</span>
                           </div>
                         </div>
                         <div className="text-[12px] text-gray-700 space-y-1 mb-4">
@@ -1354,9 +1354,9 @@ function CompanyDashboard() {
                       วันที่เริ่มทำงาน
                     </label>
                     <input
-                      type="date"
+                      type="text"
                       readOnly
-                      value={formData.startDate}
+                      value={formatThaiDate(formData.startDate)}
                       className="flex-1 h-[28px] border border-gray-400 rounded-full px-3 bg-gray-50 outline-none cursor-default"
                     />
                   </div>

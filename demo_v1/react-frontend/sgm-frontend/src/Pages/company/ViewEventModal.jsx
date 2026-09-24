@@ -5,6 +5,7 @@ import {
   Shield,
   Image as ImageIcon,
 } from "lucide-react";
+import { formatThaiDate, formatThaiTimeRange } from "../../utils/formatters";
 import { MapContainer, TileLayer, Marker } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
@@ -81,7 +82,7 @@ export default function ViewEventModal({ isOpen, onClose, eventData }) {
                   วันที่เริ่มปฏิบัติงาน:
                 </label>
                 <div className="flex-1 h-[32px] bg-gray-50 border border-gray-300 rounded-full px-4 flex items-center text-gray-700">
-                  {startDate}
+                  {formatThaiDate(startDate)}
                 </div>
               </div>
               <div className="flex items-center justify-between">
@@ -89,7 +90,7 @@ export default function ViewEventModal({ isOpen, onClose, eventData }) {
                   วันที่สิ้นสุดปฏิบัติงาน:
                 </label>
                 <div className="flex-1 h-[32px] bg-gray-50 border border-gray-300 rounded-full px-4 flex items-center text-gray-700">
-                  {endDate}
+                  {formatThaiDate(endDate)}
                 </div>
               </div>
 
@@ -278,9 +279,9 @@ export default function ViewEventModal({ isOpen, onClose, eventData }) {
                   >
                     <p className="text-[#2864e8] font-semibold mb-3">
                       กะที่ {idx + 1} : วันที่{" "}
-                      {shift.shift_date?.split("T")[0] ||
-                        shift.start_time?.split("T")[0] ||
-                        "-"}
+                      {formatThaiDate(
+                        shift.shift_date || shift.start_time || "-",
+                      )}
                     </p>
                     <div className="grid grid-cols-2 gap-4">
                       {/* เพิ่มบล็อกนี้เข้าไปใน Card แสดงกะงานของ ViewEventModal.jsx */}
@@ -308,7 +309,9 @@ export default function ViewEventModal({ isOpen, onClose, eventData }) {
                           เวลาทำงาน:
                         </span>
                         <span className="font-semibold">
-                          {startTimeStr} - {endTimeStr} น.
+                          {formatThaiTimeRange(
+                            `${startTimeStr} - ${endTimeStr}`,
+                          )}
                         </span>
                       </div>
                     </div>

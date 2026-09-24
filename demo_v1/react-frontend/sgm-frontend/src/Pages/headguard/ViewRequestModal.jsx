@@ -6,6 +6,7 @@ import {
   Image as ImageIcon,
   CalendarDays,
 } from "lucide-react";
+import { formatThaiDateTime } from "../../utils/formatters";
 
 export default function ViewRequestModal({ isOpen, onClose, requestData }) {
   if (!isOpen || !requestData) return null;
@@ -41,7 +42,7 @@ export default function ViewRequestModal({ isOpen, onClose, requestData }) {
               <div className="flex items-center gap-1.5 text-gray-500 mt-1">
                 <Clock size={14} />
                 <span>
-                  {new Date(requestData.report_time).toLocaleString("th-TH")}
+                  {formatThaiDateTime(requestData.report_time)}
                 </span>
               </div>
             </div>

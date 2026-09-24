@@ -6,6 +6,7 @@ import {
   Clock,
   ChevronRight,
 } from "lucide-react";
+import { formatThaiDate, format24HourTime, formatThaiTime } from "../../utils/formatters";
 
 export default function ViewEventModal({
   isOpen,
@@ -25,27 +26,6 @@ export default function ViewEventModal({
   const myShifts = (eventData.shift_times || []).filter(
     (st) => Number(st.head_guard_id) === Number(currentUserId),
   );
-
-  // ฟังก์ชันแปลงรูปแบบเวลา
-  const formatTime = (timeStr) => {
-    if (!timeStr) return "-";
-    try {
-      const timePart = timeStr.split("T")[1];
-      if (timePart) {
-        const [h, m] = timePart.split(":");
-        return `${h}.${m} น.`;
-      }
-    } catch {
-      // ignore invalid time format
-    }
-    return timeStr;
-  };
-
-  // ฟังก์ชันดึงเฉพาะวันที่
-  const formatDate = (dateStr) => {
-    if (!dateStr) return "-";
-    return dateStr.split("T")[0];
-  };
 
   return (
     <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50">
@@ -103,7 +83,7 @@ export default function ViewEventModal({
                           กะที่ {shift.shift_id}
                         </span>
                         <span className="font-semibold text-gray-800">
-                          วันที่ {formatDate(shift.shift_date)}
+                          วันที่ {formatThaiDate(shift.shift_date)}
                         </span>
                       </div>
 
@@ -111,8 +91,8 @@ export default function ViewEventModal({
                         <div className="flex items-center gap-1.5">
                           <Clock size={14} className="text-gray-400" />
                           <span>
-                            {formatTime(shift.start_time)} -{" "}
-                            {formatTime(shift.end_time)}
+                            {format24HourTime(shift.start_time)} -{" "}
+                            {format24HourTime(shift.end_time)} น.
                           </span>
                         </div>
                         <div className="flex items-center gap-1.5">

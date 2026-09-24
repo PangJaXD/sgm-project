@@ -3,7 +3,11 @@ import axios from "axios";
 import ViewGuardModal from "./ViewGuardModal";
 import AssignTaskModal from "./AssignTaskModal";
 import ViewAssignmentModal from "./ViewAssignmentModal";
-import { formatRankAndName } from "../../utils/formatters";
+import {
+  formatRankAndName,
+  formatThaiDate,
+  formatThaiTimeRange,
+} from "../../utils/formatters";
 import {
   Users,
   CalendarDays,
@@ -223,10 +227,11 @@ function HeadGuardDashboard() {
         const formattedList = response.data.map((a) => {
           let displayTime = a.time_range;
           if (!displayTime && a.start_time && a.end_time) {
-            displayTime = `${a.start_time} - ${a.end_time} น.`;
-          }
-          if (!displayTime) {
-            displayTime = shiftTimeRange || "ไม่ระบุเวลา";
+            displayTime = formatThaiTimeRange(`${a.start_time} - ${a.end_time}`);
+          } else if (displayTime) {
+            displayTime = formatThaiTimeRange(displayTime);
+          } else {
+            displayTime = formatThaiTimeRange(shiftTimeRange) || "ไม่ระบุเวลา";
           }
 
           const matchedGuard = guards.find(
@@ -242,19 +247,27 @@ function HeadGuardDashboard() {
             a.firstName ||
             matchedGuard?.raw?.first_name ||
             ""
-          ).toString().trim();
+          )
+            .toString()
+            .trim();
 
           const lastName = (
             a.last_name ||
             a.lastName ||
             matchedGuard?.raw?.last_name ||
             ""
-          ).toString().trim();
+          )
+            .toString()
+            .trim();
 
           let fullName = "";
           if (firstName && lastName) {
             fullName = `${firstName} ${lastName}`.trim();
-          } else if (firstName && a.guard_name && !a.guard_name.includes(firstName)) {
+          } else if (
+            firstName &&
+            a.guard_name &&
+            !a.guard_name.includes(firstName)
+          ) {
             fullName = `${firstName} ${a.guard_name}`.trim();
           } else if (matchedGuard?.name && matchedGuard.name !== "-") {
             fullName = matchedGuard.name;
@@ -276,10 +289,7 @@ function HeadGuardDashboard() {
             "";
 
           const title =
-            a.title ||
-            matchedGuard?.title ||
-            matchedGuard?.raw?.title ||
-            "";
+            a.title || matchedGuard?.title || matchedGuard?.raw?.title || "";
 
           const formattedFullName = formatRankAndName({
             rank,
@@ -494,7 +504,7 @@ function HeadGuardDashboard() {
                   <h3 className="font-bold text-gray-800 flex items-center gap-2">
                     <Users size={18} /> รายชื่อเจ้าหน้าที่ในงาน (ตัวจริง)
                     <span className="font-normal text-gray-500 text-[13px] ml-2">
-                      ช่วงเวลา {selectedShiftDetail.workTime} จำนวน{" "}
+                      ช่วงเวลา {formatThaiTimeRange(selectedShiftDetail.workTime)} จำนวน{" "}
                       {
                         assignmentsList.filter(
                           (a) =>
@@ -537,7 +547,7 @@ function HeadGuardDashboard() {
                         </div>
                         <div>{item.guardName}</div>
                         <div className="font-semibold text-gray-800">
-                          {item.time}
+                          {formatThaiTimeRange(item.time)}
                         </div>
                         <div className="flex justify-center">
                           {item.status === "ACTUAL" ? (
@@ -593,7 +603,7 @@ function HeadGuardDashboard() {
                         <div className="text-gray-500">{index + 1}</div>
                         <div>{item.guardName}</div>
                         <div className="font-semibold text-gray-800">
-                          {item.time}
+                          {formatThaiTimeRange(item.time)}
                         </div>
                         <div className="flex justify-center">
                           <button
@@ -755,7 +765,9 @@ function HeadGuardDashboard() {
                               />
                               <span>
                                 เริ่ม{" "}
-                                <span className="ml-2">{shift.startDate}</span>
+                                <span className="ml-2">
+                                  {formatThaiDate(shift.startDate)}
+                                </span>
                               </span>
                             </div>
                             <div className="flex items-center gap-2 text-gray-600 text-[11px] mb-4">
@@ -765,12 +777,14 @@ function HeadGuardDashboard() {
                               />
                               <span>
                                 สิ้นสุด{" "}
-                                <span className="ml-1">{shift.endDate}</span>
+                                <span className="ml-1">
+                                  {formatThaiDate(shift.endDate)}
+                                </span>
                               </span>
                             </div>
 
                             <div className="text-[10px] text-gray-500 space-y-1.5 mb-5">
-                              <p>ช่วงเวลาการทำงาน {shift.workTime}</p>
+                              <p>ช่วงเวลาการทำงาน {formatThaiTimeRange(shift.workTime)}</p>
                               <p>จำนวนเจ้าหน้าที่ {shift.totalGuards} คน</p>
                             </div>
                           </div>

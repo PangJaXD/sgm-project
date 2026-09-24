@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import axios from "axios";
+import { formatThaiDate } from "../../utils/formatters";
 import {
   Building2,
   Users,
@@ -577,7 +578,7 @@ function AdminDashboard() {
                         {comp.companyName}
                       </div>
                       <div className="text-gray-600">{comp.phone}</div>
-                      <div className="text-gray-600">{comp.startDate}</div>
+                      <div className="text-gray-600">{formatThaiDate(comp.startDate)}</div>
                       <div className="flex items-center gap-2">
                         <span
                           className={`w-2.5 h-2.5 rounded-full ${
@@ -851,7 +852,7 @@ function AdminDashboard() {
                     <input
                       type="text"
                       readOnly
-                      value={formData.startDate || "-"}
+                      value={formatThaiDate(formData.startDate)}
                       className="flex-1 h-[30px] border border-gray-400 rounded-full px-3 text-center bg-gray-50 outline-none text-xs cursor-default"
                     />
                   </div>
