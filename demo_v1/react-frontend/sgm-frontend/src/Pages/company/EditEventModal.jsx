@@ -13,6 +13,8 @@ import {
   Search,
   Loader2,
 } from "lucide-react";
+import Flatpickr from "react-flatpickr";
+import { toISODate } from "../../utils/formatters";
 import {
   MapContainer,
   TileLayer,
@@ -370,10 +372,13 @@ export default function EditEventModal({
       event_detail: eventDetail,
       required_tools: requiredTools.filter((t) => t.trim() !== ""),
       provided_tools: providedTools.filter((t) => t.trim() !== ""),
-      shift_times: shifts,
+      shift_times: shifts.map((st) => ({
+        ...st,
+        shiftDate: toISODate(st.shiftDate),
+      })),
       required_guards: totalRequiredGuards,
-      start_date: startDate,
-      end_date: endDate,
+      start_date: toISODate(startDate),
+      end_date: toISODate(endDate),
       status: status,
       company_id: companyId || eventData?.company_id,
       event_img: eventImg || eventData?.event_img || "default.png",
@@ -434,22 +439,30 @@ export default function EditEventModal({
               </div>
               <div className="flex items-center justify-between">
                 <label className="font-semibold">วันที่เริ่มปฏิบัติงาน:</label>
-                <input
-                  type="date"
+                <Flatpickr
                   value={startDate}
-                  onChange={(e) => setStartDate(e.target.value)}
-                  className="w-[60%] h-[32px] border border-gray-400 rounded-full px-4 outline-none focus:border-blue-500 text-gray-600"
+                  onChange={([date], dateStr) => setStartDate(dateStr)}
+                  options={{
+                    dateFormat: "d/m/Y",
+                    allowInput: true,
+                  }}
+                  placeholder="วว/ดด/ปปปป"
+                  className="w-[60%] h-[32px] border border-gray-400 rounded-full px-4 outline-none focus:border-blue-500 text-gray-700 bg-white text-xs"
                 />
               </div>
               <div className="flex items-center justify-between">
                 <label className="font-semibold">
                   วันที่สิ้นสุดปฏิบัติงาน:
                 </label>
-                <input
-                  type="date"
+                <Flatpickr
                   value={endDate}
-                  onChange={(e) => setEndDate(e.target.value)}
-                  className="w-[60%] h-[32px] border border-gray-400 rounded-full px-4 outline-none focus:border-blue-500 text-gray-600"
+                  onChange={([date], dateStr) => setEndDate(dateStr)}
+                  options={{
+                    dateFormat: "d/m/Y",
+                    allowInput: true,
+                  }}
+                  placeholder="วว/ดด/ปปปป"
+                  className="w-[60%] h-[32px] border border-gray-400 rounded-full px-4 outline-none focus:border-blue-500 text-gray-700 bg-white text-xs"
                 />
               </div>
               <div className="flex items-center justify-between">
@@ -689,37 +702,55 @@ export default function EditEventModal({
                 </div>
                 <div className="grid grid-cols-[140px_1fr] items-center gap-2">
                   <label className="font-semibold">วันที่ปฏิบัติงาน:</label>
-                  <input
-                    type="date"
+                  <Flatpickr
                     value={shift.shiftDate || ""}
-                    onChange={(e) =>
-                      updateShift(idx, "shiftDate", e.target.value)
+                    onChange={([date], dateStr) =>
+                      updateShift(idx, "shiftDate", dateStr)
                     }
-                    className="w-full h-[30px] border border-gray-400 rounded-full px-4 outline-none text-gray-600"
+                    options={{
+                      dateFormat: "d/m/Y",
+                      allowInput: true,
+                    }}
+                    placeholder="วว/ดด/ปปปป"
+                    className="w-full h-[30px] border border-gray-400 rounded-full px-4 outline-none text-gray-700 bg-white text-xs"
                   />
                 </div>
                 <div className="grid grid-cols-[140px_1fr] items-center gap-2">
                   <label className="font-semibold">เวลาเริ่มปฏิบัติงาน:</label>
-                  <input
-                    type="time"
-                    value={shift.startTime}
-                    onChange={(e) =>
-                      updateShift(idx, "startTime", e.target.value)
+                  <Flatpickr
+                    value={shift.startTime || ""}
+                    onChange={([date], dateStr) =>
+                      updateShift(idx, "startTime", dateStr)
                     }
-                    className="w-full h-[30px] border border-gray-400 rounded-full px-4 outline-none text-gray-600"
+                    options={{
+                      enableTime: true,
+                      noCalendar: true,
+                      dateFormat: "H:i",
+                      time_24hr: true,
+                      allowInput: true,
+                    }}
+                    placeholder="--:--"
+                    className="w-full h-[30px] border border-gray-400 rounded-full px-4 outline-none text-gray-700 bg-white text-xs"
                   />
                 </div>
                 <div className="grid grid-cols-[140px_1fr] items-center gap-2">
                   <label className="font-semibold">
                     เวลาสิ้นสุดปฏิบัติงาน:
                   </label>
-                  <input
-                    type="time"
-                    value={shift.endTime}
-                    onChange={(e) =>
-                      updateShift(idx, "endTime", e.target.value)
+                  <Flatpickr
+                    value={shift.endTime || ""}
+                    onChange={([date], dateStr) =>
+                      updateShift(idx, "endTime", dateStr)
                     }
-                    className="w-full h-[30px] border border-gray-400 rounded-full px-4 outline-none text-gray-600"
+                    options={{
+                      enableTime: true,
+                      noCalendar: true,
+                      dateFormat: "H:i",
+                      time_24hr: true,
+                      allowInput: true,
+                    }}
+                    placeholder="--:--"
+                    className="w-full h-[30px] border border-gray-400 rounded-full px-4 outline-none text-gray-700 bg-white text-xs"
                   />
                 </div>
                 <div className="grid grid-cols-[140px_1fr] items-center gap-2">

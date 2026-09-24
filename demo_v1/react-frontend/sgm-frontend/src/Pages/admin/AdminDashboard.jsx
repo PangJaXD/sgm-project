@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import axios from "axios";
-import { formatThaiDate } from "../../utils/formatters";
+import Flatpickr from "react-flatpickr";
+import { formatThaiDate, toISODate } from "../../utils/formatters";
 import {
   Building2,
   Users,
@@ -207,7 +208,7 @@ function AdminDashboard() {
       address: formData.address || "-",
       user_detail: formData.email || "-",
       start_date: formData.startDate
-        ? `${formData.startDate}T00:00:00`
+        ? `${toISODate(formData.startDate)}T00:00:00`
         : new Date().toISOString(),
       profile_img: "default_company.png",
       username: formData.username.trim(),
@@ -283,7 +284,7 @@ function AdminDashboard() {
       phone: formData.phone,
       address: formData.address,
       user_detail: formData.email,
-      start_date: formData.startDate ? `${formData.startDate}T00:00:00` : null,
+      start_date: formData.startDate ? `${toISODate(formData.startDate)}T00:00:00` : null,
       username: formData.username.trim(),
       status: formData.status,
     };
@@ -578,7 +579,9 @@ function AdminDashboard() {
                         {comp.companyName}
                       </div>
                       <div className="text-gray-600">{comp.phone}</div>
-                      <div className="text-gray-600">{formatThaiDate(comp.startDate)}</div>
+                      <div className="text-gray-600">
+                        {formatThaiDate(comp.startDate)}
+                      </div>
                       <div className="flex items-center gap-2">
                         <span
                           className={`w-2.5 h-2.5 rounded-full ${
@@ -713,12 +716,20 @@ function AdminDashboard() {
                     <label className="w-[130px] font-semibold text-gray-700">
                       วันที่เริ่มทำงาน
                     </label>
-                    <input
-                      type="date"
-                      name="startDate"
+                    <Flatpickr
                       value={formData.startDate}
-                      onChange={handleInputChange}
-                      className="flex-1 h-[30px] border border-gray-400 rounded-full px-3 text-center outline-none focus:border-blue-500 text-xs"
+                      onChange={([date], dateStr) => {
+                        setFormData((prev) => ({
+                          ...prev,
+                          startDate: dateStr,
+                        }));
+                      }}
+                      options={{
+                        dateFormat: "d/m/Y",
+                        allowInput: true,
+                      }}
+                      placeholder="วว/ดด/ปปปป"
+                      className="flex-1 h-[30px] border border-gray-400 rounded-full px-3 text-center outline-none focus:border-blue-500 text-xs bg-white text-gray-700"
                     />
                   </div>
                 </div>
@@ -1017,12 +1028,20 @@ function AdminDashboard() {
                     <label className="w-[130px] font-semibold text-gray-700">
                       วันที่เริ่มทำงาน
                     </label>
-                    <input
-                      type="date"
-                      name="startDate"
+                    <Flatpickr
                       value={formData.startDate}
-                      onChange={handleInputChange}
-                      className="flex-1 h-[30px] border border-gray-400 rounded-full px-3 text-center outline-none focus:border-blue-500 text-xs"
+                      onChange={([date], dateStr) => {
+                        setFormData((prev) => ({
+                          ...prev,
+                          startDate: dateStr,
+                        }));
+                      }}
+                      options={{
+                        dateFormat: "d/m/Y",
+                        allowInput: true,
+                      }}
+                      placeholder="วว/ดด/ปปปป"
+                      className="flex-1 h-[30px] border border-gray-400 rounded-full px-3 text-center outline-none focus:border-blue-500 text-xs bg-white text-gray-700"
                     />
                   </div>
 

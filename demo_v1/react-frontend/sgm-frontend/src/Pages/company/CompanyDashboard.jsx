@@ -1,9 +1,10 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import axios from "axios";
+import Flatpickr from "react-flatpickr";
 import AddEventModal from "./AddEventModal";
 import ViewEventModal from "./ViewEventModal";
 import EditEventModal from "./EditEventModal";
-import { formatRankAndName, formatThaiDate } from "../../utils/formatters";
+import { formatRankAndName, formatThaiDate, toISODate } from "../../utils/formatters";
 import {
   Shield,
   ShieldCheck,
@@ -510,7 +511,7 @@ function CompanyDashboard() {
       address: formData.address,
       user_detail: formData.userDetail || "-",
       start_date: formData.startDate
-        ? `${formData.startDate}T00:00:00`
+        ? `${toISODate(formData.startDate)}T00:00:00`
         : new Date().toISOString(),
       profile_img: "default.png",
       company_name: currentCompanyName,
@@ -613,7 +614,7 @@ function CompanyDashboard() {
       phone: formData.phone.trim(),
       address: formData.address,
       user_detail: formData.userDetail || "-",
-      start_date: formData.startDate ? `${formData.startDate}T00:00:00` : null,
+      start_date: formData.startDate ? `${toISODate(formData.startDate)}T00:00:00` : null,
       quit_date:
         formData.status === "ปฏิบัติงาน"
           ? null
@@ -1105,12 +1106,17 @@ function CompanyDashboard() {
                     <label className="w-[120px] font-semibold">
                       วันที่เริ่มทำงาน
                     </label>
-                    <input
-                      type="date"
-                      name="startDate"
+                    <Flatpickr
                       value={formData.startDate}
-                      onChange={handleInputChange}
-                      className="flex-1 h-[28px] border border-gray-400 rounded-full px-3 outline-none focus:border-blue-500"
+                      onChange={([date], dateStr) => {
+                        setFormData((prev) => ({ ...prev, startDate: dateStr }));
+                      }}
+                      options={{
+                        dateFormat: "d/m/Y",
+                        allowInput: true,
+                      }}
+                      placeholder="วว/ดด/ปปปป"
+                      className="flex-1 h-[28px] border border-gray-400 rounded-full px-3 outline-none focus:border-blue-500 bg-white text-xs"
                     />
                   </div>
 
@@ -1573,12 +1579,17 @@ function CompanyDashboard() {
                     <label className="w-[120px] font-semibold">
                       วันที่เริ่มทำงาน
                     </label>
-                    <input
-                      type="date"
-                      name="startDate"
+                    <Flatpickr
                       value={formData.startDate}
-                      onChange={handleInputChange}
-                      className="flex-1 h-[28px] border border-gray-400 rounded-full px-3 outline-none focus:border-blue-500"
+                      onChange={([date], dateStr) => {
+                        setFormData((prev) => ({ ...prev, startDate: dateStr }));
+                      }}
+                      options={{
+                        dateFormat: "d/m/Y",
+                        allowInput: true,
+                      }}
+                      placeholder="วว/ดด/ปปปป"
+                      className="flex-1 h-[28px] border border-gray-400 rounded-full px-3 outline-none focus:border-blue-500 bg-white text-xs"
                     />
                   </div>
 

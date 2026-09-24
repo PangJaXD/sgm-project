@@ -112,7 +112,8 @@ export const formatThaiDate = (dateInput) => {
   // Handle Date instance or other parsable date string
   try {
     const d = new Date(dateInput);
-    if (isNaN(d.getTime())) return typeof dateInput === "string" ? dateInput : "-";
+    if (isNaN(d.getTime()))
+      return typeof dateInput === "string" ? dateInput : "-";
     const day = String(d.getDate()).padStart(2, "0");
     const month = String(d.getMonth() + 1).padStart(2, "0");
     let year = d.getFullYear();
@@ -212,5 +213,23 @@ export const formatThaiDateTime = (dateTimeInput) => {
   } catch {
     return formatThaiDate(dateTimeInput);
   }
+};
+
+/**
+ * Converts a date string (e.g. "DD/MM/YYYY" or "YYYY-MM-DD") to ISO "YYYY-MM-DD".
+ * If year is Buddhist Era (> 2400), it converts to CE year.
+ */
+export const toISODate = (dateStr) => {
+  if (!dateStr) return "";
+  const trimmed = dateStr.toString().trim();
+  const dmyMatch = trimmed.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+  if (dmyMatch) {
+    let year = parseInt(dmyMatch[3], 10);
+    if (year >= 2400) year -= 543;
+    const day = dmyMatch[1].padStart(2, "0");
+    const month = dmyMatch[2].padStart(2, "0");
+    return `${year}-${month}-${day}`;
+  }
+  return trimmed.split("T")[0];
 };
 

@@ -6,7 +6,11 @@ import {
   Clock,
   ChevronRight,
 } from "lucide-react";
-import { formatThaiDate, format24HourTime, formatThaiTime } from "../../utils/formatters";
+import {
+  formatThaiDate,
+  format24HourTime,
+  formatThaiTime,
+} from "../../utils/formatters";
 
 export default function ViewEventModal({
   isOpen,

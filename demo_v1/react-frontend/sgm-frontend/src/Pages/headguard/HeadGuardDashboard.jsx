@@ -227,7 +227,9 @@ function HeadGuardDashboard() {
         const formattedList = response.data.map((a) => {
           let displayTime = a.time_range;
           if (!displayTime && a.start_time && a.end_time) {
-            displayTime = formatThaiTimeRange(`${a.start_time} - ${a.end_time}`);
+            displayTime = formatThaiTimeRange(
+              `${a.start_time} - ${a.end_time}`,
+            );
           } else if (displayTime) {
             displayTime = formatThaiTimeRange(displayTime);
           } else {
@@ -504,7 +506,8 @@ function HeadGuardDashboard() {
                   <h3 className="font-bold text-gray-800 flex items-center gap-2">
                     <Users size={18} /> รายชื่อเจ้าหน้าที่ในงาน (ตัวจริง)
                     <span className="font-normal text-gray-500 text-[13px] ml-2">
-                      ช่วงเวลา {formatThaiTimeRange(selectedShiftDetail.workTime)} จำนวน{" "}
+                      ช่วงเวลา{" "}
+                      {formatThaiTimeRange(selectedShiftDetail.workTime)} จำนวน{" "}
                       {
                         assignmentsList.filter(
                           (a) =>
@@ -784,7 +787,10 @@ function HeadGuardDashboard() {
                             </div>
 
                             <div className="text-[10px] text-gray-500 space-y-1.5 mb-5">
-                              <p>ช่วงเวลาการทำงาน {formatThaiTimeRange(shift.workTime)}</p>
+                              <p>
+                                ช่วงเวลาการทำงาน{" "}
+                                {formatThaiTimeRange(shift.workTime)}
+                              </p>
                               <p>จำนวนเจ้าหน้าที่ {shift.totalGuards} คน</p>
                             </div>
                           </div>
