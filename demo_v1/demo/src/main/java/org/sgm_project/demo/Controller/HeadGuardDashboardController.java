@@ -95,6 +95,17 @@ public class HeadGuardDashboardController {
         dashboardService.createAssignment(request);
         return ResponseEntity.ok().body("บันทึกคำขอเข้าทำงานสำเร็จ (RESERVE)");
     }
+
+    // อัปเดตการเปิดรับสมัครงาน (guard_visible) ผ่าน shiftId
+    @PutMapping("/shifts/{shiftId}/guard-visibility")
+    public ResponseEntity<?> updateGuardVisibilityByShift(
+            @PathVariable Integer shiftId,
+            @RequestBody(required = false) Map<String, Boolean> body) {
+        boolean visible = body == null || !body.containsKey("guard_visible")
+                || Boolean.TRUE.equals(body.get("guard_visible"));
+        dashboardService.updateGuardVisibilityByShift(shiftId, visible);
+        return ResponseEntity.ok().build();
+    }
 }
 
 // THIS CONTROLLER IS FOR HEAD-GUARD-DASHBOARD NOTHING RELATED TO HEAD-GUARD

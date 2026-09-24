@@ -205,6 +205,8 @@ public class HeadGuardDashboardService {
 
                     return ShiftTimeDashboardResponse.builder()
                             .shiftId(Long.valueOf(shift.getShift_id()))
+                            .eventId(event != null ? event.getEvent_id() : null)
+                            .guard_visible(event != null && event.isGuard_visible())
                             .eventName(eventName)
                             .shiftName("กะงานที่ " + shift.getShift_id())
                             .location(location)
@@ -216,5 +218,15 @@ public class HeadGuardDashboardService {
                             .headGuardName(headFullName)
                             .build();
                 }).collect(Collectors.toList());
+    }
+
+    @org.springframework.transaction.annotation.Transactional
+    public void updateGuardVisibilityByShift(Integer shiftId, boolean visible) {
+        ShiftTime shift = shiftTimeRepository.findById(shiftId)
+                .orElseThrow(() -> new RuntimeException("Shift not found"));
+        if (shift.getEvent() != null) {
+            shift.getEvent().setGuard_visible(visible);
+            eventsRepository.save(shift.getEvent());
+        }
     }
 }

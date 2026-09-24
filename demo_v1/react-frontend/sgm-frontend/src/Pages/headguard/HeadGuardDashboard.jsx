@@ -131,10 +131,42 @@ function HeadGuardDashboard() {
   const fetchShifts = useCallback(async () => {
     try {
       setIsLoading(true);
-      const response = await axios.get(
-        `http://localhost:8080/api/headguard-dashboard/${headGuardId}/shifts`,
-      );
-      setShifts(response.data);
+      const [shiftsRes, eventsRes] = await Promise.all([
+        axios.get(
+          `http://localhost:8080/api/headguard-dashboard/${headGuardId}/shifts`,
+        ),
+        axios
+          .get(
+            `http://localhost:8080/api/headguard-dashboard/events/${headGuardId}`,
+          )
+          .catch(() => ({ data: [] })),
+      ]);
+
+      const eventsList = Array.isArray(eventsRes.data) ? eventsRes.data : [];
+      const shiftToEventMap = new Map();
+      eventsList.forEach((ev) => {
+        if (Array.isArray(ev.shift_times)) {
+          ev.shift_times.forEach((st) => {
+            shiftToEventMap.set(st.shift_id, ev);
+          });
+        }
+      });
+
+      const mergedShifts = (shiftsRes.data || []).map((sh) => {
+        const matchedEvent = shiftToEventMap.get(sh.shiftId);
+        return {
+          ...sh,
+          eventId: sh.eventId || matchedEvent?.event_id,
+          guard_visible:
+            sh.guard_visible !== undefined
+              ? sh.guard_visible
+              : matchedEvent
+                ? Boolean(matchedEvent.guard_visible)
+                : false,
+        };
+      });
+
+      setShifts(mergedShifts);
     } catch (error) {
       console.error("Error fetching shifts:", error);
     } finally {
@@ -167,31 +199,49 @@ function HeadGuardDashboard() {
       sh.location?.toLowerCase().includes(search.toLowerCase()),
   );
 
-  const fetchAssignments = useCallback(async (shiftId) => {
-    try {
-      const response = await axios.get(
-        `http://localhost:8080/api/headguard-dashboard/shifts/${shiftId}/assignments`,
-      );
-      const formattedList = response.data.map((a) => ({
-        id: a.assignment_id,
-        guardId: `G-${(a.guard_id || 0).toString().padStart(3, "0")}`,
-        guardName: a.guard_name || "ไม่ระบุ",
-        status: a.assignment_status,
-        time: a.time_range || "08:00 - 18:00 น.",
-        latitude: a.latitude,
-        longitude: a.longitude,
-        description: a.description,
-      }));
-      setAssignmentsList(formattedList);
-    } catch (error) {
-      console.error("Error fetching assignments:", error);
-    }
-  }, []);
+  const fetchAssignments = useCallback(
+    async (shiftId, currentShift) => {
+      try {
+        const response = await axios.get(
+          `http://localhost:8080/api/headguard-dashboard/shifts/${shiftId}/assignments`,
+        );
+        const shiftTimeRange =
+          currentShift?.workTime ||
+          selectedShiftDetail?.workTime ||
+          shifts.find((s) => s.shiftId === shiftId)?.workTime;
+
+        const formattedList = response.data.map((a) => {
+          let displayTime = a.time_range;
+          if (!displayTime && a.start_time && a.end_time) {
+            displayTime = `${a.start_time} - ${a.end_time} น.`;
+          }
+          if (!displayTime) {
+            displayTime = shiftTimeRange || "ไม่ระบุเวลา";
+          }
+
+          return {
+            id: a.assignment_id,
+            guardId: `${(a.guard_id || 0).toString()}`,
+            guardName: a.guard_name || "ไม่ระบุ",
+            status: a.assignment_status,
+            time: displayTime,
+            latitude: a.latitude,
+            longitude: a.longitude,
+            description: a.description,
+          };
+        });
+        setAssignmentsList(formattedList);
+      } catch (error) {
+        console.error("Error fetching assignments:", error);
+      }
+    },
+    [selectedShiftDetail, shifts],
+  );
 
   // 🌟 คลิกที่ Card กะงานแล้วกระโดดเข้าหน้า Assign ทันที
   const handleSelectShift = (shift) => {
     setSelectedShiftDetail(shift);
-    fetchAssignments(shift.shiftId);
+    fetchAssignments(shift.shiftId, shift);
   };
 
   const moveToActual = async (assignmentId) => {
@@ -200,7 +250,7 @@ function HeadGuardDashboard() {
         `http://localhost:8080/api/headguard-dashboard/assignments/${assignmentId}/status`,
         { status: "ACTUAL" },
       );
-      fetchAssignments(selectedShiftDetail.shiftId);
+      fetchAssignments(selectedShiftDetail.shiftId, selectedShiftDetail);
     } catch (error) {
       console.error("Error updating status:", error);
       alert("เกิดข้อผิดพลาดในการย้ายสถานะ");
@@ -219,11 +269,57 @@ function HeadGuardDashboard() {
         },
       );
       setIsAssignModalOpen(false);
-      fetchAssignments(selectedShiftDetail.shiftId);
+      fetchAssignments(selectedShiftDetail.shiftId, selectedShiftDetail);
       alert("บันทึกการมอบหมายงานเรียบร้อยแล้ว");
     } catch (error) {
       console.error("Error saving assignment detail:", error);
       alert("เกิดข้อผิดพลาดในการมอบหมายงาน");
+    }
+  };
+
+  const handlePublishGuardRecruitment = async () => {
+    if (!selectedShiftDetail) return;
+    const eventId = selectedShiftDetail.eventId || selectedShiftDetail.event_id;
+    const shiftId = selectedShiftDetail.shiftId || selectedShiftDetail.shift_id;
+
+    if (
+      !window.confirm(
+        "คุณต้องการแจ้งรับสมัครงาน (เปิดให้เจ้าหน้าที่รปภ.มองเห็นงานนี้) ใช่หรือไม่?",
+      )
+    ) {
+      return;
+    }
+
+    try {
+      if (eventId) {
+        await axios.put(
+          `http://localhost:8080/api/events/${eventId}/visibility`,
+          {
+            guard_visible: true,
+          },
+        );
+      } else if (shiftId) {
+        await axios.put(
+          `http://localhost:8080/api/headguard-dashboard/shifts/${shiftId}/guard-visibility`,
+          { guard_visible: true },
+        );
+      }
+
+      setSelectedShiftDetail((prev) =>
+        prev ? { ...prev, guard_visible: true, guardVisible: true } : null,
+      );
+      setShifts((prev) =>
+        prev.map((s) =>
+          (eventId && (s.eventId === eventId || s.event_id === eventId)) ||
+          s.shiftId === shiftId
+            ? { ...s, guard_visible: true, guardVisible: true }
+            : s,
+        ),
+      );
+      alert("แจ้งรับสมัครงานเรียบร้อยแล้ว");
+    } catch (error) {
+      console.error("Error updating guard visibility:", error);
+      alert("เกิดข้อผิดพลาดในการแจ้งรับสมัครงาน");
     }
   };
 
@@ -311,9 +407,9 @@ function HeadGuardDashboard() {
                 <div className="flex items-center gap-2 text-gray-400 text-[13px]">
                   <MapPin size={16} className="text-emerald-500" />{" "}
                   {selectedShiftDetail.location}
-                  <span className="ml-4 bg-gray-700 px-2.5 py-0.5 rounded-md text-[11px] text-white">
+                  {/* <span className="ml-4 bg-gray-700 px-2.5 py-0.5 rounded-md text-[11px] text-white">
                     {selectedShiftDetail.shiftName}
-                  </span>
+                  </span> */}
                 </div>
               </div>
 
@@ -333,9 +429,15 @@ function HeadGuardDashboard() {
                       /{selectedShiftDetail.totalGuards || 6}
                     </span>
                   </h3>
-                  <button className="bg-[#F5B020] hover:bg-yellow-500 text-gray-900 px-4 py-1.5 rounded-lg text-[12px] font-bold flex items-center gap-2 shadow-sm transition">
-                    <Bell size={14} /> แจ้งรับสมัครงาน
-                  </button>
+                  {!selectedShiftDetail.guard_visible &&
+                    !selectedShiftDetail.guardVisible && (
+                      <button
+                        onClick={handlePublishGuardRecruitment}
+                        className="bg-[#F5B020] hover:bg-yellow-500 text-gray-900 px-4 py-1.5 rounded-lg text-[12px] font-bold flex items-center gap-2 shadow-sm transition"
+                      >
+                        <Bell size={14} /> แจ้งรับสมัครงาน
+                      </button>
+                    )}
                 </div>
 
                 <div className="border border-gray-400 rounded-xl overflow-hidden bg-white">
@@ -562,9 +664,9 @@ function HeadGuardDashboard() {
 
                             <h3 className="font-bold text-[14px] text-gray-900 mb-3 leading-snug">
                               {shift.eventName}{" "}
-                              <span className="text-blue-500 font-normal">
+                              {/* <span className="text-blue-500 font-normal">
                                 {shift.shiftName}
-                              </span>
+                              </span> */}
                             </h3>
 
                             <div className="flex items-center gap-2 text-gray-600 text-[11px] mb-2">
@@ -599,19 +701,6 @@ function HeadGuardDashboard() {
                             <div className="text-[10px] text-gray-500 space-y-1.5 mb-5">
                               <p>ช่วงเวลาการทำงาน {shift.workTime}</p>
                               <p>จำนวนเจ้าหน้าที่ {shift.totalGuards} คน</p>
-                            </div>
-                          </div>
-
-                          <div className="border border-gray-400 rounded-xl p-3">
-                            <p className="text-[10px] text-blue-600 font-medium mb-1.5">
-                              หัวหน้าหน่วยที่รับผิดชอบ
-                            </p>
-                            <div className="flex items-center gap-1.5 text-gray-800 font-medium text-[12px]">
-                              <ShieldCheck
-                                size={16}
-                                className="text-blue-600"
-                              />
-                              <span>{shift.headGuardName}</span>
                             </div>
                           </div>
                         </div>
