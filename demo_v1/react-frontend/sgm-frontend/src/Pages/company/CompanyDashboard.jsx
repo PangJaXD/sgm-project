@@ -1109,7 +1109,7 @@ function CompanyDashboard() {
                       <option value="อื่นๆ">อื่นๆ</option>
                       {formData.gender &&
                         !["ชาย", "หญิง", "อื่นๆ", "-", ""].includes(
-                          formData.gender
+                          formData.gender,
                         ) && (
                           <option value={formData.gender}>
                             {formData.gender}
@@ -1456,15 +1456,18 @@ function CompanyDashboard() {
 
               <div className="flex items-center justify-between mt-5 pt-4 border-t border-gray-200">
                 <div className="flex items-center">
-                  <label className="w-[120px] font-semibold">
+                  <label className="w-[120px] font-semibold text-gray-700">
                     สถานะการทำงาน
                   </label>
-                  <input
-                    type="text"
-                    readOnly
-                    value={formData.status}
-                    className="h-[28px] border border-gray-400 rounded-full px-3 bg-gray-50 outline-none w-[130px] cursor-default"
-                  />
+                  <div
+                    className={`h-[32px] px-4 border rounded-lg flex items-center justify-center font-medium ${
+                      formData.status === "ปฏิบัติงาน"
+                        ? "border-emerald-500 bg-emerald-50 text-emerald-700"
+                        : "border-red-500 bg-red-50 text-red-700"
+                    }`}
+                  >
+                    {formData.status}
+                  </div>
                 </div>
 
                 <button
@@ -1561,7 +1564,7 @@ function CompanyDashboard() {
                       <option value="นางสาว">นางสาว</option>
                       {formData.title &&
                         !["นาย", "นาง", "นางสาว", "-", ""].includes(
-                          formData.title
+                          formData.title,
                         ) && (
                           <option value={formData.title}>
                             {formData.title}
@@ -1603,7 +1606,7 @@ function CompanyDashboard() {
                       <option value="อื่นๆ">อื่นๆ</option>
                       {formData.gender &&
                         !["ชาย", "หญิง", "อื่นๆ", "-", ""].includes(
-                          formData.gender
+                          formData.gender,
                         ) && (
                           <option value={formData.gender}>
                             {formData.gender}

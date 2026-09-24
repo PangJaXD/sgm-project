@@ -111,7 +111,13 @@ export default function ViewGuardModal({ isOpen, onClose, guardData }) {
               <label className="w-[120px] font-semibold text-gray-700">
                 สถานะการทำงาน
               </label>
-              <div className="h-[32px] px-4 border border-emerald-500 bg-emerald-50 text-emerald-700 rounded-lg flex items-center justify-center font-medium">
+              <div
+                className={`h-[32px] px-4 border rounded-lg flex items-center justify-center font-medium ${
+                  guardData.status === "ปฏิบัติงาน"
+                    ? "border-emerald-500 bg-emerald-50 text-emerald-700"
+                    : "border-red-500 bg-red-50 text-red-700"
+                }`}
+              >
                 {guardData.status}
               </div>
             </div>
