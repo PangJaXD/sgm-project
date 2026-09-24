@@ -1,7 +1,6 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import axios from "axios";
 import ViewGuardModal from "./ViewGuardModal";
-import ViewRequestModal from "./ViewRequestModal";
 import AssignTaskModal from "./AssignTaskModal";
 import ViewAssignmentModal from "./ViewAssignmentModal";
 import {
@@ -11,11 +10,9 @@ import {
   Eye,
   LogOut,
   MapPin,
-  AlertCircle,
   ShieldCheck,
   ChevronLeft,
   Bell,
-  ClipboardList,
 } from "lucide-react";
 
 function HeadGuardDashboard() {
@@ -24,19 +21,16 @@ function HeadGuardDashboard() {
 
   const [guards, setGuards] = useState([]);
   const [shifts, setShifts] = useState([]); // 🌟 เปลี่ยนจาก events เป็น shifts
-  const [requests, setRequests] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
   const [selectedShiftDetail, setSelectedShiftDetail] = useState(null);
 
   const [isViewGuardModalOpen, setIsViewGuardModalOpen] = useState(false);
-  const [isViewRequestModalOpen, setIsViewRequestModalOpen] = useState(false);
   const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
   const [isViewAssignmentModalOpen, setIsViewAssignmentModalOpen] =
     useState(false);
 
   const [selectedGuard, setSelectedGuard] = useState(null);
-  const [selectedRequest, setSelectedRequest] = useState(null);
   const [selectedAssignment, setSelectedAssignment] = useState(null);
   const [selectedViewAssignment, setSelectedViewAssignment] = useState(null);
 
@@ -148,20 +142,6 @@ function HeadGuardDashboard() {
     }
   }, [headGuardId]);
 
-  const fetchRequests = useCallback(async () => {
-    try {
-      setIsLoading(true);
-      const reqRes = await axios.get(
-        `http://localhost:8080/api/headguard-dashboard/requests?headGuardId=${headGuardId}`,
-      );
-      setRequests(reqRes.data);
-    } catch (error) {
-      console.error("Error fetching requests:", error);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [headGuardId]);
-
   useEffect(() => {
     fetchShifts();
   }, [fetchShifts]);
@@ -169,8 +149,7 @@ function HeadGuardDashboard() {
   useEffect(() => {
     if (activeMenu === "guard") fetchGuards();
     else if (activeMenu === "event") fetchShifts();
-    else if (activeMenu === "request") fetchRequests();
-  }, [activeMenu, fetchGuards, fetchShifts, fetchRequests]);
+  }, [activeMenu, fetchGuards, fetchShifts]);
 
   const filteredGuards = guards.filter(
     (g) =>
@@ -187,47 +166,6 @@ function HeadGuardDashboard() {
       sh.eventName?.toLowerCase().includes(search.toLowerCase()) ||
       sh.location?.toLowerCase().includes(search.toLowerCase()),
   );
-
-  // 🌟 Map เก็บ shiftId -> eventName จาก shifts ของ HeadGuard
-  const shiftMap = useMemo(() => {
-    const map = new Map();
-    shifts.forEach((s) => {
-      if (s.shiftId != null) {
-        map.set(Number(s.shiftId), s.eventName || "-");
-      }
-    });
-    return map;
-  }, [shifts]);
-
-  const filteredRequests = useMemo(() => {
-    const q = search.toLowerCase();
-    return requests
-      .filter((req) => {
-        // 🌟 กรองเฉพาะ Report ที่มี shift_id อยู่ในกะที่ HeadGuard คนนี้รับผิดชอบ
-        if (shiftMap.size > 0 && req.shift_id != null) {
-          if (!shiftMap.has(Number(req.shift_id))) {
-            return false;
-          }
-        }
-        const type = (req.report_type || "").toLowerCase();
-        const desc = (req.report_desc || "").toLowerCase();
-        const evName = (
-          req.eventName ||
-          req.event_name ||
-          shiftMap.get(Number(req.shift_id)) ||
-          ""
-        ).toLowerCase();
-        return type.includes(q) || desc.includes(q) || evName.includes(q);
-      })
-      .map((req) => ({
-        ...req,
-        eventName:
-          req.eventName ||
-          req.event_name ||
-          shiftMap.get(Number(req.shift_id)) ||
-          "ไม่ระบุชื่องาน",
-      }));
-  }, [requests, shiftMap, search]);
 
   const fetchAssignments = useCallback(async (shiftId) => {
     try {
@@ -302,7 +240,6 @@ function HeadGuardDashboard() {
           {[
             { id: "guard", label: "เจ้าหน้าที่รปภ.", icon: Users },
             { id: "event", label: "งานอีเว้นท์", icon: CalendarDays },
-            { id: "request", label: "คำร้องขอ", icon: ClipboardList },
           ].map((item) => (
             <button
               key={item.id}
@@ -340,9 +277,7 @@ function HeadGuardDashboard() {
           <h1 className="text-[20px] font-bold text-gray-900">
             {activeMenu === "guard"
               ? "รายชื่อเจ้าหน้าที่รักษาความปลอดภัย"
-              : activeMenu === "event"
-                ? "งานอีเว้นท์ที่ได้รับมอบหมาย"
-                : "คำร้องขอและแจ้งเตือน"}
+              : "งานอีเว้นท์ที่ได้รับมอบหมาย"}
           </h1>
           <div className="flex items-center gap-4">
             <div className="text-right pr-4 border-r border-gray-300">
@@ -511,9 +446,7 @@ function HeadGuardDashboard() {
                   placeholder={
                     activeMenu === "guard"
                       ? "ค้นหาเจ้าหน้าที่รักษาความปลอดภัย"
-                      : activeMenu === "event"
-                        ? "ค้นหางานอีเว้นท์"
-                        : "ค้นหาคำร้องขอ"
+                      : "ค้นหางานอีเว้นท์"
                   }
                   className="w-full h-[40px] border border-gray-400 rounded-lg pl-11 pr-4 text-[13px] outline-none focus:border-emerald-500 transition bg-white"
                 />
@@ -687,78 +620,6 @@ function HeadGuardDashboard() {
                   )}
                 </div>
               )}
-
-              {/* Tab: Request */}
-              {activeMenu === "request" && (
-                <div className="w-full border border-red-300 rounded-xl overflow-hidden bg-white shadow-sm">
-                  <div className="grid grid-cols-[140px_1.2fr_1fr_1.8fr_100px_50px] h-[44px] bg-red-500 text-white items-center text-[12px] font-medium px-6">
-                    <div>เวลาแจ้งเหตุ</div>
-                    <div>ชื่องานอีเว้นท์</div>
-                    <div>ประเภทคำร้องขอ</div>
-                    <div>รายละเอียด</div>
-                    <div>สถานะ</div>
-                    <div />
-                  </div>
-                  {isLoading ? (
-                    <div className="h-[100px] flex items-center justify-center text-sm text-gray-500">
-                      กำลังโหลดคำร้องขอ...
-                    </div>
-                  ) : filteredRequests.length === 0 ? (
-                    <div className="h-[100px] flex items-center justify-center text-sm text-gray-400">
-                      ไม่มีคำร้องขอหรือการแจ้งเตือน
-                    </div>
-                  ) : (
-                    filteredRequests.map((req, index) => (
-                      <div
-                        key={req.report_id || index}
-                        className="grid grid-cols-[140px_1.2fr_1fr_1.8fr_100px_50px] min-h-[48px] items-center border-t border-gray-200 text-[12px] px-6 hover:bg-red-50 transition"
-                      >
-                        <div className="text-gray-600 font-medium">
-                          {new Date(req.report_time).toLocaleString("th-TH")}
-                        </div>
-                        <div
-                          className="flex items-center gap-1.5 font-semibold text-gray-800 truncate pr-2"
-                          title={req.eventName || req.event_name}
-                        >
-                          <CalendarDays
-                            size={14}
-                            className="text-blue-500 shrink-0"
-                          />
-                          <span className="truncate">
-                            {req.eventName || req.event_name || "-"}
-                          </span>
-                        </div>
-                        <div className="flex items-center gap-2 font-bold text-red-600 truncate pr-2">
-                          <AlertCircle size={15} className="shrink-0" />
-                          <span className="truncate">{req.report_type}</span>
-                        </div>
-                        <div
-                          className="truncate pr-4 text-gray-700"
-                          title={req.report_desc}
-                        >
-                          {req.report_desc}
-                        </div>
-                        <div>
-                          <span className="px-2 py-1 bg-red-100 text-red-700 rounded-full text-[10px] font-semibold">
-                            ต้องตรวจสอบ
-                          </span>
-                        </div>
-                        <div className="flex justify-center">
-                          <button
-                            onClick={() => {
-                              setSelectedRequest(req);
-                              setIsViewRequestModalOpen(true);
-                            }}
-                            className="text-gray-400 hover:text-red-600 transition"
-                          >
-                            <Eye size={18} />
-                          </button>
-                        </div>
-                      </div>
-                    ))
-                  )}
-                </div>
-              )}
             </>
           )}
         </section>
@@ -781,12 +642,6 @@ function HeadGuardDashboard() {
         isOpen={isViewAssignmentModalOpen}
         onClose={() => setIsViewAssignmentModalOpen(false)}
         assignmentData={selectedViewAssignment}
-      />
-
-      <ViewRequestModal
-        isOpen={isViewRequestModalOpen}
-        onClose={() => setIsViewRequestModalOpen(false)}
-        requestData={selectedRequest}
       />
     </div>
   );
