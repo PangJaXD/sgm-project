@@ -1,4 +1,5 @@
 import { Eye, X, User } from "lucide-react";
+import { formatRankAndName } from "../../utils/formatters";
 
 export default function ViewGuardModal({ isOpen, onClose, guardData }) {
   if (!isOpen || !guardData) return null;
@@ -51,34 +52,17 @@ export default function ViewGuardModal({ isOpen, onClose, guardData }) {
               </div>
               <div className="flex items-center">
                 <label className="w-[120px] font-semibold text-gray-700">
-                  ยศ (ทหาร/ตำรวจ)
-                </label>
-                <input
-                  type="text"
-                  readOnly
-                  value={raw.rank || "-"}
-                  className="flex-1 h-[32px] border border-gray-300 rounded-lg px-3 bg-gray-50 outline-none"
-                />
-              </div>
-              <div className="flex items-center">
-                <label className="w-[120px] font-semibold text-gray-700">
-                  คำนำหน้า
-                </label>
-                <input
-                  type="text"
-                  readOnly
-                  value={raw.title || "-"}
-                  className="flex-1 h-[32px] border border-gray-300 rounded-lg px-3 bg-gray-50 outline-none"
-                />
-              </div>
-              <div className="flex items-center">
-                <label className="w-[120px] font-semibold text-gray-700">
                   ชื่อ-นามสกุล
                 </label>
                 <input
                   type="text"
                   readOnly
-                  value={`${raw.first_name || ""} ${raw.last_name || ""}`.trim()}
+                  value={formatRankAndName({
+                    rank: raw.rank,
+                    title: raw.title,
+                    firstName: raw.first_name,
+                    lastName: raw.last_name,
+                  })}
                   className="flex-1 h-[32px] border border-gray-300 rounded-lg px-3 bg-gray-50 outline-none"
                 />
               </div>

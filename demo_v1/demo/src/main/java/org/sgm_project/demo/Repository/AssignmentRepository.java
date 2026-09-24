@@ -13,7 +13,8 @@ import java.util.Optional;
 @Repository
 public interface AssignmentRepository extends JpaRepository<Assignments, Integer> {
     @Query(value = "SELECT a.assignment_id, a.assignment_status, a.description, a.latitude, a.longitude, " +
-            "g.users_id as guard_id, u.first_name, u.last_name as guard_name, " +
+            "g.users_id as guard_id, u.user_rank as rank, u.title, u.first_name, u.last_name, " +
+            "TRIM(CONCAT(COALESCE(u.first_name, ''), ' ', COALESCE(u.last_name, ''))) as guard_name, " +
             "COALESCE(CONCAT(DATE_FORMAT(s.start_time, '%H:%i'), ' - ', DATE_FORMAT(s.end_time, '%H:%i'), ' น.'), 'ไม่ระบุเวลา') as time_range " +
             "FROM assignment a " +
             "JOIN guards g ON a.guard_id = g.users_id " +

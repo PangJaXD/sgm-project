@@ -1,12 +1,6 @@
 import { useState, useEffect } from "react";
-import {
-  X,
-  MapPin,
-  PenSquare,
-  Search,
-  Loader2,
-  Locate,
-} from "lucide-react";
+import { X, MapPin, PenSquare, Search, Loader2, Locate } from "lucide-react";
+import { formatRankAndName } from "../../utils/formatters";
 import {
   MapContainer,
   TileLayer,
@@ -155,7 +149,12 @@ export default function AssignTaskModal({
       const prevLat = parseFloat(assignmentData?.latitude);
       const prevLng = parseFloat(assignmentData?.longitude);
 
-      if (!isNaN(prevLat) && !isNaN(prevLng) && prevLat !== 0 && prevLng !== 0) {
+      if (
+        !isNaN(prevLat) &&
+        !isNaN(prevLng) &&
+        prevLat !== 0 &&
+        prevLng !== 0
+      ) {
         // หากมีพิกัดเดิมอยู่แล้ว ให้ใช้พิกัดเดิม
         setPosition([prevLat, prevLng]);
         setMapCenter([prevLat, prevLng]);
@@ -236,7 +235,7 @@ export default function AssignTaskModal({
             <div>
               <span className="font-semibold text-gray-900">ชื่อ-นามสกุล:</span>
               <span className="ml-2 text-gray-600">
-                {assignmentData.guardName}
+                {formatRankAndName(assignmentData)}
               </span>
             </div>
           </div>

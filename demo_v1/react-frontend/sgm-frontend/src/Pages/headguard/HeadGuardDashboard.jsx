@@ -3,6 +3,7 @@ import axios from "axios";
 import ViewGuardModal from "./ViewGuardModal";
 import AssignTaskModal from "./AssignTaskModal";
 import ViewAssignmentModal from "./ViewAssignmentModal";
+import { formatRankAndName } from "../../utils/formatters";
 import {
   Users,
   CalendarDays,
@@ -46,9 +47,16 @@ function HeadGuardDashboard() {
   }, []);
   const fname = currentUser?.first_name || currentUser?.firstName;
   const lname = currentUser?.last_name || currentUser?.lastName;
+  const userRank = currentUser?.rank || currentUser?.user_rank;
+  const userTitle = currentUser?.title;
   const headGuardName =
     fname && lname
-      ? `${fname} ${lname}`
+      ? formatRankAndName({
+          rank: userRank,
+          title: userTitle,
+          firstName: fname,
+          lastName: lname,
+        })
       : currentUser?.username || "นาย สมชาย รักดี";
   const headGuardId = currentUser?.users_id || currentUser?.id || 1;
 
@@ -186,6 +194,7 @@ function HeadGuardDashboard() {
   const filteredGuards = guards.filter(
     (g) =>
       g.name.toLowerCase().includes(search.toLowerCase()) ||
+      formatRankAndName(g).toLowerCase().includes(search.toLowerCase()) ||
       g.id.toLowerCase().includes(search.toLowerCase()) ||
       g.rank?.toLowerCase().includes(search.toLowerCase()) ||
       g.title?.toLowerCase().includes(search.toLowerCase()) ||
@@ -219,10 +228,29 @@ function HeadGuardDashboard() {
             displayTime = shiftTimeRange || "ไม่ระบุเวลา";
           }
 
+          const matchedGuard = guards.find(
+            (g) =>
+              g.raw?.users_id === a.guard_id ||
+              Number(g.raw?.users_id) === Number(a.guard_id) ||
+              g.id === a.guard_id?.toString(),
+          );
+
+          const rank = a.rank || matchedGuard?.rank || "";
+          const title = a.title || matchedGuard?.title || "";
+          const baseName = a.guard_name || matchedGuard?.name || "ไม่ระบุ";
+          const formattedFullName = formatRankAndName({
+            rank,
+            title,
+            name: baseName,
+          });
+
           return {
             id: a.assignment_id,
             guardId: `${(a.guard_id || 0).toString()}`,
-            guardName: a.guard_name || "ไม่ระบุ",
+            guardName: formattedFullName,
+            rank: rank,
+            title: title,
+            rawName: baseName,
             status: a.assignment_status,
             time: displayTime,
             latitude: a.latitude,
@@ -235,7 +263,7 @@ function HeadGuardDashboard() {
         console.error("Error fetching assignments:", error);
       }
     },
-    [selectedShiftDetail, shifts],
+    [selectedShiftDetail, shifts, guards],
   );
 
   // 🌟 คลิกที่ Card กะงานแล้วกระโดดเข้าหน้า Assign ทันที
@@ -557,10 +585,8 @@ function HeadGuardDashboard() {
               {/* Tab: รปภ. */}
               {activeMenu === "guard" && (
                 <div className="w-full border border-gray-300 rounded-xl overflow-hidden bg-white shadow-sm">
-                  <div className="grid grid-cols-[80px_100px_90px_1.5fr_80px_1.3fr_100px_120px_50px] h-[44px] bg-[#111827] text-white items-center text-[12px] font-medium px-6">
+                  <div className="grid grid-cols-[80px_1.8fr_80px_1.3fr_100px_120px_50px] h-[44px] bg-[#111827] text-white items-center text-[12px] font-medium px-6">
                     <div className="text-center">ลำดับที่</div>
-                    <div>ยศ</div>
-                    <div>คำนำหน้า</div>
                     <div>ชื่อ - นามสกุล</div>
                     <div>เพศ</div>
                     <div>ประสบการณ์ทำงาน</div>
@@ -580,15 +606,13 @@ function HeadGuardDashboard() {
                     filteredGuards.map((g) => (
                       <div
                         key={g.id}
-                        className="grid grid-cols-[80px_100px_90px_1.5fr_80px_1.3fr_100px_120px_50px] min-h-[48px] items-center border-t border-gray-200 text-[12px] px-6 hover:bg-gray-50 transition"
+                        className="grid grid-cols-[80px_1.8fr_80px_1.3fr_100px_120px_50px] min-h-[48px] items-center border-t border-gray-200 text-[12px] px-6 hover:bg-gray-50 transition"
                       >
                         <div className="text-center font-medium text-gray-700">
                           {g.id}
                         </div>
-                        <div>{g.rank}</div>
-                        <div>{g.title}</div>
                         <div className="font-medium text-gray-900">
-                          {g.name}
+                          {formatRankAndName(g)}
                         </div>
                         <div>{g.gender}</div>
                         <div>{g.experience}</div>

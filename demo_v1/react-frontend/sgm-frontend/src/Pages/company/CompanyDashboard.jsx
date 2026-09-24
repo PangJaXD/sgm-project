@@ -3,6 +3,7 @@ import axios from "axios";
 import AddEventModal from "./AddEventModal";
 import ViewEventModal from "./ViewEventModal";
 import EditEventModal from "./EditEventModal";
+import { formatRankAndName } from "../../utils/formatters";
 import {
   Shield,
   ShieldCheck,
@@ -688,6 +689,7 @@ function CompanyDashboard() {
       item.rank?.toLowerCase().includes(keyword) ||
       item.title?.toLowerCase().includes(keyword) ||
       item.name?.toLowerCase().includes(keyword) ||
+      formatRankAndName(item).toLowerCase().includes(keyword) ||
       item.gender?.toLowerCase().includes(keyword) ||
       item.experience?.toLowerCase().includes(keyword) ||
       item.status?.toLowerCase().includes(keyword)
@@ -812,10 +814,8 @@ function CompanyDashboard() {
 
           {activeMenu !== "schedule" ? (
             <div className="w-full border border-gray-400 rounded-xl overflow-hidden bg-white/80">
-              <div className="grid grid-cols-[80px_100px_90px_1.5fr_80px_1.3fr_1.1fr_45px] h-[40px] bg-blue-400 text-white items-center text-[12px] font-medium px-4">
+              <div className="grid grid-cols-[80px_1.8fr_90px_1.3fr_1.1fr_45px] h-[40px] bg-blue-400 text-white items-center text-[12px] font-medium px-4">
                 <div className="text-center">ลำดับที่</div>
-                <div>ยศ</div>
-                <div>คำนำหน้า</div>
                 <div>ชื่อ - นามสกุล</div>
                 <div>เพศ</div>
                 <div>ประสบการณ์ทำงาน</div>
@@ -835,15 +835,13 @@ function CompanyDashboard() {
                 filteredData.map((dataItem) => (
                   <div
                     key={dataItem.raw?.users_id || dataItem.id}
-                    className="grid grid-cols-[80px_100px_90px_1.5fr_80px_1.3fr_1.1fr_45px] min-h-[44px] items-center border-t border-gray-300 text-[12px] px-4 hover:bg-gray-50 transition"
+                    className="grid grid-cols-[80px_1.8fr_90px_1.3fr_1.1fr_45px] min-h-[44px] items-center border-t border-gray-300 text-[12px] px-4 hover:bg-gray-50 transition"
                   >
                     <div className="text-center text-gray-600 bg-gray-200/50 py-1 rounded w-14 mx-auto">
                       {dataItem.id}
                     </div>
-                    <div>{dataItem.rank}</div>
-                    <div>{dataItem.title}</div>
-                    <div className="font-medium text-gray-900">
-                      {dataItem.name}
+                    <div className="font-medium text-gray-900 truncate pr-2">
+                      {formatRankAndName(dataItem)}
                     </div>
                     <div>{dataItem.gender}</div>
                     <div>{dataItem.experience}</div>
@@ -940,29 +938,6 @@ function CompanyDashboard() {
                           <p className="text-gray-500">
                             ต้องการเจ้าหน้าที่รวม: {ev.required_guards || 0} คน
                           </p>
-                        </div>
-                        <div className="bg-gray-50 border border-gray-200 rounded-xl p-2.5 mb-4 text-[12px]">
-                          <p className="text-[11px] text-gray-500 mb-1 font-medium">
-                            หัวหน้าหน่วยที่รับผิดชอบ
-                          </p>
-                          <div
-                            className={`flex items-center gap-1.5 font-semibold ${
-                              ev.headguard_visible
-                                ? "text-emerald-600"
-                                : "text-blue-600"
-                            }`}
-                          >
-                            {ev.headguard_visible ? (
-                              <ShieldCheck size={14} />
-                            ) : (
-                              <Shield size={14} />
-                            )}
-                            <span>
-                              {ev.headguard_visible
-                                ? "มอบหมายแล้ว (หัวหน้าชุดมองเห็น)"
-                                : "รอดำเนินการมอบหมาย"}
-                            </span>
-                          </div>
                         </div>
                       </div>
                       <div className="flex flex-col gap-2 pt-2">
@@ -1340,39 +1315,17 @@ function CompanyDashboard() {
                   </div>
                   <div className="flex items-center">
                     <label className="w-[120px] font-semibold">
-                      ยศ (ทหาร/ตำรวจ)
+                      ชื่อ - นามสกุล
                     </label>
                     <input
                       type="text"
                       readOnly
-                      value={formData.rank || "-"}
-                      className="flex-1 h-[28px] border border-gray-400 rounded-full px-3 bg-gray-50 outline-none cursor-default"
-                    />
-                  </div>
-                  <div className="flex items-center">
-                    <label className="w-[120px] font-semibold">คำนำหน้า</label>
-                    <input
-                      type="text"
-                      readOnly
-                      value={formData.title || "-"}
-                      className="flex-1 h-[28px] border border-gray-400 rounded-full px-3 bg-gray-50 outline-none cursor-default"
-                    />
-                  </div>
-                  <div className="flex items-center">
-                    <label className="w-[120px] font-semibold">ชื่อ</label>
-                    <input
-                      type="text"
-                      readOnly
-                      value={formData.firstName}
-                      className="flex-1 h-[28px] border border-gray-400 rounded-full px-3 bg-gray-50 outline-none cursor-default"
-                    />
-                  </div>
-                  <div className="flex items-center">
-                    <label className="w-[120px] font-semibold">นามสกุล</label>
-                    <input
-                      type="text"
-                      readOnly
-                      value={formData.lastName}
+                      value={formatRankAndName({
+                        rank: formData.rank,
+                        title: formData.title,
+                        firstName: formData.firstName,
+                        lastName: formData.lastName,
+                      })}
                       className="flex-1 h-[28px] border border-gray-400 rounded-full px-3 bg-gray-50 outline-none cursor-default"
                     />
                   </div>

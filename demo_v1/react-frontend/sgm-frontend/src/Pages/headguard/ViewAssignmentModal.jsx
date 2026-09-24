@@ -1,6 +1,7 @@
 import { X, MapPin, AlignLeft, User } from "lucide-react";
 import { MapContainer, TileLayer, Marker } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
+import { formatRankAndName } from "../../utils/formatters";
 
 export default function ViewAssignmentModal({
   isOpen,
@@ -44,7 +45,7 @@ export default function ViewAssignmentModal({
             </div>
             <div>
               <div className="font-bold text-[15px] text-gray-900">
-                {assignmentData.guardName}
+                {formatRankAndName(assignmentData)}
               </div>
               <div className="text-gray-500">
                 รหัสประจำตัว: {assignmentData.guardId}
