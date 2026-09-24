@@ -4,7 +4,11 @@ import Flatpickr from "react-flatpickr";
 import AddEventModal from "./AddEventModal";
 import ViewEventModal from "./ViewEventModal";
 import EditEventModal from "./EditEventModal";
-import { formatRankAndName, formatThaiDate, toISODate } from "../../utils/formatters";
+import {
+  formatRankAndName,
+  formatThaiDate,
+  toISODate,
+} from "../../utils/formatters";
 import {
   Shield,
   ShieldCheck,
@@ -614,7 +618,9 @@ function CompanyDashboard() {
       phone: formData.phone.trim(),
       address: formData.address,
       user_detail: formData.userDetail || "-",
-      start_date: formData.startDate ? `${toISODate(formData.startDate)}T00:00:00` : null,
+      start_date: formData.startDate
+        ? `${toISODate(formData.startDate)}T00:00:00`
+        : null,
       quit_date:
         formData.status === "ปฏิบัติงาน"
           ? null
@@ -1019,7 +1025,7 @@ function CompanyDashboard() {
                       name="username"
                       value={formData.username}
                       onChange={handleInputChange}
-                      className="flex-1 h-[28px] border border-gray-400 rounded-full px-3 outline-none focus:border-blue-500"
+                      className="flex-1 h-[32px] border border-gray-300 rounded-lg px-3 bg-gray-100 outline-none"
                     />
                   </div>
                   <div className="flex items-center">
@@ -1031,7 +1037,7 @@ function CompanyDashboard() {
                       name="password"
                       value={formData.password}
                       onChange={handleInputChange}
-                      className="flex-1 h-[28px] border border-gray-400 rounded-full px-3 outline-none focus:border-blue-500"
+                      className="flex-1 h-[32px] border border-gray-300 rounded-lg px-3 bg-gray-100 outline-none"
                     />
                   </div>
                   <div className="flex items-center">
@@ -1044,19 +1050,30 @@ function CompanyDashboard() {
                       placeholder="เช่น ร.ต.อ. (เว้นว่างหรือ - หากไม่มี)"
                       value={formData.rank}
                       onChange={handleInputChange}
-                      className="flex-1 h-[28px] border border-gray-400 rounded-full px-3 outline-none focus:border-blue-500"
+                      className="flex-1 h-[32px] border border-gray-300 rounded-lg px-3 bg-gray-100 outline-none"
                     />
                   </div>
                   <div className="flex items-center">
                     <label className="w-[120px] font-semibold">คำนำหน้า</label>
-                    <input
-                      type="text"
+                    <select
                       name="title"
-                      placeholder="เช่น นาย / นาง / นางสาว"
-                      value={formData.title}
+                      value={formData.title === "-" ? "" : formData.title}
                       onChange={handleInputChange}
-                      className="flex-1 h-[28px] border border-gray-400 rounded-full px-3 outline-none focus:border-blue-500"
-                    />
+                      className="flex-1 h-[32px] border border-gray-300 rounded-lg px-3 bg-gray-100 outline-none cursor-pointer text-gray-700"
+                    >
+                      <option value="">-- ระบุคำนำหน้า --</option>
+                      <option value="นาย">นาย</option>
+                      <option value="นาง">นาง</option>
+                      <option value="นางสาว">นางสาว</option>
+                      {formData.title &&
+                        !["นาย", "นาง", "นางสาว", "-", ""].includes(
+                          formData.title
+                        ) && (
+                          <option value={formData.title}>
+                            {formData.title}
+                          </option>
+                        )}
+                    </select>
                   </div>
                   <div className="flex items-center">
                     <label className="w-[120px] font-semibold">ชื่อ</label>
@@ -1065,7 +1082,7 @@ function CompanyDashboard() {
                       name="firstName"
                       value={formData.firstName}
                       onChange={handleInputChange}
-                      className="flex-1 h-[28px] border border-gray-400 rounded-full px-3 outline-none focus:border-blue-500"
+                      className="flex-1 h-[32px] border border-gray-300 rounded-lg px-3 bg-gray-100 outline-none"
                     />
                   </div>
                   <div className="flex items-center">
@@ -1075,19 +1092,27 @@ function CompanyDashboard() {
                       name="lastName"
                       value={formData.lastName}
                       onChange={handleInputChange}
-                      className="flex-1 h-[28px] border border-gray-400 rounded-full px-3 outline-none focus:border-blue-500"
+                      className="flex-1 h-[32px] border border-gray-300 rounded-lg px-3 bg-gray-100 outline-none"
                     />
                   </div>
                   <div className="flex items-center">
                     <label className="w-[120px] font-semibold">เพศ</label>
-                    <input
-                      type="text"
+                    <select
                       name="gender"
-                      placeholder="เช่น ชาย / หญิง"
-                      value={formData.gender}
+                      value={formData.gender === "-" ? "" : formData.gender}
                       onChange={handleInputChange}
-                      className="flex-1 h-[28px] border border-gray-400 rounded-full px-3 outline-none focus:border-blue-500"
-                    />
+                      className="flex-1 h-[32px] border border-gray-300 rounded-lg px-3 bg-gray-100 outline-none cursor-pointer text-gray-700"
+                    >
+                      <option value="">-- ระบุเพศ --</option>
+                      <option value="ชาย">ชาย</option>
+                      <option value="หญิง">หญิง</option>
+                      {formData.gender &&
+                        !["ชาย", "หญิง", "-", ""].includes(formData.gender) && (
+                          <option value={formData.gender}>
+                            {formData.gender}
+                          </option>
+                        )}
+                    </select>
                   </div>
                   <div className="flex items-center">
                     <label className="w-[120px] font-semibold">
@@ -1099,7 +1124,7 @@ function CompanyDashboard() {
                       value={formData.phone}
                       onChange={handleInputChange}
                       maxLength="10"
-                      className="flex-1 h-[28px] border border-gray-400 rounded-full px-3 outline-none focus:border-blue-500"
+                      className="flex-1 h-[32px] border border-gray-300 rounded-lg px-3 bg-gray-100 outline-none"
                     />
                   </div>
                   <div className="flex items-center">
@@ -1109,14 +1134,17 @@ function CompanyDashboard() {
                     <Flatpickr
                       value={formData.startDate}
                       onChange={([date], dateStr) => {
-                        setFormData((prev) => ({ ...prev, startDate: dateStr }));
+                        setFormData((prev) => ({
+                          ...prev,
+                          startDate: dateStr,
+                        }));
                       }}
                       options={{
                         dateFormat: "d/m/Y",
                         allowInput: true,
                       }}
                       placeholder="วว/ดด/ปปปป"
-                      className="flex-1 h-[28px] border border-gray-400 rounded-full px-3 outline-none focus:border-blue-500 bg-white text-xs"
+                      className="flex-1 h-[32px] border border-gray-300 rounded-lg px-3 bg-gray-100 outline-none"
                     />
                   </div>
 
@@ -1129,7 +1157,7 @@ function CompanyDashboard() {
                         name="headName"
                         value={formData.headName}
                         onChange={handleInputChange}
-                        className="flex-1 h-[28px] border border-gray-400 rounded-full px-3 bg-white outline-none focus:border-blue-500 cursor-pointer text-gray-700"
+                        className="flex-1 h-[32px] border border-gray-300 rounded-lg px-3 bg-gray-100 outline-none"
                       >
                         <option value="">-- ระบุหัวหน้าชุด --</option>
                         {headGuards
@@ -1151,7 +1179,7 @@ function CompanyDashboard() {
                 </div>
               </div>
 
-              <div className="flex mt-4">
+              {/* <div className="flex mt-4">
                 <label className="w-[120px] font-semibold pt-1">
                   รายละเอียดผู้ใช้
                 </label>
@@ -1162,7 +1190,7 @@ function CompanyDashboard() {
                   rows="2"
                   className="flex-1 border border-gray-400 rounded-[12px] p-2 outline-none focus:border-blue-500 resize-none"
                 />
-              </div>
+              </div> */}
 
               <div className="flex mt-3">
                 <label className="w-[120px] font-semibold pt-1">ที่อยู่</label>
@@ -1518,14 +1546,25 @@ function CompanyDashboard() {
                   </div>
                   <div className="flex items-center">
                     <label className="w-[120px] font-semibold">คำนำหน้า</label>
-                    <input
-                      type="text"
+                    <select
                       name="title"
-                      placeholder="เช่น นาย / นาง / นางสาว"
-                      value={formData.title}
+                      value={formData.title === "-" ? "" : formData.title}
                       onChange={handleInputChange}
-                      className="flex-1 h-[28px] border border-gray-400 rounded-full px-3 outline-none focus:border-blue-500"
-                    />
+                      className="flex-1 h-[28px] border border-gray-400 rounded-full px-3 bg-white outline-none focus:border-blue-500 cursor-pointer text-gray-700"
+                    >
+                      <option value="">-- ระบุคำนำหน้า --</option>
+                      <option value="นาย">นาย</option>
+                      <option value="นาง">นาง</option>
+                      <option value="นางสาว">นางสาว</option>
+                      {formData.title &&
+                        !["นาย", "นาง", "นางสาว", "-", ""].includes(
+                          formData.title
+                        ) && (
+                          <option value={formData.title}>
+                            {formData.title}
+                          </option>
+                        )}
+                    </select>
                   </div>
                   <div className="flex items-center">
                     <label className="w-[120px] font-semibold">ชื่อ</label>
@@ -1549,14 +1588,22 @@ function CompanyDashboard() {
                   </div>
                   <div className="flex items-center">
                     <label className="w-[120px] font-semibold">เพศ</label>
-                    <input
-                      type="text"
+                    <select
                       name="gender"
-                      placeholder="เช่น ชาย / หญิง"
-                      value={formData.gender}
+                      value={formData.gender === "-" ? "" : formData.gender}
                       onChange={handleInputChange}
-                      className="flex-1 h-[28px] border border-gray-400 rounded-full px-3 outline-none focus:border-blue-500"
-                    />
+                      className="flex-1 h-[28px] border border-gray-400 rounded-full px-3 bg-white outline-none focus:border-blue-500 cursor-pointer text-gray-700"
+                    >
+                      <option value="">-- ระบุเพศ --</option>
+                      <option value="ชาย">ชาย</option>
+                      <option value="หญิง">หญิง</option>
+                      {formData.gender &&
+                        !["ชาย", "หญิง", "-", ""].includes(formData.gender) && (
+                          <option value={formData.gender}>
+                            {formData.gender}
+                          </option>
+                        )}
+                    </select>
                   </div>
                   <div className="flex items-center">
                     <label className="w-[120px] font-semibold">
@@ -1582,7 +1629,10 @@ function CompanyDashboard() {
                     <Flatpickr
                       value={formData.startDate}
                       onChange={([date], dateStr) => {
-                        setFormData((prev) => ({ ...prev, startDate: dateStr }));
+                        setFormData((prev) => ({
+                          ...prev,
+                          startDate: dateStr,
+                        }));
                       }}
                       options={{
                         dateFormat: "d/m/Y",
