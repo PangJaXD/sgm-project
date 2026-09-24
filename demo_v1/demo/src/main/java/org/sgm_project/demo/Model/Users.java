@@ -17,7 +17,7 @@ public class Users {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer users_id;
-    @Column
+    @Column(name = "`rank`")
     private String rank;
     @Column
     private String title;
