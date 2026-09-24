@@ -16,12 +16,22 @@ export const formatRankAndName = (item) => {
   const lastName = (item.last_name || item.lastName || "").toString().trim();
 
   let name = "";
-  if (firstName || lastName) {
+  if (firstName && lastName) {
     name = `${firstName} ${lastName}`.trim();
+  } else if (firstName && item.guardName && !item.guardName.includes(firstName)) {
+    name = `${firstName} ${item.guardName}`.trim();
+  } else if (firstName && item.guard_name && !item.guard_name.includes(firstName)) {
+    name = `${firstName} ${item.guard_name}`.trim();
   } else if (item.name) {
     name = item.name.toString().trim();
   } else if (item.guardName) {
     name = item.guardName.toString().trim();
+  } else if (item.guard_name) {
+    name = item.guard_name.toString().trim();
+  } else if (firstName) {
+    name = firstName;
+  } else if (lastName) {
+    name = lastName;
   }
 
   const hasRank =
@@ -31,10 +41,27 @@ export const formatRankAndName = (item) => {
 
   if (hasRank) {
     if (name.startsWith(rank)) return name;
+    // Strip civil title if present in name to avoid "ร.ต.อ. นาย สมชาย"
+    if (title && name.startsWith(title + " ")) {
+      name = name.slice(title.length + 1).trim();
+    } else if (name.startsWith("นาย ")) {
+      name = name.slice(4).trim();
+    } else if (name.startsWith("นางสาว ")) {
+      name = name.slice(7).trim();
+    } else if (name.startsWith("นาง ")) {
+      name = name.slice(4).trim();
+    }
     return `${rank} ${name}`.trim();
   }
   if (hasTitle) {
     if (name.startsWith(title)) return name;
+    if (
+      name.startsWith("นาย ") ||
+      name.startsWith("นาง ") ||
+      name.startsWith("นางสาว ")
+    ) {
+      return name;
+    }
     return `${title} ${name}`.trim();
   }
   return name || "-";

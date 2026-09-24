@@ -184,7 +184,8 @@ function HeadGuardDashboard() {
 
   useEffect(() => {
     fetchShifts();
-  }, [fetchShifts]);
+    fetchGuards();
+  }, [fetchShifts, fetchGuards]);
 
   useEffect(() => {
     if (activeMenu === "guard") fetchGuards();
@@ -230,18 +231,62 @@ function HeadGuardDashboard() {
 
           const matchedGuard = guards.find(
             (g) =>
-              g.raw?.users_id === a.guard_id ||
               Number(g.raw?.users_id) === Number(a.guard_id) ||
+              Number(g.raw?.guard_id) === Number(a.guard_id) ||
+              Number(g.raw?.id) === Number(a.guard_id) ||
               g.id === a.guard_id?.toString(),
           );
 
-          const rank = a.rank || matchedGuard?.rank || "";
-          const title = a.title || matchedGuard?.title || "";
-          const baseName = a.guard_name || matchedGuard?.name || "ไม่ระบุ";
+          const firstName = (
+            a.first_name ||
+            a.firstName ||
+            matchedGuard?.raw?.first_name ||
+            ""
+          ).toString().trim();
+
+          const lastName = (
+            a.last_name ||
+            a.lastName ||
+            matchedGuard?.raw?.last_name ||
+            ""
+          ).toString().trim();
+
+          let fullName = "";
+          if (firstName && lastName) {
+            fullName = `${firstName} ${lastName}`.trim();
+          } else if (firstName && a.guard_name && !a.guard_name.includes(firstName)) {
+            fullName = `${firstName} ${a.guard_name}`.trim();
+          } else if (matchedGuard?.name && matchedGuard.name !== "-") {
+            fullName = matchedGuard.name;
+          } else if (a.guard_name && a.guard_name !== "ไม่ระบุ") {
+            fullName = a.guard_name;
+          } else if (firstName) {
+            fullName = firstName;
+          } else if (lastName) {
+            fullName = lastName;
+          } else {
+            fullName = "ไม่ระบุ";
+          }
+
+          const rank =
+            a.rank ||
+            a.user_rank ||
+            matchedGuard?.rank ||
+            matchedGuard?.raw?.rank ||
+            "";
+
+          const title =
+            a.title ||
+            matchedGuard?.title ||
+            matchedGuard?.raw?.title ||
+            "";
+
           const formattedFullName = formatRankAndName({
             rank,
             title,
-            name: baseName,
+            firstName,
+            lastName,
+            name: fullName,
           });
 
           return {
@@ -250,7 +295,9 @@ function HeadGuardDashboard() {
             guardName: formattedFullName,
             rank: rank,
             title: title,
-            rawName: baseName,
+            firstName: firstName,
+            lastName: lastName,
+            rawName: fullName,
             status: a.assignment_status,
             time: displayTime,
             latitude: a.latitude,
