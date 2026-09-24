@@ -17,7 +17,7 @@ public class Users {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer users_id;
-    @Column(name = "`rank`")
+    @Column(name = "user_rank")
     private String rank;
     @Column
     private String title;
@@ -27,11 +27,11 @@ public class Users {
     private String last_name;
     @Column
     private String gender;
-    @Column(length = 10,nullable = false)
+    @Column(length = 10, nullable = false)
     private String phone;
-    @Column(length = 255,nullable = false)
+    @Column(length = 255, nullable = false)
     private String address;
-    @Column(length = 255,nullable = false)
+    @Column(length = 255, nullable = false)
     private String user_detail;
     @Column(nullable = false)
     private LocalDateTime start_date;
@@ -39,10 +39,10 @@ public class Users {
     private LocalDateTime quit_date;
     @Column(nullable = false)
     private String profile_img;
-    @Column(length = 50,nullable = false, unique = true)
+    @Column(length = 50, nullable = false, unique = true)
     private String username;
     @Column(nullable = false)
     private String password;
 }
 
-//users
+// users
