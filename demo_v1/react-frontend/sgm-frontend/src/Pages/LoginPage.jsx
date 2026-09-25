@@ -93,12 +93,37 @@ function LoginPage() {
 
       // การจัดการ Error ของ Axios
       if (error.response) {
-        // กรณีเซิร์ฟเวอร์ตอบกลับมาด้วย Status Code อื่นที่ไม่ใช่ 2xx
-        // เช่น 401 Unauthorized
+        const status = error.response.status;
         const backendMsg =
           error.response.data?.message ||
           (typeof error.response.data === "string" ? error.response.data : "");
-        setError(backendMsg || "ชื่อผู้ใช้งานหรือรหัสผ่านไม่ถูกต้อง");
+
+        const isAccessDenied =
+          status === 403 ||
+          (backendMsg &&
+            (backendMsg.toLowerCase().includes("denied") ||
+              backendMsg.toLowerCase().includes("access denied") ||
+              backendMsg.toLowerCase().includes("login denied") ||
+              backendMsg.toLowerCase().includes("forbidden") ||
+              backendMsg.toLowerCase().includes("suspend") ||
+              backendMsg.toLowerCase().includes("layoff") ||
+              backendMsg.includes("พักงาน") ||
+              backendMsg.includes("พ้นสภาพ")));
+
+        if (isAccessDenied) {
+          // จัดการข้อผิดพลาดการถูกปฏิเสธการเข้าสู่ระบบ/เข้าถึง (Access / Login Denied)
+          setError(
+            backendMsg ||
+              "การเข้าถึงถูกปฏิเสธ (Access Denied): คุณไม่มีสิทธิ์เข้าใช้งานระบบ",
+          );
+        } else if (status === 401) {
+          // กรณีชื่อผู้ใช้งานหรือรหัสผ่านไม่ถูกต้อง
+          setError(backendMsg || "ชื่อผู้ใช้งานหรือรหัสผ่านไม่ถูกต้อง");
+        } else {
+          setError(
+            backendMsg || "เกิดข้อผิดพลาดในการเข้าสู่ระบบ โปรดลองอีกครั้ง",
+          );
+        }
       } else if (error.request) {
         // กรณีส่งคำขอไปแล้ว แต่ไม่ได้รับการตอบกลับ (เช่น เซิร์ฟเวอร์ล่ม)
         setError("ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์ได้ โปรดลองอีกครั้ง");
