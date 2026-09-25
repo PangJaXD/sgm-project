@@ -4,9 +4,7 @@ import Flatpickr from "react-flatpickr";
 import { formatThaiDate, toISODate } from "../../utils/formatters";
 import {
   Building2,
-  Users,
   Shield,
-  CalendarDays,
   Search,
   Plus,
   Eye,
@@ -15,22 +13,13 @@ import {
   Edit,
   PenSquare,
   LogOut,
-  LayoutDashboard,
   Building,
-  CheckCircle2,
   AlertCircle,
 } from "lucide-react";
 
 function AdminDashboard() {
-  const [activeMenu, setActiveMenu] = useState("companies");
   const [search, setSearch] = useState("");
   const [companies, setCompanies] = useState([]);
-  const [stats, setStats] = useState({
-    totalCompanies: 0,
-    totalHeadGuards: 0,
-    totalGuards: 0,
-    totalEvents: 0,
-  });
   const [isLoading, setIsLoading] = useState(true);
 
   // Modals state
@@ -109,21 +98,9 @@ function AdminDashboard() {
     }
   }, []);
 
-  const fetchStats = useCallback(async () => {
-    try {
-      const res = await axios.get("http://localhost:8080/api/admin/stats");
-      if (res.data) {
-        setStats(res.data);
-      }
-    } catch (err) {
-      console.error("Error fetching admin stats:", err);
-    }
-  }, []);
-
   useEffect(() => {
     fetchCompanies();
-    fetchStats();
-  }, [fetchCompanies, fetchStats]);
+  }, [fetchCompanies]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -224,7 +201,6 @@ function AdminDashboard() {
       if (res.status === 201 || res.status === 200) {
         setIsAddModalOpen(false);
         fetchCompanies();
-        fetchStats();
       }
     } catch (err) {
       console.error("Save company error:", err);
@@ -303,7 +279,6 @@ function AdminDashboard() {
       if (res.status === 200) {
         setIsEditModalOpen(false);
         fetchCompanies();
-        fetchStats();
       }
     } catch (err) {
       console.error("Update company error:", err);
@@ -320,7 +295,6 @@ function AdminDashboard() {
       setIsDeleteModalOpen(false);
       setIsViewModalOpen(false);
       fetchCompanies();
-      fetchStats();
     } catch (err) {
       console.error("Delete company error:", err);
       alert("เกิดข้อผิดพลาดในการลบบริษัท");
@@ -351,30 +325,12 @@ function AdminDashboard() {
         </div>
 
         <nav className="flex-1 pt-6 px-3">
-          {[
-            { id: "companies", label: "บริษัท รปภ.", icon: Building2 },
-            { id: "overview", label: "ภาพรวมระบบ", icon: LayoutDashboard },
-          ].map((item) => {
-            const active = activeMenu === item.id;
-            const Icon = item.icon;
-            return (
-              <button
-                key={item.id}
-                onClick={() => {
-                  setActiveMenu(item.id);
-                  setSearch("");
-                }}
-                className={`w-full h-[40px] mb-2.5 rounded-xl flex items-center justify-start gap-2.5 px-3.5 text-[13px] font-medium transition cursor-pointer ${
-                  active
-                    ? "bg-blue-600 text-white shadow-sm"
-                    : "bg-white/80 text-gray-700 hover:bg-blue-100/70"
-                }`}
-              >
-                <Icon size={17} />
-                <span className="whitespace-nowrap">{item.label}</span>
-              </button>
-            );
-          })}
+          <button
+            className="w-full h-[40px] mb-2.5 rounded-xl flex items-center justify-start gap-2.5 px-3.5 text-[13px] font-medium bg-blue-600 text-white shadow-sm cursor-pointer"
+          >
+            <Building2 size={17} />
+            <span className="whitespace-nowrap">บริษัท รปภ.</span>
+          </button>
         </nav>
 
         <div className="border-t border-gray-300 p-4">
@@ -396,9 +352,7 @@ function AdminDashboard() {
         {/* Header */}
         <header className="h-[70px] border-b border-gray-300 flex items-center justify-between px-8 bg-white/70 backdrop-blur-sm">
           <h1 className="text-[19px] font-bold text-gray-800">
-            {activeMenu === "companies"
-              ? "การจัดการบริษัทรักษาความปลอดภัย"
-              : "ภาพรวมและสถิติระบบ EventGuard"}
+            การจัดการบริษัทรักษาความปลอดภัย
           </h1>
 
           <div className="flex items-center gap-3">
@@ -416,200 +370,93 @@ function AdminDashboard() {
 
         {/* Section Body */}
         <section className="px-10 pt-8">
-          {activeMenu === "overview" ? (
-            /* ================= OVERVIEW TAB ================= */
-            <div className="space-y-6">
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-                <div className="bg-white p-6 rounded-2xl border border-gray-300 shadow-sm flex items-center justify-between">
-                  <div>
-                    <p className="text-xs text-gray-500 font-medium">
-                      บริษัทรักษาความปลอดภัย
-                    </p>
-                    <p className="text-3xl font-extrabold text-blue-600 mt-1">
-                      {stats.totalCompanies ?? companies.length}
-                    </p>
-                    <p className="text-[11px] text-emerald-600 font-medium mt-1">
-                      เปิดใช้งานในระบบ
-                    </p>
-                  </div>
-                  <div className="w-12 h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
-                    <Building2 size={26} />
-                  </div>
-                </div>
-
-                <div className="bg-white p-6 rounded-2xl border border-gray-300 shadow-sm flex items-center justify-between">
-                  <div>
-                    <p className="text-xs text-gray-500 font-medium">
-                      หัวหน้าชุดรักษาความปลอดภัย
-                    </p>
-                    <p className="text-3xl font-extrabold text-indigo-600 mt-1">
-                      {stats.totalHeadGuards ?? 0}
-                    </p>
-                    <p className="text-[11px] text-gray-500 font-medium mt-1">
-                      เจ้าหน้าที่ระดับหัวหน้า
-                    </p>
-                  </div>
-                  <div className="w-12 h-12 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center">
-                    <Shield size={26} />
-                  </div>
-                </div>
-
-                <div className="bg-white p-6 rounded-2xl border border-gray-300 shadow-sm flex items-center justify-between">
-                  <div>
-                    <p className="text-xs text-gray-500 font-medium">
-                      เจ้าหน้าที่รักษาความปลอดภัย
-                    </p>
-                    <p className="text-3xl font-extrabold text-emerald-600 mt-1">
-                      {stats.totalGuards ?? 0}
-                    </p>
-                    <p className="text-[11px] text-gray-500 font-medium mt-1">
-                      กำลังพลทั้งหมด
-                    </p>
-                  </div>
-                  <div className="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
-                    <Users size={26} />
-                  </div>
-                </div>
-
-                <div className="bg-white p-6 rounded-2xl border border-gray-300 shadow-sm flex items-center justify-between">
-                  <div>
-                    <p className="text-xs text-gray-500 font-medium">
-                      งานอีเว้นท์ทั้งหมด
-                    </p>
-                    <p className="text-3xl font-extrabold text-amber-600 mt-1">
-                      {stats.totalEvents ?? 0}
-                    </p>
-                    <p className="text-[11px] text-gray-500 font-medium mt-1">
-                      รายการงานที่จัดขึ้น
-                    </p>
-                  </div>
-                  <div className="w-12 h-12 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center">
-                    <CalendarDays size={26} />
-                  </div>
-                </div>
+          {/* ================= COMPANIES LIST (Matching Fig 3.127) ================= */}
+          <div>
+            {/* Top Bar: Search & Add Button */}
+            <div className="flex items-center justify-between mb-6">
+              <div className="relative w-[340px]">
+                <Search
+                  size={20}
+                  className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400"
+                />
+                <input
+                  type="text"
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  placeholder="ค้นหาบริษัทรักษาความปลอดภัย"
+                  className="w-full h-[38px] border border-gray-400 rounded-xl pl-10 pr-4 text-sm outline-none focus:border-blue-500 bg-white shadow-sm"
+                />
               </div>
 
-              {/* Quick info card */}
-              <div className="bg-white rounded-2xl border border-gray-300 p-6 shadow-sm">
-                <h3 className="text-base font-bold text-gray-800 mb-3 flex items-center gap-2">
-                  <CheckCircle2 size={18} className="text-emerald-500" />
-                  นโยบายความปลอดภัยและเกณฑ์การเข้าสู่ระบบ (Security Standards)
-                </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs text-gray-600">
-                  <div className="bg-gray-50 p-4 rounded-xl border border-gray-200">
-                    <p className="font-bold text-gray-800 mb-1.5">
-                      ข้อกำหนดชื่อผู้ใช้งาน (Username)
-                    </p>
-                    <ul className="list-disc list-inside space-y-1">
-                      <li>ภาษาอังกฤษ ตัวเลข หรืออักขระพิเศษ [ !#_.- ]</li>
-                      <li>ความยาว 4 ถึง 30 ตัวอักษร</li>
-                      <li>ห้ามมีช่องว่าง หรือเว้นวรรค</li>
-                      <li>ไม่เป็นค่าว่าง</li>
-                    </ul>
-                  </div>
-                  <div className="bg-gray-50 p-4 rounded-xl border border-gray-200">
-                    <p className="font-bold text-gray-800 mb-1.5">
-                      ข้อกำหนดรหัสผ่าน (Password)
-                    </p>
-                    <ul className="list-disc list-inside space-y-1">
-                      <li>ตัวอักษรภาษาอังกฤษ ตัวเลข รวมอักขระพิเศษ [ !#_. ]</li>
-                      <li>ความยาว 8 ถึง 16 ตัวอักษร</li>
-                      <li>ห้ามมีช่องว่าง หรือเว้นวรรค</li>
-                      <li>เข้ารหัส BCrypt ปลอดภัยในระดับฐานข้อมูล</li>
-                    </ul>
-                  </div>
-                </div>
-              </div>
+              <button
+                onClick={handleOpenAddModal}
+                className="h-[38px] px-5 bg-[#42a884] hover:bg-emerald-600 text-white rounded-xl text-sm font-semibold flex items-center gap-2 transition shadow cursor-pointer"
+              >
+                <Plus size={18} /> เพิ่มบริษัทรปภ.
+              </button>
             </div>
-          ) : (
-            /* ================= COMPANIES LIST TAB (Matching Fig 3.127) ================= */
-            <div>
-              {/* Top Bar: Search & Add Button */}
-              <div className="flex items-center justify-between mb-6">
-                <div className="relative w-[340px]">
-                  <Search
-                    size={20}
-                    className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400"
-                  />
-                  <input
-                    type="text"
-                    value={search}
-                    onChange={(e) => setSearch(e.target.value)}
-                    placeholder="ค้นหาบริษัทรักษาความปลอดภัย"
-                    className="w-full h-[38px] border border-gray-400 rounded-xl pl-10 pr-4 text-sm outline-none focus:border-blue-500 bg-white shadow-sm"
-                  />
-                </div>
 
-                <button
-                  onClick={handleOpenAddModal}
-                  className="h-[38px] px-5 bg-[#42a884] hover:bg-emerald-600 text-white rounded-xl text-sm font-semibold flex items-center gap-2 transition shadow cursor-pointer"
-                >
-                  <Plus size={18} /> เพิ่มบริษัทรปภ.
-                </button>
+            {/* Table (Matching Fig 3.127) */}
+            <div className="w-full border border-gray-400 rounded-xl overflow-hidden bg-white/90 shadow-sm">
+              <div className="grid grid-cols-[140px_2fr_1.5fr_1.2fr_1.2fr_50px] h-[44px] bg-blue-500 text-white items-center text-[13px] font-semibold px-5">
+                <div className="text-center">รหัสประจำตัวบริษัท</div>
+                <div>บริษัทรักษาความปลอดภัย</div>
+                <div>เบอร์โทรศัพท์</div>
+                <div>วันที่เริ่มทำงาน</div>
+                <div>สถานะ</div>
+                <div className="text-center">การจัดการ</div>
               </div>
 
-              {/* Table (Matching Fig 3.127) */}
-              <div className="w-full border border-gray-400 rounded-xl overflow-hidden bg-white/90 shadow-sm">
-                <div className="grid grid-cols-[140px_2fr_1.5fr_1.2fr_1.2fr_50px] h-[44px] bg-blue-500 text-white items-center text-[13px] font-semibold px-5">
-                  <div className="text-center">รหัสประจำตัวบริษัท</div>
-                  <div>บริษัทรักษาความปลอดภัย</div>
-                  <div>เบอร์โทรศัพท์</div>
-                  <div>วันที่เริ่มทำงาน</div>
-                  <div>สถานะ</div>
-                  <div className="text-center">การจัดการ</div>
+              {isLoading ? (
+                <div className="h-[140px] flex items-center justify-center text-sm text-gray-500">
+                  กำลังโหลดข้อมูลบริษัท...
                 </div>
-
-                {isLoading ? (
-                  <div className="h-[140px] flex items-center justify-center text-sm text-gray-500">
-                    กำลังโหลดข้อมูลบริษัท...
-                  </div>
-                ) : filteredCompanies.length === 0 ? (
-                  <div className="h-[140px] flex flex-col items-center justify-center text-gray-400">
-                    <Building2 size={36} className="mb-2 text-gray-300" />
-                    <p className="text-sm">ไม่พบข้อมูลบริษัทรักษาความปลอดภัย</p>
-                  </div>
-                ) : (
-                  filteredCompanies.map((comp) => (
-                    <div
-                      key={comp.id}
-                      className="grid grid-cols-[140px_2fr_1.5fr_1.2fr_1.2fr_50px] min-h-[48px] items-center border-t border-gray-300 text-[13px] px-5 hover:bg-blue-50/40 transition"
-                    >
-                      <div className="text-center font-medium text-gray-700 bg-gray-200/60 py-1 px-2.5 rounded-lg w-24 mx-auto">
-                        {comp.id}
-                      </div>
-                      <div className="font-semibold text-gray-900">
-                        {comp.companyName}
-                      </div>
-                      <div className="text-gray-600">{comp.phone}</div>
-                      <div className="text-gray-600">
-                        {formatThaiDate(comp.startDate)}
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span
-                          className={`w-2.5 h-2.5 rounded-full ${
-                            comp.active ? "bg-emerald-500" : "bg-red-500"
-                          }`}
-                        />
-                        <span className="text-xs font-medium">
-                          {comp.status}
-                        </span>
-                      </div>
-                      <div className="flex justify-center items-center">
-                        <button
-                          type="button"
-                          onClick={() => handleOpenViewModal(comp)}
-                          className="text-gray-500 hover:text-blue-600 p-2 rounded-lg hover:bg-gray-100 transition cursor-pointer"
-                          title="ดูรายละเอียด"
-                        >
-                          <Eye size={18} />
-                        </button>
-                      </div>
+              ) : filteredCompanies.length === 0 ? (
+                <div className="h-[140px] flex flex-col items-center justify-center text-gray-400">
+                  <Building2 size={36} className="mb-2 text-gray-300" />
+                  <p className="text-sm">ไม่พบข้อมูลบริษัทรักษาความปลอดภัย</p>
+                </div>
+              ) : (
+                filteredCompanies.map((comp) => (
+                  <div
+                    key={comp.id}
+                    className="grid grid-cols-[140px_2fr_1.5fr_1.2fr_1.2fr_50px] min-h-[48px] items-center border-t border-gray-300 text-[13px] px-5 hover:bg-blue-50/40 transition"
+                  >
+                    <div className="text-center font-medium text-gray-700 bg-gray-200/60 py-1 px-2.5 rounded-lg w-24 mx-auto">
+                      {comp.id}
                     </div>
-                  ))
-                )}
-              </div>
+                    <div className="font-semibold text-gray-900">
+                      {comp.companyName}
+                    </div>
+                    <div className="text-gray-600">{comp.phone}</div>
+                    <div className="text-gray-600">
+                      {formatThaiDate(comp.startDate)}
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span
+                        className={`w-2.5 h-2.5 rounded-full ${
+                          comp.active ? "bg-emerald-500" : "bg-red-500"
+                        }`}
+                      />
+                      <span className="text-xs font-medium">
+                        {comp.status}
+                      </span>
+                    </div>
+                    <div className="flex justify-center items-center">
+                      <button
+                        type="button"
+                        onClick={() => handleOpenViewModal(comp)}
+                        className="text-gray-500 hover:text-blue-600 p-2 rounded-lg hover:bg-gray-100 transition cursor-pointer"
+                        title="ดูรายละเอียด"
+                      >
+                        <Eye size={18} />
+                      </button>
+                    </div>
+                  </div>
+                ))
+              )}
             </div>
-          )}
+          </div>
         </section>
       </main>
 
