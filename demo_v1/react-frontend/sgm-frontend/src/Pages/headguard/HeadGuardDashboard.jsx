@@ -171,8 +171,11 @@ function HeadGuardDashboard() {
       const formattedData = sorted.map((guard, index) => {
         const isActive = guard.quit_date === null;
         const ordinalNumber = (index + 1).toString();
+        const guardId = (guard.users_id || guard.guard_id || "").toString();
         return {
-          id: `${ordinalNumber}`,
+          sequence: ordinalNumber,
+          id: ordinalNumber,
+          guardId: guardId,
           rank: guard.rank || "-",
           title: guard.title || "-",
           name: `${guard.first_name || ""} ${guard.last_name || ""}`.trim(),
@@ -269,6 +272,8 @@ function HeadGuardDashboard() {
     (g) =>
       g.name.toLowerCase().includes(search.toLowerCase()) ||
       formatRankAndName(g).toLowerCase().includes(search.toLowerCase()) ||
+      g.sequence?.toLowerCase().includes(search.toLowerCase()) ||
+      g.guardId?.toLowerCase().includes(search.toLowerCase()) ||
       g.id.toLowerCase().includes(search.toLowerCase()) ||
       g.rank?.toLowerCase().includes(search.toLowerCase()) ||
       g.title?.toLowerCase().includes(search.toLowerCase()) ||
@@ -309,8 +314,8 @@ function HeadGuardDashboard() {
             (g) =>
               Number(g.raw?.users_id) === Number(a.guard_id) ||
               Number(g.raw?.guard_id) === Number(a.guard_id) ||
-              Number(g.raw?.id) === Number(a.guard_id) ||
-              g.id === a.guard_id?.toString(),
+              g.guardId === a.guard_id?.toString() ||
+              Number(g.raw?.id) === Number(a.guard_id),
           );
 
           const firstName = (
@@ -880,8 +885,9 @@ function HeadGuardDashboard() {
                 </div>
 
                 <div className="border border-gray-400 rounded-xl overflow-hidden bg-white">
-                  <div className="grid grid-cols-[120px_1.5fr_1.5fr_120px] h-[40px] bg-[#4b5563] text-white items-center text-[12px] font-medium px-6">
-                    <div>ลำดับที่</div>
+                  <div className="grid grid-cols-[70px_110px_1.5fr_1.5fr_120px] h-[40px] bg-[#4b5563] text-white items-center text-[12px] font-medium px-6">
+                    <div className="text-center">ลำดับที่</div>
+                    <div>รหัสประจำตัว</div>
                     <div>ชื่อ</div>
                     <div>ช่วงเวลาการทำงาน</div>
                     <div className="text-center">ข้อมูลงาน</div>
@@ -891,11 +897,14 @@ function HeadGuardDashboard() {
                     .filter(
                       (a) => a.status === "ACTUAL" || a.status === "ASSIGNED",
                     )
-                    .map((item) => (
+                    .map((item, index) => (
                       <div
                         key={item.id}
-                        className="grid grid-cols-[120px_1.5fr_1.5fr_120px] h-[48px] items-center border-t border-gray-300 text-[12px] px-6"
+                        className="grid grid-cols-[70px_110px_1.5fr_1.5fr_120px] h-[48px] items-center border-t border-gray-300 text-[12px] px-6"
                       >
+                        <div className="text-center font-medium text-gray-700">
+                          {index + 1}
+                        </div>
                         <div className="font-medium text-gray-700">
                           {item.guardId}
                         </div>
@@ -954,8 +963,9 @@ function HeadGuardDashboard() {
                 </h3>
 
                 <div className="border border-gray-400 rounded-xl overflow-hidden bg-white">
-                  <div className="grid grid-cols-[60px_120px_1.5fr_1.5fr_120px] h-[40px] bg-[#4b5563] text-white items-center text-[12px] font-medium px-6">
-                    <div>ลำดับ</div>
+                  <div className="grid grid-cols-[70px_110px_1.5fr_1.5fr_120px] h-[40px] bg-[#4b5563] text-white items-center text-[12px] font-medium px-6">
+                    <div className="text-center">ลำดับที่</div>
+                    <div>รหัสประจำตัว</div>
                     <div>ชื่อ</div>
                     <div>ช่วงเวลาการทำงาน</div>
                     <div />
@@ -966,9 +976,10 @@ function HeadGuardDashboard() {
                     .map((item, index) => (
                       <div
                         key={item.id}
-                        className="grid grid-cols-[60px_120px_1.5fr_1.5fr_120px] h-[48px] items-center border-t border-gray-300 text-[12px] px-6"
+                        className="grid grid-cols-[70px_110px_1.5fr_1.5fr_120px] h-[48px] items-center border-t border-gray-300 text-[12px] px-6"
                       >
-                        <div className="text-gray-500">{index + 1}</div>
+                        <div className="text-center text-gray-500">{index + 1}</div>
+                        <div className="font-medium text-gray-700">{item.guardId}</div>
                         <div>{item.guardName}</div>
                         <div className="font-semibold text-gray-800">
                           {formatThaiTimeRange(item.time)}
@@ -1020,8 +1031,9 @@ function HeadGuardDashboard() {
               {/* Tab: รปภ. */}
               {activeMenu === "guard" && (
                 <div className="w-full border border-gray-300 rounded-xl overflow-hidden bg-white shadow-sm">
-                  <div className="grid grid-cols-[80px_1.8fr_80px_1.3fr_100px_120px_50px] h-[44px] bg-[#111827] text-white items-center text-[12px] font-medium px-6">
+                  <div className="grid grid-cols-[70px_100px_1.8fr_70px_1.2fr_100px_120px_50px] h-[44px] bg-[#111827] text-white items-center text-[12px] font-medium px-6">
                     <div className="text-center">ลำดับที่</div>
+                    <div className="text-center">รหัสประจำตัว</div>
                     <div>ชื่อ - นามสกุล</div>
                     <div>เพศ</div>
                     <div>ประสบการณ์ทำงาน</div>
@@ -1040,11 +1052,14 @@ function HeadGuardDashboard() {
                   ) : (
                     filteredGuards.map((g) => (
                       <div
-                        key={g.id}
-                        className="grid grid-cols-[80px_1.8fr_80px_1.3fr_100px_120px_50px] min-h-[48px] items-center border-t border-gray-200 text-[12px] px-6 hover:bg-gray-50 transition"
+                        key={g.guardId || g.id}
+                        className="grid grid-cols-[70px_100px_1.8fr_70px_1.2fr_100px_120px_50px] min-h-[48px] items-center border-t border-gray-200 text-[12px] px-6 hover:bg-gray-50 transition"
                       >
                         <div className="text-center font-medium text-gray-700">
-                          {g.id}
+                          {g.sequence || g.id}
+                        </div>
+                        <div className="text-center font-medium text-gray-700">
+                          {g.guardId || g.raw?.users_id || "-"}
                         </div>
                         <div className="font-medium text-gray-900">
                           {formatRankAndName(g)}

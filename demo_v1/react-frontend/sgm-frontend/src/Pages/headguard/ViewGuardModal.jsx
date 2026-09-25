@@ -35,7 +35,18 @@ export default function ViewGuardModal({ isOpen, onClose, guardData }) {
                 <input
                   type="text"
                   readOnly
-                  value={guardData.id}
+                  value={guardData.sequence || guardData.id}
+                  className="flex-1 h-[32px] border border-gray-300 rounded-lg px-3 bg-gray-100 outline-none"
+                />
+              </div>
+              <div className="flex items-center">
+                <label className="w-[120px] font-semibold text-gray-700">
+                  รหัสประจำตัว
+                </label>
+                <input
+                  type="text"
+                  readOnly
+                  value={guardData.guardId || guardData.raw?.users_id || guardData.id}
                   className="flex-1 h-[32px] border border-gray-300 rounded-lg px-3 bg-gray-100 outline-none"
                 />
               </div>
