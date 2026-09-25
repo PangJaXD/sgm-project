@@ -22,6 +22,7 @@ import {
   Edit,
   PenSquare,
   MapPin,
+  Trash,
 } from "lucide-react";
 
 const PHONE_REGEX = /^0[689]\d{8}$/;
@@ -108,6 +109,39 @@ function CompanyDashboard() {
   const [selectedGuard, setSelectedGuard] = useState(null);
   const [editingId, setEditingId] = useState(null);
   const [editingDisplayId, setEditingDisplayId] = useState("");
+
+  // Profile image states for Add and Edit
+  const [profileImg, setProfileImg] = useState("default.png");
+  const [imagePreview, setImagePreview] = useState("");
+  const addFileInputRef = useRef(null);
+
+  const [editProfileImg, setEditProfileImg] = useState("default.png");
+  const [editImagePreview, setEditImagePreview] = useState("");
+  const editFileInputRef = useRef(null);
+
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
+
+  const getProfileImgUrl = (img) => {
+    if (
+      !img ||
+      img === "default.png" ||
+      img === "default_guard.png" ||
+      img === "default_headguard.png" ||
+      img === "default_company.png"
+    ) {
+      return null;
+    }
+    if (img.startsWith("http://") || img.startsWith("https://")) {
+      return img;
+    }
+    if (img.startsWith("/uploads/")) {
+      return `http://localhost:8080${img}`;
+    }
+    if (img.startsWith("/")) {
+      return `http://localhost:8080/uploads${img}`;
+    }
+    return `http://localhost:8080/uploads/${img}`;
+  };
 
   const calculateExperience = (startDateStr, quitDateStr = null) => {
     if (!startDateStr) return "ไม่ระบุ";
@@ -474,6 +508,55 @@ function CompanyDashboard() {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
+  const handleImageChange = async (e, mode = "add") => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const localPreview = URL.createObjectURL(file);
+    if (mode === "add") {
+      setImagePreview(localPreview);
+    } else {
+      setEditImagePreview(localPreview);
+    }
+
+    const uploadFormData = new FormData();
+    uploadFormData.append("file", file);
+    uploadFormData.append("folder", "profiles");
+
+    setIsUploadingImage(true);
+    try {
+      const res = await axios.post(
+        "http://localhost:8080/api/upload",
+        uploadFormData,
+        {
+          headers: { "Content-Type": "multipart/form-data" },
+        },
+      );
+      if (res.data && res.data.fileName) {
+        if (mode === "add") {
+          setProfileImg(res.data.fileName);
+        } else {
+          setEditProfileImg(res.data.fileName);
+        }
+      }
+    } catch (err) {
+      console.error("Upload profile image failed:", err);
+      alert("อัปโหลดรูปภาพไม่สำเร็จ กรุณาลองใหม่อีกครั้ง");
+      if (mode === "add") {
+        setImagePreview("");
+        setProfileImg("default.png");
+        if (addFileInputRef.current) addFileInputRef.current.value = "";
+      } else {
+        const fallbackUrl = getProfileImgUrl(selectedGuard?.raw?.profile_img);
+        setEditImagePreview(fallbackUrl || "");
+        setEditProfileImg(selectedGuard?.raw?.profile_img || "default.png");
+        if (editFileInputRef.current) editFileInputRef.current.value = "";
+      }
+    } finally {
+      setIsUploadingImage(false);
+    }
+  };
+
   const clearForm = () => {
     setFormData({
       username: "",
@@ -490,6 +573,11 @@ function CompanyDashboard() {
       status: "ปฏิบัติงาน",
       headName: "",
     });
+    setProfileImg("default.png");
+    setImagePreview("");
+    if (addFileInputRef.current) {
+      addFileInputRef.current.value = "";
+    }
   };
 
   const handleOpenAddModal = () => {
@@ -517,7 +605,7 @@ function CompanyDashboard() {
       start_date: formData.startDate
         ? `${toISODate(formData.startDate)}T00:00:00`
         : new Date().toISOString(),
-      profile_img: "default.png",
+      profile_img: profileImg || "default.png",
       company_name: currentCompanyName,
       username: formData.username,
       password: formData.password,
@@ -535,6 +623,7 @@ function CompanyDashboard() {
 
       if (response.status === 201 || response.status === 200) {
         setIsAddModalOpen(false);
+        clearForm();
         const createdId = response.data?.users_id ?? response.data?.id;
         isGuardMenu ? fetchGuards(createdId) : fetchHeadGuards(createdId);
       }
@@ -575,6 +664,12 @@ function CompanyDashboard() {
   const handleOpenEditModal = () => {
     setIsViewModalOpen(false);
     setFormData((prev) => ({ ...prev, password: "" }));
+    const currentImg = selectedGuard?.raw?.profile_img || "default.png";
+    setEditProfileImg(currentImg);
+    setEditImagePreview(getProfileImgUrl(currentImg) || "");
+    if (editFileInputRef.current) {
+      editFileInputRef.current.value = "";
+    }
     setIsEditModalOpen(true);
   };
 
@@ -597,6 +692,12 @@ function CompanyDashboard() {
         status: selectedGuard.status,
         headName: raw.head_name || "-",
       });
+      const currentImg = raw.profile_img || "default.png";
+      setEditProfileImg(currentImg);
+      setEditImagePreview(getProfileImgUrl(currentImg) || "");
+    }
+    if (editFileInputRef.current) {
+      editFileInputRef.current.value = "";
     }
     setIsEditModalOpen(false);
   };
@@ -608,6 +709,9 @@ function CompanyDashboard() {
       );
       return;
     }
+
+    const resolvedProfileImg =
+      editProfileImg || selectedGuard?.raw?.profile_img || "default.png";
 
     const payload = {
       rank: formData.rank?.trim() || "-",
@@ -625,7 +729,7 @@ function CompanyDashboard() {
         formData.status === "ปฏิบัติงาน"
           ? null
           : selectedGuard.raw.quit_date || new Date().toISOString(),
-      profile_img: selectedGuard.raw.profile_img || "default.png",
+      profile_img: resolvedProfileImg,
       username: formData.username,
       password: formData.password,
       company_name: selectedGuard.raw.company_name,
@@ -643,6 +747,16 @@ function CompanyDashboard() {
 
       if (response.status === 200) {
         setIsEditModalOpen(false);
+        if (selectedGuard) {
+          setSelectedGuard((prev) => ({
+            ...prev,
+            raw: {
+              ...prev.raw,
+              ...payload,
+              profile_img: resolvedProfileImg,
+            },
+          }));
+        }
         isGuardMenu ? fetchGuards() : fetchHeadGuards();
       }
     } catch (error) {
@@ -1176,9 +1290,65 @@ function CompanyDashboard() {
                 </div>
 
                 <div className="w-[120px] flex flex-col pt-1">
-                  <div className="w-full h-[140px] border border-gray-400 rounded-xl bg-gray-50 flex items-center justify-center text-gray-400 overflow-hidden shadow-sm">
-                    <User size={60} strokeWidth={1.5} />
+                  <input
+                    type="file"
+                    ref={addFileInputRef}
+                    onChange={(e) => handleImageChange(e, "add")}
+                    accept="image/*"
+                    className="hidden"
+                  />
+                  <div
+                    onClick={() => addFileInputRef.current?.click()}
+                    className="w-full h-[140px] border-2 border-dashed border-gray-400 hover:border-emerald-500 rounded-xl bg-gray-50 hover:bg-gray-100 flex flex-col items-center justify-center text-gray-400 overflow-hidden shadow-sm cursor-pointer relative group transition"
+                    title="คลิกเพื่ออัปโหลดรูปภาพ"
+                  >
+                    {isUploadingImage ? (
+                      <div className="flex flex-col items-center justify-center p-2 text-center">
+                        <div className="w-6 h-6 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin mb-1" />
+                        <span className="text-[10px] text-gray-500 font-medium">
+                          กำลังอัปโหลด...
+                        </span>
+                      </div>
+                    ) : imagePreview ? (
+                      <div className="w-full h-full relative">
+                        <img
+                          src={imagePreview}
+                          alt="Profile Preview"
+                          className="w-full h-full object-cover"
+                        />
+                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition flex items-center justify-center text-white text-[11px] font-medium text-center p-1">
+                          คลิกเพื่อเปลี่ยนรูป
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="flex flex-col items-center justify-center p-2 text-center">
+                        <div className="w-8 h-8 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center mb-1 group-hover:scale-105 transition">
+                          <Plus size={18} />
+                        </div>
+                        <span className="text-[11px] font-medium text-gray-600">
+                          เพิ่มรูปโปรไฟล์
+                        </span>
+                        <span className="text-[9px] text-gray-400 mt-0.5">
+                          JPG, PNG
+                        </span>
+                      </div>
+                    )}
                   </div>
+                  {imagePreview && !isUploadingImage && (
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setProfileImg("default.png");
+                        setImagePreview("");
+                        if (addFileInputRef.current)
+                          addFileInputRef.current.value = "";
+                      }}
+                      className="mt-1.5 text-[11px] text-red-500 hover:text-red-700 flex items-center justify-center gap-1 cursor-pointer transition font-medium"
+                    >
+                      <Trash size={12} /> ลบรูปภาพ
+                    </button>
+                  )}
                 </div>
               </div>
 
@@ -1415,19 +1585,23 @@ function CompanyDashboard() {
 
                 <div className="w-[120px] flex flex-col pt-1">
                   <div className="w-full h-[140px] border border-gray-400 rounded-xl bg-gray-50 flex items-center justify-center text-gray-400 overflow-hidden shadow-sm">
-                    {selectedGuard.raw?.profile_img &&
-                    selectedGuard.raw.profile_img !== "default.png" ? (
-                      <img
-                        src={`http://localhost:8080/uploads/${selectedGuard.raw.profile_img}`}
-                        alt="Profile"
-                        className="w-full h-full object-cover"
-                        onError={(e) => {
-                          e.target.style.display = "none";
-                        }}
-                      />
-                    ) : (
-                      <User size={60} strokeWidth={1.5} />
-                    )}
+                    {(() => {
+                      const imgUrl = getProfileImgUrl(
+                        selectedGuard.raw?.profile_img,
+                      );
+                      return imgUrl ? (
+                        <img
+                          src={imgUrl}
+                          alt="Profile"
+                          className="w-full h-full object-cover"
+                          onError={(e) => {
+                            e.target.style.display = "none";
+                          }}
+                        />
+                      ) : (
+                        <User size={60} strokeWidth={1.5} />
+                      );
+                    })()}
                   </div>
                 </div>
               </div>
@@ -1677,21 +1851,66 @@ function CompanyDashboard() {
                 </div>
 
                 <div className="w-[120px] flex flex-col pt-1">
-                  <div className="w-full h-[140px] border border-gray-400 rounded-xl bg-gray-50 flex items-center justify-center text-gray-400 overflow-hidden">
-                    {selectedGuard?.raw?.profile_img &&
-                    selectedGuard.raw.profile_img !== "default.png" ? (
-                      <img
-                        src={`http://localhost:8080/uploads/${selectedGuard.raw.profile_img}`}
-                        alt="Profile"
-                        className="w-full h-full object-cover"
-                        onError={(e) => {
-                          e.target.style.display = "none";
-                        }}
-                      />
+                  <input
+                    type="file"
+                    ref={editFileInputRef}
+                    onChange={(e) => handleImageChange(e, "edit")}
+                    accept="image/*"
+                    className="hidden"
+                  />
+                  <div
+                    onClick={() => editFileInputRef.current?.click()}
+                    className="w-full h-[140px] border-2 border-dashed border-gray-400 hover:border-blue-500 rounded-xl bg-gray-50 hover:bg-gray-100 flex flex-col items-center justify-center text-gray-400 overflow-hidden shadow-sm cursor-pointer relative group transition"
+                    title="คลิกเพื่อเปลี่ยนรูปภาพ"
+                  >
+                    {isUploadingImage ? (
+                      <div className="flex flex-col items-center justify-center p-2 text-center">
+                        <div className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin mb-1" />
+                        <span className="text-[10px] text-gray-500 font-medium">
+                          กำลังอัปโหลด...
+                        </span>
+                      </div>
+                    ) : editImagePreview ? (
+                      <div className="w-full h-full relative">
+                        <img
+                          src={editImagePreview}
+                          alt="Profile Preview"
+                          className="w-full h-full object-cover"
+                          onError={() => setEditImagePreview("")}
+                        />
+                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition flex items-center justify-center text-white text-[11px] font-medium text-center p-1">
+                          คลิกเพื่อเปลี่ยนรูป
+                        </div>
+                      </div>
                     ) : (
-                      <User size={60} strokeWidth={1.5} />
+                      <div className="flex flex-col items-center justify-center p-2 text-center">
+                        <div className="w-8 h-8 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center mb-1 group-hover:scale-105 transition">
+                          <Plus size={18} />
+                        </div>
+                        <span className="text-[11px] font-medium text-gray-600">
+                          เพิ่มรูปโปรไฟล์
+                        </span>
+                        <span className="text-[9px] text-gray-400 mt-0.5">
+                          JPG, PNG
+                        </span>
+                      </div>
                     )}
                   </div>
+                  {editImagePreview && !isUploadingImage && (
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setEditProfileImg("default.png");
+                        setEditImagePreview("");
+                        if (editFileInputRef.current)
+                          editFileInputRef.current.value = "";
+                      }}
+                      className="mt-1.5 text-[11px] text-red-500 hover:text-red-700 flex items-center justify-center gap-1 cursor-pointer transition font-medium"
+                    >
+                      <Trash size={12} /> ลบรูปภาพ
+                    </button>
+                  )}
                 </div>
               </div>
 
