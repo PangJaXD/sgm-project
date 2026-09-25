@@ -109,6 +109,7 @@ public class CompanyService {
             existing.setAdmin_name(request.getAdmin_name());
 
         if (request.getStatus() != null) {
+            existing.setStatus(request.getStatus());
             if ("ปฏิบัติงาน".equals(request.getStatus())) {
                 existing.setQuit_date(null);
             } else if (existing.getQuit_date() == null) {
@@ -126,12 +127,14 @@ public class CompanyService {
         Company existing = companyRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("ไม่พบข้อมูลบริษัทรักษาความปลอดภัยรหัส: " + id));
         // Soft delete by default to maintain referential integrity with events/guards
+        existing.setStatus("พ้นสภาพ");
         existing.setQuit_date(LocalDateTime.now());
         companyRepository.save(existing);
     }
 
     private CompanyResponse mapToResponse(Company company) {
-        String status = company.getQuit_date() == null ? "ปฏิบัติงาน" : "พ้นสภาพ";
+        String status = company.getStatus() != null ? company.getStatus()
+                : (company.getQuit_date() == null ? "ปฏิบัติงาน" : "พ้นสภาพ");
         long totalEvents = company.getEvents() != null ? company.getEvents().size() : 0L;
 
         return CompanyResponse.builder()

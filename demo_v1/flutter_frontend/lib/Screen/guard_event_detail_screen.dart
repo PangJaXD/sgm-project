@@ -218,7 +218,7 @@ class GuardEventDetailScreen extends StatelessWidget {
                           elevation: 0,
                         ),
                         child: const Text(
-                          'ดูกะงานที่เปิดรับ (List Event Shift)',
+                          'ดูกะงานที่เปิดรับ',
                           style: TextStyle(
                             color: Colors.white,
                             fontSize: 16,

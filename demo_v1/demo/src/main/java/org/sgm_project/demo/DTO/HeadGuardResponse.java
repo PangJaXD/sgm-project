@@ -21,6 +21,7 @@ public class HeadGuardResponse {
     private String user_detail;
     private LocalDateTime start_date;
     private LocalDateTime quit_date;
+    private String status;
     private String profile_img;
 
     // ข้อมูลจากฝั่ง HeadGuard / Staff

@@ -332,7 +332,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 ),
                               ),
                               Text(
-                                '${user.employeeIdDisplay} • ${user.roleTitle}',
+                                user.roleTitle,
                                 style: const TextStyle(
                                   color: Colors.white70,
                                   fontSize: 13,
@@ -363,6 +363,54 @@ class _HomeScreenState extends State<HomeScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                // Read-Only Banner if work hasn't started yet
+                if (user.isNotStartedYet)
+                  Container(
+                    width: double.infinity,
+                    margin: const EdgeInsets.only(bottom: 20),
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFFEF3C7),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: const Color(0xFFF59E0B)),
+                    ),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Icon(
+                          Icons.warning_amber_rounded,
+                          color: Color(0xFFD97706),
+                          size: 26,
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text(
+                                'ยังไม่ถึงเวลาเริ่มงาน (โหมดดูข้อมูลเท่านั้น)',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.bold,
+                                  color: Color(0xFF92400E),
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                'กำหนดเริ่มงาน: ${user.startDate != null ? "${user.startDate!.day}/${user.startDate!.month}/${user.startDate!.year}" : "-"}\nขณะนี้คุณสามารถดูข้อมูลงานได้ แต่ไม่สามารถรายงานเหตุการณ์หรือสมัครกะงานได้',
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  color: Color(0xFFB45309),
+                                  height: 1.4,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+
                 // Active Shift Card from Database
                 if (_activeAssignment != null)
                   Container(
@@ -676,6 +724,15 @@ class _HomeScreenState extends State<HomeScreen> {
                         bgColor: const Color(0xFFFFEDD5),
                         title: 'รายงานเหตุการณ์',
                         onTap: () {
+                          if (user.isNotStartedYet) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('ยังไม่ถึงเวลาเริ่มงาน ไม่สามารถรายงานเหตุการณ์ได้'),
+                                backgroundColor: Color(0xFFEF4444),
+                              ),
+                            );
+                            return;
+                          }
                           if (_activeAssignment != null) {
                             final activeEvent = _getEventForAssignment(
                               _activeAssignment!,

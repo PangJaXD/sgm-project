@@ -123,6 +123,12 @@ public class HeadGuardDashboardService {
     public void updateAssignmentStatus(Integer assignmentId, String status) {
         Assignments assignment = assignmentsRepository.findById(assignmentId)
                 .orElseThrow(() -> new RuntimeException("Assignment not found"));
+        if (assignment.getShift() != null && assignment.getShift().getHeadGuard() != null) {
+            HeadGuard hg = assignment.getShift().getHeadGuard();
+            if (hg.getStart_date() != null && hg.getStart_date().isAfter(java.time.LocalDateTime.now())) {
+                throw new RuntimeException("ยังไม่ถึงเวลาเริ่มงาน ไม่สามารถดำเนินการได้");
+            }
+        }
         assignment.setAssignment_status(status);
         assignmentsRepository.save(assignment);
     }
@@ -131,6 +137,12 @@ public class HeadGuardDashboardService {
             String description) {
         Assignments assignment = assignmentsRepository.findById(assignmentId)
                 .orElseThrow(() -> new RuntimeException("Assignment not found"));
+        if (assignment.getShift() != null && assignment.getShift().getHeadGuard() != null) {
+            HeadGuard hg = assignment.getShift().getHeadGuard();
+            if (hg.getStart_date() != null && hg.getStart_date().isAfter(java.time.LocalDateTime.now())) {
+                throw new RuntimeException("ยังไม่ถึงเวลาเริ่มงาน ไม่สามารถดำเนินการได้");
+            }
+        }
         assignment.setAssignment_status(status);
         assignment.setLatitude(latitude);
         assignment.setLongitude(longitude);
@@ -145,6 +157,10 @@ public class HeadGuardDashboardService {
 
         Guards guard = guardRepository.findById(request.getGuard_id())
                 .orElseThrow(() -> new RuntimeException("Guard not found"));
+
+        if (guard.getStart_date() != null && guard.getStart_date().isAfter(java.time.LocalDateTime.now())) {
+            throw new RuntimeException("ยังไม่ถึงเวลาเริ่มงาน ไม่สามารถดำเนินการได้");
+        }
 
         // second we inject the request to assignment
         Assignments newAssignment = new Assignments();
@@ -224,6 +240,10 @@ public class HeadGuardDashboardService {
     public void updateGuardVisibilityByShift(Integer shiftId, boolean visible) {
         ShiftTime shift = shiftTimeRepository.findById(shiftId)
                 .orElseThrow(() -> new RuntimeException("Shift not found"));
+        if (shift.getHeadGuard() != null && shift.getHeadGuard().getStart_date() != null &&
+                shift.getHeadGuard().getStart_date().isAfter(java.time.LocalDateTime.now())) {
+            throw new RuntimeException("ยังไม่ถึงเวลาเริ่มงาน ไม่สามารถดำเนินการได้");
+        }
         if (shift.getEvent() != null) {
             shift.getEvent().setGuard_visible(visible);
             eventsRepository.save(shift.getEvent());

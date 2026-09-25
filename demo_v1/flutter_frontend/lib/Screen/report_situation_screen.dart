@@ -38,14 +38,14 @@ class _ReportSituationScreenState extends State<ReportSituationScreen> {
   final List<XFile> _attachedImages = [];
 
   final List<String> _categories = [
-    'ตรวจความเรียบร้อยทั่วไป (Routine)',
-    'พบบุคคลน่าสงสัย (Suspicious Person)',
-    'เหตุทะเลาะวิวาท (Dispute / Fight)',
-    'ทรัพย์สินสูญหาย / เสียหาย (Property Damage)',
-    'อุบัติเหตุ / เจ็บป่วยฉุกเฉิน (Medical Emergency)',
-    'ปัญหาการจราจร / กีดขวางทางเข้า (Traffic Issue)',
-    'เหตุเพลิงไหม้ / กลิ่นไหม้ (Fire Hazard)',
-    'อื่นๆ (Other)',
+    'ตรวจความเรียบร้อยทั่วไป',
+    'พบบุคคลน่าสงสัย',
+    'เหตุทะเลาะวิวาท',
+    'ทรัพย์สินสูญหาย / เสียหาย',
+    'อุบัติเหตุ / เจ็บป่วยฉุกเฉิน',
+    'ปัญหาการจราจร / กีดขวางทางเข้า',
+    'เหตุเพลิงไหม้ / กลิ่นไหม้',
+    'อื่นๆ',
   ];
 
   @override
@@ -396,7 +396,7 @@ class _ReportSituationScreenState extends State<ReportSituationScreen> {
                     const Row(
                       children: [
                         Text(
-                          'ระดับความรุนแรง (Urgency)',
+                          'ระดับความรุนแรง',
                           style: TextStyle(
                             fontSize: 15,
                             fontWeight: FontWeight.bold,
@@ -447,7 +447,7 @@ class _ReportSituationScreenState extends State<ReportSituationScreen> {
                     ),
                     const SizedBox(height: 8),
                     DropdownButtonFormField<String>(
-                      initialValue: _selectedCategory,
+                      initialValue: 'ตรวจความเรียบร้อยทั่วไป',
                       isExpanded: true,
                       hint: const Text(
                         '-- เลือกประเภทเหตุการณ์ --',

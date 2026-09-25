@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import '../Model/user_model.dart';
 import '../Service/api_exception.dart';
 import '../Service/user_service.dart';
-import './working_history_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
   final bool showBottomNav;
@@ -139,8 +138,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 Icons.language_rounded,
                 color: Color(0xFF2563EB),
               ),
-              title: const Text('ภาษา (Language)'),
-              subtitle: const Text('ไทย (TH)'),
+              title: const Text('ภาษา'),
+              subtitle: const Text('ไทย'),
               trailing: const Icon(
                 Icons.chevron_right_rounded,
                 color: Colors.grey,
@@ -301,16 +300,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ),
                     const SizedBox(height: 4),
 
-                    // Employee ID Code (From Java Model: users_id & start_date)
-                    Text(
-                      user.employeeIdDisplay,
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        color: Colors.white.withValues(alpha: 0.85),
-                        fontSize: 13.5,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
+                    // // Employee ID Code (From Java Model: users_id & start_date)
+                    // Text(
+                    //   user.employeeIdDisplay,
+                    //   textAlign: TextAlign.center,
+                    //   style: TextStyle(
+                    //     color: Colors.white.withValues(alpha: 0.85),
+                    //     fontSize: 13.5,
+                    //     fontWeight: FontWeight.w500,
+                    //   ),
+                    // ),
                     const SizedBox(height: 12),
 
                     // Role Pill Badge (From Java Model: role / Staff / Guards)
@@ -487,56 +486,56 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   child: Column(
                     children: [
                       // Item 1: Work History (From Java Model: assignments & reports)
-                      InkWell(
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) =>
-                                  const WorkingHistoryScreen(),
-                            ),
-                          );
-                        },
-                        borderRadius: const BorderRadius.vertical(
-                          top: Radius.circular(20),
-                        ),
-                        child: Padding(
-                          padding: const EdgeInsets.all(18),
-                          child: Row(
-                            children: [
-                              Container(
-                                width: 44,
-                                height: 44,
-                                decoration: BoxDecoration(
-                                  color: const Color(0xFFEFF6FF),
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                child: const Icon(
-                                  Icons.history_rounded,
-                                  color: primaryBlue,
-                                  size: 24,
-                                ),
-                              ),
-                              const SizedBox(width: 14),
-                              const Expanded(
-                                child: Text(
-                                  'ประวัติการทำงาน (History)',
-                                  style: TextStyle(
-                                    fontSize: 15,
-                                    fontWeight: FontWeight.bold,
-                                    color: Color(0xFF1E293B),
-                                  ),
-                                ),
-                              ),
-                              const Icon(
-                                Icons.chevron_right_rounded,
-                                color: Color(0xFF94A3B8),
-                                size: 24,
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
+                      // InkWell(
+                      //   onTap: () {
+                      //     Navigator.push(
+                      //       context,
+                      //       MaterialPageRoute(
+                      //         builder: (context) =>
+                      //             const WorkingHistoryScreen(),
+                      //       ),
+                      //     );
+                      //   },
+                      //   borderRadius: const BorderRadius.vertical(
+                      //     top: Radius.circular(20),
+                      //   ),
+                      //   child: Padding(
+                      //     padding: const EdgeInsets.all(18),
+                      //     child: Row(
+                      //       children: [
+                      //         Container(
+                      //           width: 44,
+                      //           height: 44,
+                      //           decoration: BoxDecoration(
+                      //             color: const Color(0xFFEFF6FF),
+                      //             borderRadius: BorderRadius.circular(12),
+                      //           ),
+                      //           child: const Icon(
+                      //             Icons.history_rounded,
+                      //             color: primaryBlue,
+                      //             size: 24,
+                      //           ),
+                      //         ),
+                      //         const SizedBox(width: 14),
+                      //         const Expanded(
+                      //           child: Text(
+                      //             'ประวัติการทำงาน (History)',
+                      //             style: TextStyle(
+                      //               fontSize: 15,
+                      //               fontWeight: FontWeight.bold,
+                      //               color: Color(0xFF1E293B),
+                      //             ),
+                      //           ),
+                      //         ),
+                      //         const Icon(
+                      //           Icons.chevron_right_rounded,
+                      //           color: Color(0xFF94A3B8),
+                      //           size: 24,
+                      //         ),
+                      //       ],
+                      //     ),
+                      //   ),
+                      // ),
 
                       const Divider(height: 1, color: Color(0xFFF1F5F9)),
 

@@ -340,6 +340,17 @@ class _EventShiftListScreenState extends State<EventShiftListScreen> {
                     )
                   : OutlinedButton(
                       onPressed: () async {
+                        if (UserService().isNotStartedYet) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text(
+                                'ยังไม่ถึงเวลาเริ่มงาน ไม่สามารถสมัครกะงานได้',
+                              ),
+                              backgroundColor: Color(0xFFEF4444),
+                            ),
+                          );
+                          return;
+                        }
                         final requested = await Navigator.push<bool>(
                           context,
                           MaterialPageRoute(
@@ -360,7 +371,7 @@ class _EventShiftListScreenState extends State<EventShiftListScreen> {
                         ),
                       ),
                       child: const Text(
-                        'สมัครกะนี้ (Send Request)',
+                        'สมัครกะนี้',
                         style: TextStyle(
                           color: primaryBlue,
                           fontSize: 14.5,

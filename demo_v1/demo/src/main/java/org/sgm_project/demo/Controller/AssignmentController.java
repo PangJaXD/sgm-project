@@ -134,6 +134,10 @@ public class AssignmentController {
         Guards guard = guardRepository.findById(request.getGuard_id())
                 .orElseThrow(() -> new ResourceNotFoundException("Guard", "id", request.getGuard_id()));
 
+        if (guard.getStart_date() != null && guard.getStart_date().isAfter(LocalDateTime.now())) {
+            throw new RuntimeException("ยังไม่ถึงเวลาเริ่มงาน ไม่สามารถดำเนินการได้");
+        }
+
         // ตรวจสอบว่าเคยสมัครกะนี้ไปแล้วหรือยัง
         Optional<Assignments> existing = assignmentRepository.findByGuardIdAndShiftId(request.getGuard_id(),
                 request.getShift_id());
@@ -191,6 +195,10 @@ public class AssignmentController {
             throw new ResourceNotFoundException("Assignment", "id", id);
         }
 
+        if (assignment.getGuard() != null && assignment.getGuard().getStart_date() != null && assignment.getGuard().getStart_date().isAfter(LocalDateTime.now())) {
+            throw new RuntimeException("ยังไม่ถึงเวลาเริ่มงาน ไม่สามารถดำเนินการได้");
+        }
+
         assignment.setAssignment_status("WITHDRAWN");
         if (body != null && body.containsKey("reason")) {
             assignment.setDescription("ถอนตัว: " + body.get("reason")
@@ -212,6 +220,10 @@ public class AssignmentController {
         Assignments assignment = assignmentRepository.findByGuardIdAndShiftId(gId, sId)
                 .orElseThrow(
                         () -> new ResourceNotFoundException("Assignment for guard " + gId + " and shift", "id", sId));
+
+        if (assignment.getGuard() != null && assignment.getGuard().getStart_date() != null && assignment.getGuard().getStart_date().isAfter(LocalDateTime.now())) {
+            throw new RuntimeException("ยังไม่ถึงเวลาเริ่มงาน ไม่สามารถดำเนินการได้");
+        }
 
         assignment.setAssignment_status("WITHDRAWN");
         if (body.containsKey("reason")) {

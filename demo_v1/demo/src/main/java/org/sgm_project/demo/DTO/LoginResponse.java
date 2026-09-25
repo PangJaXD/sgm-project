@@ -5,6 +5,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.time.LocalDateTime;
+
 @Getter
 @Setter
 @AllArgsConstructor
@@ -19,9 +21,16 @@ public class LoginResponse {
     private String last_name;
     private String company_name;
     private String head_name;
+    private String status;
+    private LocalDateTime start_date;
 
     public LoginResponse(Integer users_id, String username, String role, String first_name, String last_name,
             String company_name) {
-        this(users_id, username, role, first_name, last_name, company_name, null);
+        this(users_id, username, role, first_name, last_name, company_name, null, null, null);
+    }
+
+    public LoginResponse(Integer users_id, String username, String role, String first_name, String last_name,
+            String company_name, String head_name) {
+        this(users_id, username, role, first_name, last_name, company_name, head_name, null, null);
     }
 }

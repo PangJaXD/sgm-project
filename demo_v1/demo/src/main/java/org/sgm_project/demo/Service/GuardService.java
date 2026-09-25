@@ -93,6 +93,14 @@ public class GuardService {
         existingGuard.setUser_detail(guard.getUser_detail());
         existingGuard.setStart_date(guard.getStart_date());
         existingGuard.setQuit_date(guard.getQuit_date());
+        if (guard.getStatus() != null) {
+            existingGuard.setStatus(guard.getStatus());
+            if ("ปฏิบัติงาน".equals(guard.getStatus())) {
+                existingGuard.setQuit_date(null);
+            } else if (existingGuard.getQuit_date() == null) {
+                existingGuard.setQuit_date(java.time.LocalDateTime.now());
+            }
+        }
         existingGuard.setProfile_img(guard.getProfile_img());
         existingGuard.setUsername(guard.getUsername());
 

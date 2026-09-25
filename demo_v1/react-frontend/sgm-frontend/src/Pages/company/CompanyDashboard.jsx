@@ -725,6 +725,7 @@ function CompanyDashboard() {
       start_date: formData.startDate
         ? `${toISODate(formData.startDate)}T00:00:00`
         : null,
+      status: formData.status,
       quit_date:
         formData.status === "ปฏิบัติงาน"
           ? null
@@ -1385,14 +1386,15 @@ function CompanyDashboard() {
                   }}
                   className="h-[38px] px-8 bg-red-600 hover:bg-red-600 text-white rounded-[10px] font-medium transition shadow flex items-center gap-2 cursor-pointer"
                 >
-                  <X size={18} /> ยกเลิก
+                  <X size={14} />
+                  ยกเลิก
                 </button>
                 <button
                   type="button"
                   onClick={handleSaveData}
                   className="h-[38px] px-8 bg-[#42a884] hover:bg-emerald-600 text-white rounded-[10px] font-medium transition shadow flex items-center gap-2 cursor-pointer"
                 >
-                  <Plus size={18} /> บันทึกข้อมูล
+                  <PenSquare size={18} /> บันทึกข้อมูล
                 </button>
               </div>
             </div>
@@ -1951,6 +1953,7 @@ function CompanyDashboard() {
                   >
                     <option value="ปฏิบัติงาน">ปฏิบัติงาน</option>
                     <option value="พักงาน">พักงาน</option>
+                    <option value="พ้นสภาพ">พ้นสภาพ</option>
                   </select>
                 </div>
 
@@ -1960,14 +1963,14 @@ function CompanyDashboard() {
                     onClick={handleCancelEdit}
                     className="h-[38px] px-8 bg-red-600 hover:bg-red-600 text-white rounded-[10px] font-medium transition shadow flex items-center gap-2 cursor-pointer"
                   >
-                    <X size={18} /> ยกเลิก
+                    <X size={14} /> ยกเลิก
                   </button>
                   <button
                     type="button"
                     onClick={handleUpdateData}
                     className="h-[38px] px-8 bg-[#F58220] hover:bg-orange-600 text-white rounded-[10px] font-medium transition shadow flex items-center gap-2 cursor-pointer"
                   >
-                    <PenSquare size={18} /> ยืนยัน
+                    <PenSquare size={18} /> บันทึก
                   </button>
                 </div>
               </div>

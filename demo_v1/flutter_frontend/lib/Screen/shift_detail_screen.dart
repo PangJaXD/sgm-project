@@ -22,6 +22,15 @@ class ShiftDetailScreen extends StatefulWidget {
 
 class _ShiftDetailScreenState extends State<ShiftDetailScreen> {
   void _handleEmergencySOS() {
+    if (UserService().isNotStartedYet) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('ยังไม่ถึงเวลาเริ่มงาน ไม่สามารถส่งสัญญาณ SOS ได้'),
+          backgroundColor: Color(0xFFEF4444),
+        ),
+      );
+      return;
+    }
     final messenger = ScaffoldMessenger.of(context);
     showDialog(
       context: context,
@@ -31,7 +40,10 @@ class _ShiftDetailScreenState extends State<ShiftDetailScreen> {
           children: [
             Icon(Icons.warning_amber_rounded, color: Colors.red, size: 28),
             SizedBox(width: 8),
-            Text('ยืนยันส่งสัญญาณ SOS', style: TextStyle(fontWeight: FontWeight.bold)),
+            Text(
+              'ยืนยันส่งสัญญาณ SOS',
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
           ],
         ),
         content: const Text(
@@ -50,12 +62,15 @@ class _ShiftDetailScreenState extends State<ShiftDetailScreen> {
               await ReportService.instance.sendEmergencySOS(
                 guardId: user.usersId,
                 shiftId: widget.shift.shiftId,
-                location: '${widget.event.location} - ${widget.shift.dutyLocation}',
+                location:
+                    '${widget.event.location} - ${widget.shift.dutyLocation}',
               );
               if (mounted) {
                 messenger.showSnackBar(
                   const SnackBar(
-                    content: Text('ส่งสัญญาณ SOS ฉุกเฉินเรียบร้อยแล้ว เจ้าหน้าที่กำลังเข้าช่วยเหลือ'),
+                    content: Text(
+                      'ส่งสัญญาณ SOS ฉุกเฉินเรียบร้อยแล้ว เจ้าหน้าที่กำลังเข้าช่วยเหลือ',
+                    ),
                     backgroundColor: Colors.red,
                     duration: Duration(seconds: 4),
                   ),
@@ -64,9 +79,14 @@ class _ShiftDetailScreenState extends State<ShiftDetailScreen> {
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFFEF4444),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
             ),
-            child: const Text('ส่งสัญญาณด่วน', style: TextStyle(color: Colors.white)),
+            child: const Text(
+              'ส่งสัญญาณด่วน',
+              style: TextStyle(color: Colors.white),
+            ),
           ),
         ],
       ),
@@ -229,7 +249,9 @@ class _ShiftDetailScreenState extends State<ShiftDetailScreen> {
                           children: [
                             Expanded(
                               child: Container(
-                                padding: const EdgeInsets.symmetric(vertical: 14),
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 14,
+                                ),
                                 decoration: BoxDecoration(
                                   color: const Color(0xFFEFF6FF),
                                   borderRadius: BorderRadius.circular(16),
@@ -245,7 +267,8 @@ class _ShiftDetailScreenState extends State<ShiftDetailScreen> {
                                     ),
                                     const SizedBox(height: 6),
                                     Row(
-                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
                                       children: [
                                         const Icon(
                                           Icons.access_time_rounded,
@@ -270,7 +293,9 @@ class _ShiftDetailScreenState extends State<ShiftDetailScreen> {
                             const SizedBox(width: 12),
                             Expanded(
                               child: Container(
-                                padding: const EdgeInsets.symmetric(vertical: 14),
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 14,
+                                ),
                                 decoration: BoxDecoration(
                                   color: const Color(0xFFEFF6FF),
                                   borderRadius: BorderRadius.circular(16),
@@ -286,7 +311,8 @@ class _ShiftDetailScreenState extends State<ShiftDetailScreen> {
                                     ),
                                     const SizedBox(height: 6),
                                     Row(
-                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
                                       children: [
                                         const Icon(
                                           Icons.history_rounded,
@@ -340,7 +366,7 @@ class _ShiftDetailScreenState extends State<ShiftDetailScreen> {
                           iconColor: const Color(0xFF2563EB),
                           iconBgColor: const Color(0xFFDBEAFE),
                           title: 'หน้าที่',
-                          subtitle: '(Assignment)',
+                          subtitle: '',
                           onTap: () {
                             Navigator.push(
                               context,
@@ -362,8 +388,19 @@ class _ShiftDetailScreenState extends State<ShiftDetailScreen> {
                           iconColor: const Color(0xFFEA580C),
                           iconBgColor: const Color(0xFFFFEDD5),
                           title: 'รายงานสถานการณ์',
-                          subtitle: '(Report)',
+                          subtitle: '',
                           onTap: () {
+                            if (UserService().isNotStartedYet) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text(
+                                    'ยังไม่ถึงเวลาเริ่มงาน ไม่สามารถรายงานสถานการณ์ได้',
+                                  ),
+                                  backgroundColor: Color(0xFFEF4444),
+                                ),
+                              );
+                              return;
+                            }
                             Navigator.push(
                               context,
                               MaterialPageRoute(
@@ -399,6 +436,17 @@ class _ShiftDetailScreenState extends State<ShiftDetailScreen> {
                       color: Colors.transparent,
                       child: InkWell(
                         onTap: () {
+                          if (UserService().isNotStartedYet) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text(
+                                  'ยังไม่ถึงเวลาเริ่มงาน ไม่สามารถขอยกเลิกงานได้',
+                                ),
+                                backgroundColor: Color(0xFFEF4444),
+                              ),
+                            );
+                            return;
+                          }
                           Navigator.push(
                             context,
                             MaterialPageRoute(
@@ -436,7 +484,7 @@ class _ShiftDetailScreenState extends State<ShiftDetailScreen> {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
-                                      'ขอยกเลิกงาน (Quit Event)',
+                                      'ขอยกเลิกงาน',
                                       style: TextStyle(
                                         fontSize: 15,
                                         fontWeight: FontWeight.bold,
@@ -480,7 +528,9 @@ class _ShiftDetailScreenState extends State<ShiftDetailScreen> {
                         borderRadius: BorderRadius.circular(20),
                         boxShadow: [
                           BoxShadow(
-                            color: const Color(0xFFDC2626).withValues(alpha: 0.3),
+                            color: const Color(
+                              0xFFDC2626,
+                            ).withValues(alpha: 0.3),
                             blurRadius: 12,
                             offset: const Offset(0, 4),
                           ),

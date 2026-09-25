@@ -37,6 +37,8 @@ public class Users {
     private LocalDateTime start_date;
     @Column
     private LocalDateTime quit_date;
+    @Column(name = "status")
+    private String status;
     @Column(nullable = false)
     private String profile_img;
     @Column(length = 50, nullable = false, unique = true)

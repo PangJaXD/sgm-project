@@ -25,6 +25,8 @@ class UserService extends ChangeNotifier {
   );
 
   UserModel get currentUser => _currentUser;
+  bool get isNotStartedYet => _currentUser.isNotStartedYet;
+  bool get isSuspendedOrLayoff => _currentUser.isSuspendedOrLayoff;
 
   Dio _createDio() {
     return Dio(
@@ -43,6 +45,11 @@ class UserService extends ChangeNotifier {
   }
 
   Future<void> setUserFromLoginResponse(Map<String, dynamic> data) async {
+    DateTime? parsedStartDate;
+    if (data['start_date'] != null) {
+      parsedStartDate = DateTime.tryParse(data['start_date'].toString());
+    }
+
     _currentUser = UserModel(
       usersId: data['users_id'] ?? _currentUser.usersId,
       username: data['username'] ?? _currentUser.username,
@@ -51,7 +58,8 @@ class UserService extends ChangeNotifier {
       phone: data['phone'] ?? _currentUser.phone,
       address: data['address'] ?? _currentUser.address,
       role: data['role'] ?? _currentUser.role,
-      startDate: _currentUser.startDate,
+      status: data['status']?.toString() ?? _currentUser.status,
+      startDate: parsedStartDate ?? _currentUser.startDate,
       userDetail: _currentUser.userDetail,
       companyName: data['company_name'] ?? _currentUser.companyName,
       headName: data['head_name'] ?? _currentUser.headName,

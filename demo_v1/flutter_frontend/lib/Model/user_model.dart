@@ -10,6 +10,7 @@ class UserModel {
   final DateTime? quitDate;
   final String profileImg;
   final String role; // "GUARD", "HEAD_GUARD", "ADMIN", "COMPANY"
+  final String status; // "ปฏิบัติงาน", "พักงาน", "พ้นสภาพ"
   final double? performanceScore;
   final String? companyName;
   final String? headName;
@@ -26,6 +27,7 @@ class UserModel {
     this.quitDate,
     this.profileImg = 'default.png',
     this.role = 'GUARD',
+    this.status = 'ปฏิบัติงาน',
     this.performanceScore,
     this.companyName,
     this.headName,
@@ -43,12 +45,13 @@ class UserModel {
       userDetail: json['user_detail']?.toString() ?? '-',
       startDate: json['start_date'] != null
           ? DateTime.tryParse(json['start_date'].toString())
-          : DateTime(2026, 1, 1),
+          : null,
       quitDate: json['quit_date'] != null
           ? DateTime.tryParse(json['quit_date'].toString())
           : null,
       profileImg: json['profile_img']?.toString() ?? 'default.png',
       role: json['role']?.toString() ?? 'GUARD',
+      status: json['status']?.toString() ?? 'ปฏิบัติงาน',
       performanceScore: json['performance_score'] != null
           ? double.tryParse(json['performance_score'].toString())
           : null,
@@ -69,12 +72,28 @@ class UserModel {
         'quit_date': quitDate?.toIso8601String(),
         'profile_img': profileImg,
         'role': role,
+        'status': status,
         'performance_score': performanceScore,
         'company_name': companyName,
         'head_name': headName,
       };
 
   String get fullName => '$firstName $lastName'.trim();
+
+  bool get isNotStartedYet =>
+      startDate != null && startDate!.isAfter(DateTime.now());
+
+  bool get isSuspendedOrLayoff {
+    if (quitDate != null) return true;
+    final s = status.toLowerCase().trim();
+    return s == 'พักงาน' ||
+        s == 'พ้นสภาพ' ||
+        s == 'suspend' ||
+        s == 'suspended' ||
+        s == 'layoff' ||
+        s == 'fired' ||
+        s == 'inactive';
+  }
 
   String get employeeIdDisplay {
     final year = startDate != null ? startDate!.year : 2026;
@@ -108,6 +127,7 @@ class UserModel {
     String? phone,
     String? address,
     String? userDetail,
+    String? status,
   }) {
     return UserModel(
       usersId: usersId,
@@ -121,6 +141,7 @@ class UserModel {
       quitDate: quitDate,
       profileImg: profileImg,
       role: role,
+      status: status ?? this.status,
       performanceScore: performanceScore,
       companyName: companyName,
       headName: headName,

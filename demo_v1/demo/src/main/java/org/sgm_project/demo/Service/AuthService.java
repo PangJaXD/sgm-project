@@ -35,6 +35,22 @@ public class AuthService {
             throw new RuntimeException("Username or password is incorrect");
         }
 
+        // Rule: If user is suspended or layoff, they cannot login
+        boolean isSuspendedOrLayoff = false;
+        if (user.getQuit_date() != null) {
+            isSuspendedOrLayoff = true;
+        }
+        if (user.getStatus() != null) {
+            String s = user.getStatus().trim().toLowerCase();
+            if (s.contains("พักงาน") || s.contains("พ้นสภาพ") || s.contains("suspend") || s.contains("layoff")
+                    || s.contains("fired") || s.equals("inactive")) {
+                isSuspendedOrLayoff = true;
+            }
+        }
+        if (isSuspendedOrLayoff) {
+            throw new RuntimeException("login denied (suspend/layoff) user");
+        }
+
         // this is my favorite part
         // we check this for grants permission to do other things
         String role;
@@ -56,6 +72,9 @@ public class AuthService {
             throw new RuntimeException("Unsupported user role");
         }
 
+        String userStatus = user.getStatus() != null ? user.getStatus()
+                : (user.getQuit_date() == null ? "ปฏิบัติงาน" : "พ้นสภาพ");
+
         // 🌟 อัปเดตการ return ตรงนี้
         // so we send out this json
         return new LoginResponse(
@@ -65,6 +84,8 @@ public class AuthService {
                 user.getFirst_name(), // ส่งชื่อ
                 user.getLast_name(), // ส่งนามสกุล
                 companyName,
-                headName);
+                headName,
+                userStatus,
+                user.getStart_date());
     }
 }

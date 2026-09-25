@@ -284,7 +284,9 @@ function AdminDashboard() {
       phone: formData.phone,
       address: formData.address,
       user_detail: formData.email,
-      start_date: formData.startDate ? `${toISODate(formData.startDate)}T00:00:00` : null,
+      start_date: formData.startDate
+        ? `${toISODate(formData.startDate)}T00:00:00`
+        : null,
       username: formData.username.trim(),
       status: formData.status,
     };

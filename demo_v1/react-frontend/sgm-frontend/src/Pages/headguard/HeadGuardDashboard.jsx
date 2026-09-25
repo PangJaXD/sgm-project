@@ -40,6 +40,7 @@ function HeadGuardDashboard() {
   const [selectedViewAssignment, setSelectedViewAssignment] = useState(null);
 
   const [assignmentsList, setAssignmentsList] = useState([]);
+  const [userProfile, setUserProfile] = useState(null);
 
   const currentUser = useMemo(() => {
     try {
@@ -49,10 +50,49 @@ function HeadGuardDashboard() {
       return null;
     }
   }, []);
-  const fname = currentUser?.first_name || currentUser?.firstName;
-  const lname = currentUser?.last_name || currentUser?.lastName;
-  const userRank = currentUser?.rank || currentUser?.user_rank;
-  const userTitle = currentUser?.title;
+
+  const headGuardId = currentUser?.users_id || currentUser?.id || 1;
+
+  useEffect(() => {
+    if (headGuardId) {
+      axios
+        .get(`http://localhost:8080/api/headguards/${headGuardId}`)
+        .then((res) => {
+          if (res.data) setUserProfile(res.data);
+        })
+        .catch(() => {});
+    }
+  }, [headGuardId]);
+
+  const startDateStr =
+    userProfile?.start_date ||
+    userProfile?.startDate ||
+    currentUser?.start_date ||
+    currentUser?.startDate;
+
+  const isNotStartedYet = useMemo(() => {
+    if (!startDateStr) return false;
+    const sDate = new Date(startDateStr);
+    return !isNaN(sDate.getTime()) && sDate.getTime() > Date.now();
+  }, [startDateStr]);
+
+  const formattedStartDate = useMemo(() => {
+    if (!startDateStr) return "";
+    try {
+      const d = new Date(startDateStr);
+      return !isNaN(d.getTime()) ? d.toLocaleDateString("th-TH") : startDateStr;
+    } catch {
+      return startDateStr;
+    }
+  }, [startDateStr]);
+
+  const fname =
+    userProfile?.first_name || currentUser?.first_name || currentUser?.firstName;
+  const lname =
+    userProfile?.last_name || currentUser?.last_name || currentUser?.lastName;
+  const userRank =
+    userProfile?.rank || currentUser?.rank || currentUser?.user_rank;
+  const userTitle = userProfile?.title || currentUser?.title;
   const headGuardName =
     fname && lname
       ? formatRankAndName({
@@ -62,7 +102,6 @@ function HeadGuardDashboard() {
           lastName: lname,
         })
       : currentUser?.username || "นาย สมชาย รักดี";
-  const headGuardId = currentUser?.users_id || currentUser?.id || 1;
 
   const calculateExperience = (startDateStr, quitDateStr = null) => {
     if (!startDateStr) return "ไม่ระบุ";
@@ -332,6 +371,10 @@ function HeadGuardDashboard() {
   };
 
   const moveToActual = async (assignmentId) => {
+    if (isNotStartedYet) {
+      alert("ยังไม่ถึงเวลาเริ่มงาน ไม่สามารถดำเนินการได้");
+      return;
+    }
     try {
       await axios.put(
         `http://localhost:8080/api/headguard-dashboard/assignments/${assignmentId}/status`,
@@ -340,11 +383,17 @@ function HeadGuardDashboard() {
       fetchAssignments(selectedShiftDetail.shiftId, selectedShiftDetail);
     } catch (error) {
       console.error("Error updating status:", error);
-      alert("เกิดข้อผิดพลาดในการย้ายสถานะ");
+      const msg =
+        error.response?.data?.message || "เกิดข้อผิดพลาดในการย้ายสถานะ";
+      alert(msg);
     }
   };
 
   const handleSaveAssignment = async (updatedData) => {
+    if (isNotStartedYet) {
+      alert("ยังไม่ถึงเวลาเริ่มงาน ไม่สามารถดำเนินการได้");
+      return;
+    }
     try {
       await axios.put(
         `http://localhost:8080/api/headguard-dashboard/assignments/${updatedData.id}/detail`,
@@ -360,11 +409,17 @@ function HeadGuardDashboard() {
       alert("บันทึกการมอบหมายงานเรียบร้อยแล้ว");
     } catch (error) {
       console.error("Error saving assignment detail:", error);
-      alert("เกิดข้อผิดพลาดในการมอบหมายงาน");
+      const msg =
+        error.response?.data?.message || "เกิดข้อผิดพลาดในการมอบหมายงาน";
+      alert(msg);
     }
   };
 
   const handlePublishGuardRecruitment = async () => {
+    if (isNotStartedYet) {
+      alert("ยังไม่ถึงเวลาเริ่มงาน ไม่สามารถดำเนินการได้");
+      return;
+    }
     if (!selectedShiftDetail) return;
     const eventId = selectedShiftDetail.eventId || selectedShiftDetail.event_id;
     const shiftId = selectedShiftDetail.shiftId || selectedShiftDetail.shift_id;
@@ -406,7 +461,9 @@ function HeadGuardDashboard() {
       alert("แจ้งรับสมัครงานเรียบร้อยแล้ว");
     } catch (error) {
       console.error("Error updating guard visibility:", error);
-      alert("เกิดข้อผิดพลาดในการแจ้งรับสมัครงาน");
+      const msg =
+        error.response?.data?.message || "เกิดข้อผิดพลาดในการแจ้งรับสมัครงาน";
+      alert(msg);
     }
   };
 
@@ -477,6 +534,21 @@ function HeadGuardDashboard() {
           </div>
         </header>
 
+        {/* Read-only notification banner when work hasn't started yet */}
+        {isNotStartedYet && (
+          <div className="bg-amber-500 text-white px-8 py-3 flex items-center justify-between text-xs md:text-sm font-semibold shadow-inner">
+            <div className="flex items-center gap-2">
+              <span className="text-base">⚠️</span>
+              <span>
+                ยังไม่ถึงเวลาเริ่มงาน (กำหนดเริ่มงาน: {formattedStartDate}) — ขณะนี้คุณอยู่ในโหมดดูข้อมูลเท่านั้น (Read-Only) ไม่สามารถมอบหมายงานหรือเปิดรับสมัครงานได้
+              </span>
+            </div>
+            <span className="bg-amber-700/80 px-2 py-0.5 rounded text-[11px] uppercase tracking-wider font-bold">
+              Read-Only
+            </span>
+          </div>
+        )}
+
         <section className="px-8 pt-8 pb-10">
           {activeMenu === "event" && selectedShiftDetail ? (
             /* 🌟 หน้าจอ Assign งาน (รูปที่ 2) */
@@ -521,7 +593,17 @@ function HeadGuardDashboard() {
                     !selectedShiftDetail.guardVisible && (
                       <button
                         onClick={handlePublishGuardRecruitment}
-                        className="bg-[#F5B020] hover:bg-yellow-500 text-gray-900 px-4 py-1.5 rounded-lg text-[12px] font-bold flex items-center gap-2 shadow-sm transition"
+                        disabled={isNotStartedYet}
+                        title={
+                          isNotStartedYet
+                            ? "ยังไม่ถึงเวลาเริ่มงาน ไม่สามารถแจ้งรับสมัครงานได้"
+                            : ""
+                        }
+                        className={`${
+                          isNotStartedYet
+                            ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                            : "bg-[#F5B020] hover:bg-yellow-500 text-gray-900 cursor-pointer"
+                        } px-4 py-1.5 rounded-lg text-[12px] font-bold flex items-center gap-2 shadow-sm transition`}
                       >
                         <Bell size={14} /> แจ้งรับสมัครงาน
                       </button>
@@ -556,10 +638,24 @@ function HeadGuardDashboard() {
                           {item.status === "ACTUAL" ? (
                             <button
                               onClick={() => {
+                                if (isNotStartedYet) {
+                                  alert("ยังไม่ถึงเวลาเริ่มงาน ไม่สามารถดำเนินการได้");
+                                  return;
+                                }
                                 setSelectedAssignment(item);
                                 setIsAssignModalOpen(true);
                               }}
-                              className="bg-emerald-500 hover:bg-emerald-600 text-white px-3 py-1 rounded-full text-[10px] font-semibold transition"
+                              disabled={isNotStartedYet}
+                              title={
+                                isNotStartedYet
+                                  ? "ยังไม่ถึงเวลาเริ่มงาน ไม่สามารถมอบหมายงานได้"
+                                  : ""
+                              }
+                              className={`${
+                                isNotStartedYet
+                                  ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                                  : "bg-emerald-500 hover:bg-emerald-600 text-white cursor-pointer"
+                              } px-3 py-1 rounded-full text-[10px] font-semibold transition`}
                             >
                               มอบหมายงาน
                             </button>
@@ -611,7 +707,17 @@ function HeadGuardDashboard() {
                         <div className="flex justify-center">
                           <button
                             onClick={() => moveToActual(item.id)}
-                            className="bg-emerald-500 hover:bg-emerald-600 text-white px-3 py-1 rounded-full text-[10px] font-semibold transition border border-emerald-600"
+                            disabled={isNotStartedYet}
+                            title={
+                              isNotStartedYet
+                                ? "ยังไม่ถึงเวลาเริ่มงาน ไม่สามารถย้ายไปตัวจริงได้"
+                                : ""
+                            }
+                            className={`${
+                              isNotStartedYet
+                                ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                                : "bg-emerald-500 hover:bg-emerald-600 text-white cursor-pointer"
+                            } px-3 py-1 rounded-full text-[10px] font-semibold transition border border-emerald-600`}
                           >
                             ย้ายไปตัวจริง
                           </button>

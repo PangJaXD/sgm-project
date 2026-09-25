@@ -145,14 +145,6 @@ class _AssignmentDetailScreenState extends State<AssignmentDetailScreen> {
         ? _assignment.providedTools
         : widget.event.providedTools;
 
-    final effectiveSupervisorName =
-        _assignment.supervisorName != null &&
-            _assignment.supervisorName!.isNotEmpty
-        ? _assignment.supervisorName!
-        : ((_userService.currentUser.headName?.isNotEmpty ?? false)
-              ? _userService.currentUser.headName!
-              : 'หัวหน้าชุด รปภ.');
-
     return Scaffold(
       backgroundColor: backgroundColor,
       body: Column(
@@ -438,7 +430,7 @@ class _AssignmentDetailScreenState extends State<AssignmentDetailScreen> {
                                   ),
                                   SizedBox(width: 8),
                                   Text(
-                                    'รายการที่ต้องทำและอุปกรณ์ (Checklist)',
+                                    'รายการที่ต้องทำและอุปกรณ์',
                                     style: TextStyle(
                                       fontSize: 16,
                                       fontWeight: FontWeight.bold,
@@ -612,108 +604,107 @@ class _AssignmentDetailScreenState extends State<AssignmentDetailScreen> {
                               const SizedBox(height: 12),
 
                               // Dynamic Checklist points
-                              ..._assignment.patrolChecklist.map(
-                                (item) => Padding(
-                                  padding: const EdgeInsets.only(bottom: 6),
-                                  child: Row(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      const Icon(
-                                        Icons.check_circle_rounded,
-                                        color: Color(0xFF16A34A),
-                                        size: 16,
-                                      ),
-                                      const SizedBox(width: 8),
-                                      Expanded(
-                                        child: Text(
-                                          item,
-                                          style: const TextStyle(
-                                            fontSize: 13.5,
-                                            color: Color(0xFF475569),
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
+                              // ..._assignment.patrolChecklist.map(
+                              //   (item) => Padding(
+                              //     padding: const EdgeInsets.only(bottom: 6),
+                              //     child: Row(
+                              //       crossAxisAlignment:
+                              //           CrossAxisAlignment.start,
+                              //       children: [
+                              //         const Icon(
+                              //           Icons.check_circle_rounded,
+                              //           color: Color(0xFF16A34A),
+                              //           size: 16,
+                              //         ),
+                              //         const SizedBox(width: 8),
+                              //         Expanded(
+                              //           child: Text(
+                              //             item,
+                              //             style: const TextStyle(
+                              //               fontSize: 13.5,
+                              //               color: Color(0xFF475569),
+                              //             ),
+                              //           ),
+                              //         ),
+                              //       ],
+                              //     ),
+                              //   ),
+                              // ),
                             ],
                           ),
                         ),
 
                         const SizedBox(height: 20),
 
-                        // Supervisor Note Card
-                        Container(
-                          width: double.infinity,
-                          padding: const EdgeInsets.all(18),
-                          decoration: BoxDecoration(
-                            color: const Color(
-                              0xFFFEF3C7,
-                            ).withValues(alpha: 0.4),
-                            borderRadius: BorderRadius.circular(20),
-                            border: Border.all(color: const Color(0xFFFDE68A)),
-                          ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                children: [
-                                  const Icon(
-                                    Icons.feed_rounded,
-                                    color: Color(0xFFD97706),
-                                    size: 18,
-                                  ),
-                                  const SizedBox(width: 8),
-                                  Text(
-                                    'หมายเหตุจากผู้ดูแล ($effectiveSupervisorName)',
-                                    style: const TextStyle(
-                                      fontSize: 14.5,
-                                      fontWeight: FontWeight.bold,
-                                      color: Color(0xFF92400E),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 8),
-                              Text(
-                                _assignment.supervisorNote.isNotEmpty
-                                    ? _assignment.supervisorNote
-                                    : 'ปฏิบัติตามคำสั่งของหัวหน้าชุดอย่างเคร่งครัด หากพบเหตุผิดปกติให้รายงานสถานการณ์ทันที',
-                                style: const TextStyle(
-                                  fontSize: 13.5,
-                                  color: Color(0xFF78350F),
-                                  height: 1.5,
-                                ),
-                              ),
-                              if (widget.event.contractor.isNotEmpty ||
-                                  widget.event.contact.isNotEmpty) ...[
-                                const SizedBox(height: 10),
-                                Row(
-                                  children: [
-                                    const Icon(
-                                      Icons.business_rounded,
-                                      size: 14,
-                                      color: Color(0xFFB45309),
-                                    ),
-                                    const SizedBox(width: 6),
-                                    Expanded(
-                                      child: Text(
-                                        'ผู้ว่าจ้าง/สถานที่: ${widget.event.contractor} ${widget.event.contact.isNotEmpty ? '(${widget.event.contact})' : ''}',
-                                        style: const TextStyle(
-                                          fontSize: 12,
-                                          color: Color(0xFF92400E),
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ],
-                            ],
-                          ),
-                        ),
-
+                        // // Supervisor Note Card
+                        // Container(
+                        //   width: double.infinity,
+                        //   padding: const EdgeInsets.all(18),
+                        //   decoration: BoxDecoration(
+                        //     color: const Color(
+                        //       0xFFFEF3C7,
+                        //     ).withValues(alpha: 0.4),
+                        //     borderRadius: BorderRadius.circular(20),
+                        //     border: Border.all(color: const Color(0xFFFDE68A)),
+                        //   ),
+                        //   // child: Column(
+                        //   //   crossAxisAlignment: CrossAxisAlignment.start,
+                        //   //   children: [
+                        //   //     Row(
+                        //   //       children: [
+                        //   //         const Icon(
+                        //   //           Icons.feed_rounded,
+                        //   //           color: Color(0xFFD97706),
+                        //   //           size: 18,
+                        //   //         ),
+                        //   //         const SizedBox(width: 8),
+                        //   //         Text(
+                        //   //           'หมายเหตุจากผู้ดูแล ($effectiveSupervisorName)',
+                        //   //           style: const TextStyle(
+                        //   //             fontSize: 14.5,
+                        //   //             fontWeight: FontWeight.bold,
+                        //   //             color: Color(0xFF92400E),
+                        //   //           ),
+                        //   //         ),
+                        //   //       ],
+                        //   //     ),
+                        //   //     const SizedBox(height: 8),
+                        //   //     Text(
+                        //   //       _assignment.supervisorNote.isNotEmpty
+                        //   //           ? _assignment.supervisorNote
+                        //   //           : 'ปฏิบัติตามคำสั่งของหัวหน้าชุดอย่างเคร่งครัด หากพบเหตุผิดปกติให้รายงานสถานการณ์ทันที',
+                        //   //       style: const TextStyle(
+                        //   //         fontSize: 13.5,
+                        //   //         color: Color(0xFF78350F),
+                        //   //         height: 1.5,
+                        //   //       ),
+                        //   //     ),
+                        //   //     if (widget.event.contractor.isNotEmpty ||
+                        //   //         widget.event.contact.isNotEmpty) ...[
+                        //   //       const SizedBox(height: 10),
+                        //   //       Row(
+                        //   //         children: [
+                        //   //           const Icon(
+                        //   //             Icons.business_rounded,
+                        //   //             size: 14,
+                        //   //             color: Color(0xFFB45309),
+                        //   //           ),
+                        //   //           const SizedBox(width: 6),
+                        //   //           Expanded(
+                        //   //             child: Text(
+                        //   //               'ผู้ว่าจ้าง/สถานที่: ${widget.event.contractor} ${widget.event.contact.isNotEmpty ? '(${widget.event.contact})' : ''}',
+                        //   //               style: const TextStyle(
+                        //   //                 fontSize: 12,
+                        //   //                 color: Color(0xFF92400E),
+                        //   //               ),
+                        //   //             ),
+                        //   //           ),
+                        //   //         ],
+                        //   //       ),
+                        //   //     ],
+                        //   //   ],
+                        //   // ),
+                        // ),
                         const SizedBox(height: 28),
 
                         // Quick Button to Report Situation
@@ -722,6 +713,17 @@ class _AssignmentDetailScreenState extends State<AssignmentDetailScreen> {
                           height: 50,
                           child: ElevatedButton.icon(
                             onPressed: () {
+                              if (_userService.isNotStartedYet) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text(
+                                      'ยังไม่ถึงเวลาเริ่มงาน ไม่สามารถรายงานสถานการณ์ได้',
+                                    ),
+                                    backgroundColor: Color(0xFFEF4444),
+                                  ),
+                                );
+                                return;
+                              }
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
@@ -738,7 +740,7 @@ class _AssignmentDetailScreenState extends State<AssignmentDetailScreen> {
                               size: 20,
                             ),
                             label: const Text(
-                              'รายงานสถานการณ์ (Report Situation)',
+                              'รายงานสถานการณ์',
                               style: TextStyle(
                                 color: Colors.white,
                                 fontSize: 15.5,

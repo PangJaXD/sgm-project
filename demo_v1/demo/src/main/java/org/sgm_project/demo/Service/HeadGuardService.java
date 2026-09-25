@@ -91,6 +91,14 @@ public class HeadGuardService {
         existingHeadGuard.setUser_detail(headGuard.getUser_detail());
         existingHeadGuard.setStart_date(headGuard.getStart_date());
         existingHeadGuard.setQuit_date(headGuard.getQuit_date());
+        if (headGuard.getStatus() != null) {
+            existingHeadGuard.setStatus(headGuard.getStatus());
+            if ("ปฏิบัติงาน".equals(headGuard.getStatus())) {
+                existingHeadGuard.setQuit_date(null);
+            } else if (existingHeadGuard.getQuit_date() == null) {
+                existingHeadGuard.setQuit_date(java.time.LocalDateTime.now());
+            }
+        }
         existingHeadGuard.setProfile_img(headGuard.getProfile_img());
         existingHeadGuard.setUsername(headGuard.getUsername());
         if (headGuard.getPassword() != null && !headGuard.getPassword().isEmpty()) {
@@ -105,6 +113,8 @@ public class HeadGuardService {
 
     // เพิ่มเมธอดนี้ใน HeadGuardService
     public HeadGuardResponse mapToResponseDTO(HeadGuard headGuard) {
+        String status = headGuard.getStatus() != null ? headGuard.getStatus()
+                : (headGuard.getQuit_date() == null ? "ปฏิบัติงาน" : "พ้นสภาพ");
         return HeadGuardResponse.builder()
                 .users_id(headGuard.getUsers_id())
                 .username(headGuard.getUsername())
@@ -118,6 +128,7 @@ public class HeadGuardService {
                 .user_detail(headGuard.getUser_detail())
                 .start_date(headGuard.getStart_date())
                 .quit_date(headGuard.getQuit_date())
+                .status(status)
                 .profile_img(headGuard.getProfile_img())
                 .company_name(headGuard.getCompany_name())
                 .performance_score(headGuard.getPerformance_score())

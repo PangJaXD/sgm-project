@@ -95,7 +95,10 @@ function LoginPage() {
       if (error.response) {
         // กรณีเซิร์ฟเวอร์ตอบกลับมาด้วย Status Code อื่นที่ไม่ใช่ 2xx
         // เช่น 401 Unauthorized
-        setError("ชื่อผู้ใช้งานหรือรหัสผ่านไม่ถูกต้อง");
+        const backendMsg =
+          error.response.data?.message ||
+          (typeof error.response.data === "string" ? error.response.data : "");
+        setError(backendMsg || "ชื่อผู้ใช้งานหรือรหัสผ่านไม่ถูกต้อง");
       } else if (error.request) {
         // กรณีส่งคำขอไปแล้ว แต่ไม่ได้รับการตอบกลับ (เช่น เซิร์ฟเวอร์ล่ม)
         setError("ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์ได้ โปรดลองอีกครั้ง");

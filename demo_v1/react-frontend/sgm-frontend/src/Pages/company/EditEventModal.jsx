@@ -9,6 +9,7 @@ import {
   Image as ImageIcon,
   PenSquare,
   Edit,
+  Trash,
   Locate,
   Search,
   Loader2,
@@ -304,7 +305,21 @@ export default function EditEventModal({
   if (!isOpen) return null;
 
   const handleAddRequiredTool = () => setRequiredTools([...requiredTools, ""]);
+  const handleRemoveRequiredTool = (index) => {
+    if (requiredTools.length > 1) {
+      setRequiredTools(requiredTools.filter((_, idx) => idx !== index));
+    } else {
+      setRequiredTools([""]);
+    }
+  };
   const handleAddProvidedTool = () => setProvidedTools([...providedTools, ""]);
+  const handleRemoveProvidedTool = (index) => {
+    if (providedTools.length > 1) {
+      setProvidedTools(providedTools.filter((_, idx) => idx !== index));
+    } else {
+      setProvidedTools([""]);
+    }
+  };
 
   const handleAddShift = () => {
     setShifts([
@@ -423,7 +438,9 @@ export default function EditEventModal({
                 />
               </div>
               <div className="flex items-center justify-between">
-                <label className="font-semibold w-[140px] shrink-0">สถานที่จัดงาน:</label>
+                <label className="font-semibold w-[140px] shrink-0">
+                  สถานที่จัดงาน:
+                </label>
                 <div className="relative flex-1">
                   <input
                     type="text"
@@ -438,7 +455,9 @@ export default function EditEventModal({
                 </div>
               </div>
               <div className="flex items-center justify-between">
-                <label className="font-semibold w-[140px] shrink-0">วันที่เริ่มปฏิบัติงาน:</label>
+                <label className="font-semibold w-[140px] shrink-0">
+                  วันที่เริ่มปฏิบัติงาน:
+                </label>
                 <Flatpickr
                   value={startDate}
                   onChange={([date], dateStr) => setStartDate(dateStr)}
@@ -466,7 +485,9 @@ export default function EditEventModal({
                 />
               </div>
               <div className="flex items-center justify-between">
-                <label className="font-semibold w-[140px] shrink-0">สถานะงานอีเว้นท์:</label>
+                <label className="font-semibold w-[140px] shrink-0">
+                  สถานะงานอีเว้นท์:
+                </label>
                 <select
                   value={status}
                   onChange={(e) => setStatus(e.target.value)}
@@ -616,15 +637,24 @@ export default function EditEventModal({
                         onChange={(e) =>
                           updateTool("required", idx, e.target.value)
                         }
-                        className="flex-1 h-[26px] border border-gray-400 rounded-full px-3 text-[12px] outline-none"
+                        className="flex-1 h-[30px] border border-gray-300 rounded-lg px-3 text-[12px] bg-white outline-none focus:border-blue-500"
                       />
+                      {requiredTools.length > 1 && (
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveRequiredTool(idx)}
+                          className="text-gray-400 hover:text-red-500"
+                        >
+                          <Trash size={14} />
+                        </button>
+                      )}
                     </div>
                   ))}
                   <button
                     onClick={handleAddRequiredTool}
-                    className="text-gray-400 hover:text-gray-600 float-right"
+                    className="text-gray-400 hover:text-gray-600 float-right flex items-center gap-1 text-xs mt-1"
                   >
-                    <Plus size={16} />
+                    <Plus size={16} /> เพิ่มอุปกรณ์
                   </button>
                 </div>
                 <div>
@@ -640,15 +670,24 @@ export default function EditEventModal({
                         onChange={(e) =>
                           updateTool("provided", idx, e.target.value)
                         }
-                        className="flex-1 h-[26px] border border-gray-400 rounded-full px-3 text-[12px] outline-none"
+                        className="flex-1 h-[30px] border border-gray-300 rounded-lg px-3 text-[12px] bg-white outline-none focus:border-blue-500"
                       />
+                      {requiredTools.length > 1 && (
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveProvidedTool(idx)}
+                          className="text-gray-400 hover:text-red-500"
+                        >
+                          <Trash size={14} />
+                        </button>
+                      )}
                     </div>
                   ))}
                   <button
                     onClick={handleAddProvidedTool}
-                    className="text-gray-400 hover:text-gray-600 float-right"
+                    className="text-gray-400 hover:text-gray-600 float-right flex items-center gap-1 text-xs mt-1"
                   >
-                    <Plus size={16} />
+                    <Plus size={16} /> เพิ่มอุปกรณ์
                   </button>
                 </div>
               </div>
@@ -692,7 +731,7 @@ export default function EditEventModal({
                       onChange={(e) =>
                         updateShift(idx, "guards", e.target.value)
                       }
-                      className="w-full h-[30px] border border-gray-400 rounded-full pl-4 pr-10 outline-none"
+                      className="w-full h-[32px] border border-gray-300 rounded-lg pl-3 pr-10 outline-none focus:border-blue-500 bg-white text-xs"
                     />
                     <Users
                       size={16}
@@ -712,7 +751,7 @@ export default function EditEventModal({
                       allowInput: true,
                     }}
                     placeholder="วว/ดด/ปปปป"
-                    className="w-full h-[30px] border border-gray-400 rounded-full px-4 outline-none text-gray-700 bg-white text-xs"
+                    className="w-full h-[32px] border border-gray-300 rounded-lg px-3 outline-none focus:border-blue-500 text-gray-700 bg-white text-xs"
                   />
                 </div>
                 <div className="grid grid-cols-[140px_1fr] items-center gap-2">
@@ -730,7 +769,7 @@ export default function EditEventModal({
                       allowInput: true,
                     }}
                     placeholder="--:--"
-                    className="w-full h-[30px] border border-gray-400 rounded-full px-4 outline-none text-gray-700 bg-white text-xs"
+                    className="w-full h-[32px] border border-gray-300 rounded-lg px-3 outline-none focus:border-blue-500 text-gray-700 bg-white text-xs"
                   />
                 </div>
                 <div className="grid grid-cols-[140px_1fr] items-center gap-2">
@@ -750,7 +789,7 @@ export default function EditEventModal({
                       allowInput: true,
                     }}
                     placeholder="--:--"
-                    className="w-full h-[30px] border border-gray-400 rounded-full px-4 outline-none text-gray-700 bg-white text-xs"
+                    className="w-full h-[32px] border border-gray-300 rounded-lg px-3 outline-none focus:border-blue-500 text-gray-700 bg-white text-xs"
                   />
                 </div>
                 <div className="grid grid-cols-[140px_1fr] items-center gap-2">
@@ -762,7 +801,7 @@ export default function EditEventModal({
                     onChange={(e) =>
                       updateShift(idx, "headGuard", e.target.value)
                     }
-                    className="w-full h-[32px] border border-gray-400 rounded-full px-4 outline-none bg-white text-gray-600"
+                    className="w-full h-[32px] border border-gray-300 rounded-lg px-3 outline-none focus:border-blue-500 bg-white text-gray-600 text-xs cursor-pointer"
                   >
                     <option value="">-- กรุณาเลือกหัวหน้าชุด --</option>
                     {headGuardsList.map((hg) => (

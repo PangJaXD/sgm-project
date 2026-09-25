@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../Model/auth_api_screen.dart';
+import '../Service/api_exception.dart';
 import '../Service/user_service.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -50,12 +51,7 @@ class _LoginScreenState extends State<LoginScreen> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(e.toString().replaceAll('Exception: ', '')),
-            backgroundColor: Colors.redAccent,
-          ),
-        );
+        ApiException.showSnackBar(context, e);
       }
     } finally {
       if (mounted) setState(() => _isLoading = false);
