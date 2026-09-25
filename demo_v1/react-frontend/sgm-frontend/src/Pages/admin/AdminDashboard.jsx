@@ -68,9 +68,42 @@ function AdminDashboard() {
   const fetchCompanies = useCallback(async () => {
     try {
       setIsLoading(true);
-      const res = await axios.get("http://localhost:8080/api/company");
+      const params = {};
+      if (adminName && adminName !== "Admin Master") {
+        params.adminName = adminName;
+      } else if (currentUser?.first_name) {
+        params.adminName = currentUser.first_name;
+      }
+      if (currentUser?.username) {
+        params.adminUsername = currentUser.username;
+      }
+
+      const res = await axios.get("http://localhost:8080/api/company", { params });
       if (Array.isArray(res.data)) {
-        const sorted = [...res.data].sort(
+        const adminIdentifiers = [
+          adminName,
+          currentUser?.username,
+          currentUser?.first_name,
+          currentUser?.first_name && currentUser?.last_name
+            ? `${currentUser.first_name} ${currentUser.last_name}`.trim()
+            : null,
+        ]
+          .filter(Boolean)
+          .map((n) => n.toLowerCase().trim());
+
+        const filteredByAdmin = res.data.filter((c) => {
+          if (!adminIdentifiers.length) return true;
+          const compAdmin = (c.admin_name || "").toLowerCase().trim();
+          if (!compAdmin) return false;
+          return adminIdentifiers.some(
+            (id) =>
+              compAdmin === id ||
+              compAdmin.includes(id) ||
+              id.includes(compAdmin),
+          );
+        });
+
+        const sorted = [...filteredByAdmin].sort(
           (a, b) => (Number(a.users_id) || 0) - (Number(b.users_id) || 0),
         );
         const formatted = sorted.map((c, index) => {
@@ -100,7 +133,7 @@ function AdminDashboard() {
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [adminName, currentUser]);
 
   useEffect(() => {
     fetchCompanies();

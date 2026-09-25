@@ -65,6 +65,14 @@ public class CompanyService {
                 .collect(Collectors.toList());
     }
 
+    public List<CompanyResponse> getCompaniesByAdmin(String adminName, String adminUsername) {
+        String name = (adminName != null && !adminName.trim().isEmpty()) ? adminName.trim() : null;
+        String username = (adminUsername != null && !adminUsername.trim().isEmpty()) ? adminUsername.trim() : null;
+        return companyRepository.findByAdmin(name, username).stream()
+                .map(this::mapToResponse)
+                .collect(Collectors.toList());
+    }
+
     public CompanyResponse getCompanyById(Integer id) {
         Company company = companyRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("ไม่พบข้อมูลบริษัทรักษาความปลอดภัยรหัส: " + id));

@@ -32,7 +32,13 @@ public class CompanyController {
     }
 
     @GetMapping
-    public ResponseEntity<List<CompanyResponse>> getAllCompanies() {
+    public ResponseEntity<List<CompanyResponse>> getAllCompanies(
+            @RequestParam(required = false) String adminName,
+            @RequestParam(required = false) String adminUsername) {
+        if ((adminName != null && !adminName.trim().isEmpty())
+                || (adminUsername != null && !adminUsername.trim().isEmpty())) {
+            return ResponseEntity.ok(companyService.getCompaniesByAdmin(adminName, adminUsername));
+        }
         return ResponseEntity.ok(companyService.getAllCompanies());
     }
 
