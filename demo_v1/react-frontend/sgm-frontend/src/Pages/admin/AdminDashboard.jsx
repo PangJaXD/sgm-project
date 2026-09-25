@@ -70,10 +70,14 @@ function AdminDashboard() {
       setIsLoading(true);
       const res = await axios.get("http://localhost:8080/api/company");
       if (Array.isArray(res.data)) {
-        const formatted = res.data.map((c) => {
+        const sorted = [...res.data].sort(
+          (a, b) => (Number(a.users_id) || 0) - (Number(b.users_id) || 0),
+        );
+        const formatted = sorted.map((c, index) => {
           const isActive = c.quit_date === null;
+          const ordinalNumber = (index + 1).toString();
           return {
-            id: `C-${(c.users_id || 0).toString().padStart(3, "0")}`,
+            id: `${ordinalNumber}`,
             rawId: c.users_id,
             companyName: c.company_name || c.username || "-",
             username: c.username,
@@ -325,9 +329,7 @@ function AdminDashboard() {
         </div>
 
         <nav className="flex-1 pt-6 px-3">
-          <button
-            className="w-full h-[40px] mb-2.5 rounded-xl flex items-center justify-start gap-2.5 px-3.5 text-[13px] font-medium bg-blue-600 text-white shadow-sm cursor-pointer"
-          >
+          <button className="w-full h-[40px] mb-2.5 rounded-xl flex items-center justify-start gap-2.5 px-3.5 text-[13px] font-medium bg-blue-600 text-white shadow-sm cursor-pointer">
             <Building2 size={17} />
             <span className="whitespace-nowrap">บริษัท รปภ.</span>
           </button>
@@ -398,8 +400,8 @@ function AdminDashboard() {
 
             {/* Table (Matching Fig 3.127) */}
             <div className="w-full border border-gray-400 rounded-xl overflow-hidden bg-white/90 shadow-sm">
-              <div className="grid grid-cols-[140px_2fr_1.5fr_1.2fr_1.2fr_50px] h-[44px] bg-blue-500 text-white items-center text-[13px] font-semibold px-5">
-                <div className="text-center">รหัสประจำตัวบริษัท</div>
+              <div className="grid grid-cols-[100px_2fr_1.5fr_1.2fr_1.2fr_50px] h-[44px] bg-blue-500 text-white items-center text-[13px] font-semibold px-5">
+                <div className="text-center">ลำดับที่</div>
                 <div>บริษัทรักษาความปลอดภัย</div>
                 <div>เบอร์โทรศัพท์</div>
                 <div>วันที่เริ่มทำงาน</div>
@@ -420,9 +422,9 @@ function AdminDashboard() {
                 filteredCompanies.map((comp) => (
                   <div
                     key={comp.id}
-                    className="grid grid-cols-[140px_2fr_1.5fr_1.2fr_1.2fr_50px] min-h-[48px] items-center border-t border-gray-300 text-[13px] px-5 hover:bg-blue-50/40 transition"
+                    className="grid grid-cols-[100px_2fr_1.5fr_1.2fr_1.2fr_50px] min-h-[48px] items-center border-t border-gray-300 text-[13px] px-5 hover:bg-blue-50/40 transition"
                   >
-                    <div className="text-center font-medium text-gray-700 bg-gray-200/60 py-1 px-2.5 rounded-lg w-24 mx-auto">
+                    <div className="text-center font-medium text-gray-700 bg-gray-200/60 py-1 px-2.5 rounded-lg w-16 mx-auto">
                       {comp.id}
                     </div>
                     <div className="font-semibold text-gray-900">
@@ -438,9 +440,7 @@ function AdminDashboard() {
                           comp.active ? "bg-emerald-500" : "bg-red-500"
                         }`}
                       />
-                      <span className="text-xs font-medium">
-                        {comp.status}
-                      </span>
+                      <span className="text-xs font-medium">{comp.status}</span>
                     </div>
                     <div className="flex justify-center items-center">
                       <button
@@ -647,13 +647,13 @@ function AdminDashboard() {
                 <div className="flex-1 flex flex-col gap-3.5">
                   <div className="flex items-center">
                     <label className="w-[130px] font-semibold text-gray-700">
-                      รหัสประจำตัวบริษัท
+                      ลำดับที่
                     </label>
                     <input
                       type="text"
                       readOnly
                       value={editingDisplayId}
-                      className="flex-1 h-[30px] border border-gray-400 rounded-full px-3 text-center bg-gray-100 outline-none text-xs font-semibold cursor-default"
+                      className="flex-1 h-[32px] border border-gray-300 rounded-lg px-3 bg-gray-100 outline-none text-center"
                     />
                   </div>
 
@@ -665,7 +665,7 @@ function AdminDashboard() {
                       type="text"
                       readOnly
                       value="••••••••"
-                      className="flex-1 h-[30px] border border-gray-400 rounded-full px-3 text-center bg-gray-50 outline-none text-xs cursor-default"
+                      className="flex-1 h-[32px] border border-gray-300 rounded-lg px-3 bg-gray-100 outline-none"
                     />
                   </div>
 
@@ -677,7 +677,7 @@ function AdminDashboard() {
                       type="text"
                       readOnly
                       value={formData.companyName}
-                      className="flex-1 h-[30px] border border-gray-400 rounded-full px-3 text-center bg-gray-50 outline-none text-xs font-medium cursor-default"
+                      className="flex-1 h-[32px] border border-gray-300 rounded-lg px-3 bg-gray-100 outline-none"
                     />
                   </div>
 
@@ -689,7 +689,7 @@ function AdminDashboard() {
                       type="text"
                       readOnly
                       value={formData.phone}
-                      className="flex-1 h-[30px] border border-gray-400 rounded-full px-3 text-center bg-gray-50 outline-none text-xs cursor-default"
+                      className="flex-1 h-[32px] border border-gray-300 rounded-lg px-3 bg-gray-100 outline-none"
                     />
                   </div>
 
@@ -701,7 +701,7 @@ function AdminDashboard() {
                       type="text"
                       readOnly
                       value={formData.email}
-                      className="flex-1 h-[30px] border border-gray-400 rounded-full px-3 text-center bg-gray-50 outline-none text-xs cursor-default"
+                      className="flex-1 h-[32px] border border-gray-300 rounded-lg px-3 bg-gray-100 outline-none"
                     />
                   </div>
 
@@ -713,7 +713,7 @@ function AdminDashboard() {
                       type="text"
                       readOnly
                       value={formatThaiDate(formData.startDate)}
-                      className="flex-1 h-[30px] border border-gray-400 rounded-full px-3 text-center bg-gray-50 outline-none text-xs cursor-default"
+                      className="flex-1 h-[32px] border border-gray-300 rounded-lg px-3 bg-gray-100 outline-none"
                     />
                   </div>
                 </div>
@@ -737,7 +737,7 @@ function AdminDashboard() {
                   readOnly
                   value={formData.address}
                   rows="2"
-                  className="flex-1 border border-gray-400 rounded-xl p-2.5 bg-gray-50 outline-none text-xs cursor-default resize-none"
+                  className="flex-1 h-[32px] border border-gray-300 rounded-lg px-3 bg-gray-100 outline-none"
                 />
               </div>
 
@@ -797,7 +797,7 @@ function AdminDashboard() {
                 <div className="flex-1 flex flex-col gap-3.5">
                   <div className="flex items-center">
                     <label className="w-[130px] font-semibold text-gray-700">
-                      รหัสประจำตัวบริษัท
+                      ลำดับที่
                     </label>
                     <input
                       type="text"
@@ -964,7 +964,7 @@ function AdminDashboard() {
               <span className="font-bold text-gray-900">
                 {selectedCompany?.companyName}
               </span>{" "}
-              ({editingDisplayId}) ใช่หรือไม่?
+              (ลำดับที่ {editingDisplayId}) ใช่หรือไม่?
             </p>
 
             <div className="flex items-center justify-end gap-3">
