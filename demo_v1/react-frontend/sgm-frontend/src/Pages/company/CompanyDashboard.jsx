@@ -652,11 +652,9 @@ function CompanyDashboard() {
   };
 
   const handleToggleHeadGuardVisibility = async (eventItem) => {
-    const currentVis = Boolean(eventItem.headguard_visible);
-    const newVisibility = !currentVis;
-    const confirmMessage = newVisibility
-      ? `ต้องการมอบหมายงาน "${eventItem.event_name}" ให้หัวหน้าชุดมองเห็นใช่หรือไม่?`
-      : `ต้องการยกเลิกการมอบหมายงาน "${eventItem.event_name}" (ซ่อนจากหัวหน้าชุด) ใช่หรือไม่?`;
+    if (eventItem.headguard_visible) return;
+
+    const confirmMessage = `ต้องการมอบหมายงาน "${eventItem.event_name}" ให้หัวหน้าชุดมองเห็นใช่หรือไม่?`;
 
     if (!window.confirm(confirmMessage)) return;
 
@@ -664,7 +662,7 @@ function CompanyDashboard() {
       const response = await axios.put(
         `http://localhost:8080/api/events/${eventItem.event_id}/visibility`,
         {
-          headguard_visible: newVisibility,
+          headguard_visible: true,
         },
       );
 
@@ -672,14 +670,15 @@ function CompanyDashboard() {
         setEvents((prevEvents) =>
           prevEvents.map((ev) =>
             ev.event_id === eventItem.event_id
-              ? { ...ev, headguard_visible: newVisibility }
+              ? { ...ev, headguard_visible: true }
               : ev,
           ),
         );
+        alert("มอบหมายงานสำเร็จ");
       }
     } catch (error) {
       console.error("Error updating event visibility:", error);
-      alert("เกิดข้อผิดพลาดในการอัปเดตการมอบหมายงาน");
+      alert("เกิดข้อผิดพลาดในการมอบหมายงาน");
     }
   };
 
@@ -961,14 +960,15 @@ function CompanyDashboard() {
                         </button>
                         <button
                           type="button"
+                          disabled={Boolean(ev.headguard_visible)}
                           onClick={(e) => {
                             e.stopPropagation();
                             handleToggleHeadGuardVisibility(ev);
                           }}
-                          className={`w-full h-[32px] rounded-xl text-[12px] font-medium transition shadow-sm flex items-center justify-center gap-1.5 cursor-pointer ${
+                          className={`w-full h-[32px] rounded-xl text-[12px] font-medium transition shadow-sm flex items-center justify-center gap-1.5 ${
                             ev.headguard_visible
-                              ? "bg-emerald-600 hover:bg-emerald-700 text-white"
-                              : "bg-blue-600 hover:bg-blue-700 text-white"
+                              ? "bg-emerald-600 text-white cursor-default"
+                              : "bg-blue-600 hover:bg-blue-700 text-white cursor-pointer"
                           }`}
                         >
                           {ev.headguard_visible ? (
@@ -977,7 +977,7 @@ function CompanyDashboard() {
                             <Shield size={14} />
                           )}
                           {ev.headguard_visible
-                            ? "มอบหมายแล้ว (คลิกเพื่อยกเลิก)"
+                            ? "มอบหมายแล้ว"
                             : "มอบหมายงานอีเว้นท์"}
                         </button>
                       </div>
