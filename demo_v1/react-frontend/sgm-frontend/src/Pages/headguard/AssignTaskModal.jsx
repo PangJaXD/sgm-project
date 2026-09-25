@@ -148,6 +148,12 @@ export default function AssignTaskModal({
 
       const prevLat = parseFloat(assignmentData?.latitude);
       const prevLng = parseFloat(assignmentData?.longitude);
+      const evLat = parseFloat(assignmentData?.eventLatitude);
+      const evLng = parseFloat(assignmentData?.eventLongitude);
+      const fallbackCenter =
+        !isNaN(evLat) && !isNaN(evLng) && evLat !== 0 && evLng !== 0
+          ? [evLat, evLng]
+          : defaultCenter;
 
       if (
         !isNaN(prevLat) &&
@@ -171,15 +177,15 @@ export default function AssignTaskModal({
             },
             (err) => {
               console.warn("Unable to get initial current location:", err);
-              setPosition(defaultCenter);
-              setMapCenter(defaultCenter);
+              setPosition(fallbackCenter);
+              setMapCenter(fallbackCenter);
               setIsLocating(false);
             },
             { enableHighAccuracy: true, timeout: 8000, maximumAge: 60000 },
           );
         } else {
-          setPosition(defaultCenter);
-          setMapCenter(defaultCenter);
+          setPosition(fallbackCenter);
+          setMapCenter(fallbackCenter);
         }
       }
     }

@@ -18,7 +18,21 @@ import {
   ShieldCheck,
   ChevronLeft,
   Bell,
+  Image as ImageIcon,
 } from "lucide-react";
+import { MapContainer, TileLayer, Marker } from "react-leaflet";
+import "leaflet/dist/leaflet.css";
+import L from "leaflet";
+import markerIcon2x from "leaflet/dist/images/marker-icon-2x.png";
+import markerIcon from "leaflet/dist/images/marker-icon.png";
+import markerShadow from "leaflet/dist/images/marker-shadow.png";
+
+delete L.Icon.Default.prototype._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconUrl: markerIcon,
+  iconRetinaUrl: markerIcon2x,
+  shadowUrl: markerShadow,
+});
 
 function HeadGuardDashboard() {
   const [activeMenu, setActiveMenu] = useState("event");
@@ -195,7 +209,9 @@ function HeadGuardDashboard() {
 
       const eventsList = Array.isArray(eventsRes.data) ? eventsRes.data : [];
       const shiftToEventMap = new Map();
+      const eventByIdMap = new Map();
       eventsList.forEach((ev) => {
+        if (ev.event_id) eventByIdMap.set(ev.event_id, ev);
         if (Array.isArray(ev.shift_times)) {
           ev.shift_times.forEach((st) => {
             shiftToEventMap.set(st.shift_id, ev);
@@ -204,7 +220,9 @@ function HeadGuardDashboard() {
       });
 
       const mergedShifts = (shiftsRes.data || []).map((sh) => {
-        const matchedEvent = shiftToEventMap.get(sh.shiftId);
+        const matchedEvent =
+          shiftToEventMap.get(sh.shiftId) ||
+          (sh.eventId ? eventByIdMap.get(sh.eventId) : null);
         return {
           ...sh,
           eventId: sh.eventId || matchedEvent?.event_id,
@@ -214,10 +232,22 @@ function HeadGuardDashboard() {
               : matchedEvent
                 ? Boolean(matchedEvent.guard_visible)
                 : false,
+          eventData: matchedEvent || null,
         };
       });
 
       setShifts(mergedShifts);
+      setSelectedShiftDetail((prev) => {
+        if (!prev) return null;
+        const updated = mergedShifts.find((s) => s.shiftId === prev.shiftId);
+        return updated
+          ? {
+              ...prev,
+              ...updated,
+              eventData: prev.eventData || updated.eventData,
+            }
+          : prev;
+      });
     } catch (error) {
       console.error("Error fetching shifts:", error);
     } finally {
@@ -365,9 +395,28 @@ function HeadGuardDashboard() {
   );
 
   // 🌟 คลิกที่ Card กะงานแล้วกระโดดเข้าหน้า Assign ทันที
-  const handleSelectShift = (shift) => {
+  const handleSelectShift = async (shift) => {
     setSelectedShiftDetail(shift);
     fetchAssignments(shift.shiftId, shift);
+
+    const eventId =
+      shift.eventId || shift.event_id || shift.eventData?.event_id;
+    if (eventId) {
+      try {
+        const evRes = await axios.get(
+          `http://localhost:8080/api/events/${eventId}`,
+        );
+        if (evRes.data) {
+          setSelectedShiftDetail((prev) =>
+            prev && prev.shiftId === shift.shiftId
+              ? { ...prev, eventData: evRes.data }
+              : prev,
+          );
+        }
+      } catch (err) {
+        console.error("Error fetching event details:", err);
+      }
+    }
   };
 
   const moveToActual = async (assignmentId) => {
@@ -466,6 +515,45 @@ function HeadGuardDashboard() {
       alert(msg);
     }
   };
+
+  const currentEventData = selectedShiftDetail?.eventData || null;
+  const eventLat = parseFloat(
+    currentEventData?.latitude || selectedShiftDetail?.latitude,
+  );
+  const eventLng = parseFloat(
+    currentEventData?.longitude || selectedShiftDetail?.longitude,
+  );
+  const hasEventCoords =
+    !isNaN(eventLat) && !isNaN(eventLng) && eventLat !== 0 && eventLng !== 0;
+  const eventMapCoords = hasEventCoords ? [eventLat, eventLng] : null;
+
+  const eventReqTools = Array.isArray(currentEventData?.required_tools)
+    ? currentEventData.required_tools
+    : currentEventData?.required_tools
+      ? Array.from(currentEventData.required_tools)
+      : [];
+
+  const eventProvTools = Array.isArray(currentEventData?.provided_tools)
+    ? currentEventData.provided_tools
+    : currentEventData?.provided_tools
+      ? Array.from(currentEventData.provided_tools)
+      : [];
+
+  const rawEventImg = currentEventData?.event_img;
+  const hasValidEventImg =
+    rawEventImg &&
+    rawEventImg !== "default.png" &&
+    rawEventImg !== "no-image.png";
+
+  const eventImgUrl = hasValidEventImg
+    ? rawEventImg.startsWith("http://") || rawEventImg.startsWith("https://")
+      ? rawEventImg
+      : rawEventImg.startsWith("/uploads/")
+        ? `http://localhost:8080${rawEventImg}`
+        : rawEventImg.startsWith("/")
+          ? `http://localhost:8080/uploads${rawEventImg}`
+          : `http://localhost:8080/uploads/${rawEventImg}`
+    : null;
 
   return (
     <div className="flex min-h-screen bg-white text-gray-800">
@@ -569,6 +657,187 @@ function HeadGuardDashboard() {
                   {/* <span className="ml-4 bg-gray-700 px-2.5 py-0.5 rounded-md text-[11px] text-white">
                     {selectedShiftDetail.shiftName}
                   </span> */}
+                </div>
+              </div>
+
+              {/* ข้อมูลรายละเอียดงานอีเว้นท์ (Event Details) */}
+              <div className="bg-white border border-gray-300 rounded-[20px] p-6 mb-8 shadow-sm">
+                <h3 className="font-bold text-[16px] text-gray-900 mb-5 flex items-center gap-2 pb-3 border-b border-gray-200">
+                  <CalendarDays size={18} className="text-emerald-600" />
+                  รายละเอียดงานอีเว้นท์
+                </h3>
+
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-8 gap-y-4 text-[13px]">
+                  {/* คอลัมน์ซ้าย: ชื่องานอีเว้นท์, สถานที่จัดงาน, รายละเอียดงาน */}
+                  <div className="flex flex-col gap-3">
+                    <div className="flex items-center justify-between">
+                      <label className="font-semibold text-gray-600 w-[120px] shrink-0">
+                        ชื่องานอีเว้นท์:
+                      </label>
+                      <div className="flex-1 min-h-[34px] bg-gray-50 border border-gray-300 rounded-lg px-3 py-1 flex items-center text-gray-800">
+                        {currentEventData?.event_name ||
+                          selectedShiftDetail.eventName ||
+                          "-"}
+                      </div>
+                    </div>
+
+                    <div className="flex items-center justify-between">
+                      <label className="font-semibold text-gray-600 w-[120px] shrink-0">
+                        สถานที่จัดงาน:
+                      </label>
+                      <div className="flex-1 min-h-[34px] bg-gray-50 border border-gray-300 rounded-lg px-3 py-1 flex items-center text-gray-800 truncate">
+                        {currentEventData?.location ||
+                          selectedShiftDetail.location ||
+                          "-"}
+                      </div>
+                    </div>
+
+                    <div className="mt-1 flex flex-col flex-1">
+                      <label className="font-semibold text-gray-600 mb-1.5">
+                        รายละเอียดงาน
+                      </label>
+                      <div className="w-full flex-1 min-h-[140px] max-h-[180px] bg-gray-50 border border-gray-300 rounded-xl p-3 text-gray-700 overflow-y-auto leading-relaxed whitespace-pre-line">
+                        {currentEventData?.event_detail ||
+                          "ไม่มีรายละเอียดเพิ่มเติม"}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* คอลัมน์ขวา: ผู้ว่าจ้าง, เบอร์โทรศัพท์, อีเมล, รูปภาพ, แผนที่, อุปกรณ์ */}
+                  <div className="flex flex-col gap-3">
+                    <div className="flex items-center justify-between">
+                      <label className="font-semibold text-gray-600 w-[140px] shrink-0">
+                        ผู้ว่าจ้าง:
+                      </label>
+                      <div className="flex-1 h-[34px] bg-gray-50 border border-gray-300 rounded-lg px-3 flex items-center text-gray-800 truncate">
+                        {currentEventData?.contractor || "-"}
+                      </div>
+                    </div>
+
+                    <div className="flex items-center justify-between">
+                      <label className="font-semibold text-gray-600 w-[140px] shrink-0">
+                        เบอร์โทรศัพท์ผู้ว่าจ้าง:
+                      </label>
+                      <div className="flex-1 h-[34px] bg-gray-50 border border-gray-300 rounded-lg px-3 flex items-center text-gray-800">
+                        {currentEventData?.contact_phone ||
+                          currentEventData?.contact ||
+                          "-"}
+                      </div>
+                    </div>
+
+                    <div className="flex items-center justify-between">
+                      <label className="font-semibold text-gray-600 w-[140px] shrink-0">
+                        อีเมลผู้ว่าจ้าง:
+                      </label>
+                      <div className="flex-1 h-[34px] bg-gray-50 border border-gray-300 rounded-lg px-3 flex items-center text-gray-800 truncate">
+                        {currentEventData?.contact_email || "-"}
+                      </div>
+                    </div>
+
+                    {/* รูปภาพและแผนที่พิกัด */}
+                    <div className="grid grid-cols-2 gap-4 mt-1">
+                      {/* รูปภาพ */}
+                      <div>
+                        <label className="font-semibold text-gray-600 flex items-center gap-1 mb-1.5 text-xs">
+                          <ImageIcon size={14} className="text-gray-500" />{" "}
+                          รูปภาพ
+                        </label>
+                        <div className="h-[105px] border border-gray-300 rounded-xl overflow-hidden bg-gray-50 flex items-center justify-center">
+                          {eventImgUrl ? (
+                            <img
+                              src={eventImgUrl}
+                              alt="Event"
+                              className="w-full h-full object-cover cursor-pointer hover:scale-105 transition duration-300"
+                              onClick={() => window.open(eventImgUrl, "_blank")}
+                            />
+                          ) : (
+                            <span className="text-gray-400 text-xs">
+                              ไม่มีรูปภาพ
+                            </span>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* แผนที่พิกัด */}
+                      <div>
+                        <label className="font-semibold text-gray-600 flex items-center gap-1 mb-1.5 text-xs">
+                          <MapPin size={14} className="text-gray-500" />{" "}
+                          พิกัดที่จัดงาน
+                        </label>
+                        <div className="h-[105px] border border-gray-300 rounded-xl overflow-hidden relative z-0">
+                          {eventMapCoords ? (
+                            <MapContainer
+                              key={`event-map-${selectedShiftDetail.shiftId}-${eventLat}-${eventLng}`}
+                              center={eventMapCoords}
+                              zoom={14}
+                              style={{ height: "100%", width: "100%" }}
+                              zoomControl={false}
+                              dragging={false}
+                              scrollWheelZoom={false}
+                            >
+                              <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+                              <Marker position={eventMapCoords} />
+                            </MapContainer>
+                          ) : (
+                            <div className="w-full h-full bg-gray-50 flex items-center justify-center text-gray-400 text-xs">
+                              ไม่มีข้อมูลพิกัด
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* อุปกรณ์ที่ต้องการ และ อุปกรณ์ที่มีให้ */}
+                    <div className="grid grid-cols-2 gap-4 mt-1">
+                      {/* อุปกรณ์ที่ต้องการ */}
+                      <div>
+                        <label className="font-semibold text-gray-600 block mb-1 text-xs">
+                          อุปกรณ์ที่ต้องการ
+                        </label>
+                        <div className="flex flex-col gap-1 max-h-[85px] overflow-y-auto pr-1">
+                          {eventReqTools.length > 0 ? (
+                            eventReqTools.map((tool, idx) => (
+                              <div
+                                key={idx}
+                                className="bg-gray-100 px-2.5 py-1 rounded-full text-[11px] text-gray-700 border border-gray-200 truncate"
+                                title={tool}
+                              >
+                                {idx + 1}. {tool}
+                              </div>
+                            ))
+                          ) : (
+                            <span className="text-gray-400 text-xs">
+                              - ไม่มี -
+                            </span>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* อุปกรณ์ที่มีให้ */}
+                      <div>
+                        <label className="font-semibold text-gray-600 block mb-1 text-xs">
+                          อุปกรณ์ที่มีให้
+                        </label>
+                        <div className="flex flex-col gap-1 max-h-[85px] overflow-y-auto pr-1">
+                          {eventProvTools.length > 0 ? (
+                            eventProvTools.map((tool, idx) => (
+                              <div
+                                key={idx}
+                                className="bg-gray-100 px-2.5 py-1 rounded-full text-[11px] text-gray-700 border border-gray-200 truncate"
+                                title={tool}
+                              >
+                                {idx + 1}. {tool}
+                              </div>
+                            ))
+                          ) : (
+                            <span className="text-gray-400 text-xs">
+                              - ไม่มี -
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
 
@@ -920,7 +1189,19 @@ function HeadGuardDashboard() {
       <AssignTaskModal
         isOpen={isAssignModalOpen}
         onClose={() => setIsAssignModalOpen(false)}
-        assignmentData={selectedAssignment}
+        assignmentData={
+          selectedAssignment
+            ? {
+                ...selectedAssignment,
+                eventLatitude:
+                  selectedShiftDetail?.eventData?.latitude ||
+                  selectedShiftDetail?.latitude,
+                eventLongitude:
+                  selectedShiftDetail?.eventData?.longitude ||
+                  selectedShiftDetail?.longitude,
+              }
+            : null
+        }
         onSave={handleSaveAssignment}
       />
 
