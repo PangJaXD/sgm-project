@@ -885,9 +885,8 @@ function HeadGuardDashboard() {
                 </div>
 
                 <div className="border border-gray-400 rounded-xl overflow-hidden bg-white">
-                  <div className="grid grid-cols-[70px_110px_1.5fr_1.5fr_120px] h-[40px] bg-[#4b5563] text-white items-center text-[12px] font-medium px-6">
+                  <div className="grid grid-cols-[70px_1.5fr_1.5fr_120px] h-[40px] bg-[#4b5563] text-white items-center text-[12px] font-medium px-6">
                     <div className="text-center">ลำดับที่</div>
-                    <div>รหัสประจำตัว</div>
                     <div>ชื่อ</div>
                     <div>ช่วงเวลาการทำงาน</div>
                     <div className="text-center">ข้อมูลงาน</div>
@@ -900,13 +899,10 @@ function HeadGuardDashboard() {
                     .map((item, index) => (
                       <div
                         key={item.id}
-                        className="grid grid-cols-[70px_110px_1.5fr_1.5fr_120px] h-[48px] items-center border-t border-gray-300 text-[12px] px-6"
+                        className="grid grid-cols-[70px_1.5fr_1.5fr_120px] h-[48px] items-center border-t border-gray-300 text-[12px] px-6"
                       >
                         <div className="text-center font-medium text-gray-700">
                           {index + 1}
-                        </div>
-                        <div className="font-medium text-gray-700">
-                          {item.guardId}
                         </div>
                         <div>{item.guardName}</div>
                         <div className="font-semibold text-gray-800">
@@ -963,9 +959,8 @@ function HeadGuardDashboard() {
                 </h3>
 
                 <div className="border border-gray-400 rounded-xl overflow-hidden bg-white">
-                  <div className="grid grid-cols-[70px_110px_1.5fr_1.5fr_120px] h-[40px] bg-[#4b5563] text-white items-center text-[12px] font-medium px-6">
+                  <div className="grid grid-cols-[70px_1.5fr_1.5fr_120px] h-[40px] bg-[#4b5563] text-white items-center text-[12px] font-medium px-6">
                     <div className="text-center">ลำดับที่</div>
-                    <div>รหัสประจำตัว</div>
                     <div>ชื่อ</div>
                     <div>ช่วงเวลาการทำงาน</div>
                     <div />
@@ -976,10 +971,9 @@ function HeadGuardDashboard() {
                     .map((item, index) => (
                       <div
                         key={item.id}
-                        className="grid grid-cols-[70px_110px_1.5fr_1.5fr_120px] h-[48px] items-center border-t border-gray-300 text-[12px] px-6"
+                        className="grid grid-cols-[70px_1.5fr_1.5fr_120px] h-[48px] items-center border-t border-gray-300 text-[12px] px-6"
                       >
                         <div className="text-center text-gray-500">{index + 1}</div>
-                        <div className="font-medium text-gray-700">{item.guardId}</div>
                         <div>{item.guardName}</div>
                         <div className="font-semibold text-gray-800">
                           {formatThaiTimeRange(item.time)}

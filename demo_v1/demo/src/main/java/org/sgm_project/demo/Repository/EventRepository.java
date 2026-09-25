@@ -38,4 +38,8 @@ public interface EventRepository extends JpaRepository<Events, Integer> {
     @EntityGraph(attributePaths = { "required_tools", "provided_tools", "shift_times" })
     @Query("SELECT DISTINCT e FROM Events e JOIN e.shift_times st WHERE CONCAT(st.headGuard.first_name, ' ', st.headGuard.last_name) = (SELECT g.head_name FROM Guards g WHERE g.users_id = :guardId)")
     List<Events> findEventsByGuardId(@Param("guardId") Integer guardId);
+
+    @org.springframework.data.jpa.repository.Modifying
+    @Query("UPDATE Events e SET e.company_id = NULL WHERE e.company_id = :companyId")
+    void clearCompanyIdFromEvents(@Param("companyId") Integer companyId);
 }

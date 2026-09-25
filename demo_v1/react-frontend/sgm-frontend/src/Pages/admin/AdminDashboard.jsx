@@ -78,7 +78,9 @@ function AdminDashboard() {
         params.adminUsername = currentUser.username;
       }
 
-      const res = await axios.get("http://localhost:8080/api/company", { params });
+      const res = await axios.get("http://localhost:8080/api/company", {
+        params,
+      });
       if (Array.isArray(res.data)) {
         const adminIdentifiers = [
           adminName,
@@ -332,9 +334,11 @@ function AdminDashboard() {
       setIsDeleteModalOpen(false);
       setIsViewModalOpen(false);
       fetchCompanies();
+      alert("ลบข้อมูลบริษัทออกจากฐานข้อมูลเรียบร้อยแล้ว");
     } catch (err) {
       console.error("Delete company error:", err);
-      alert("เกิดข้อผิดพลาดในการลบบริษัท");
+      const msg = err.response?.data?.message || "เกิดข้อผิดพลาดในการลบบริษัท";
+      alert(msg);
     }
   };
 
@@ -427,7 +431,7 @@ function AdminDashboard() {
                 onClick={handleOpenAddModal}
                 className="h-[38px] px-5 bg-[#42a884] hover:bg-emerald-600 text-white rounded-xl text-sm font-semibold flex items-center gap-2 transition shadow cursor-pointer"
               >
-                <Plus size={18} /> เพิ่มบริษัทรปภ.
+                เพิ่มบริษัทรปภ.
               </button>
             </div>
 
@@ -580,7 +584,7 @@ function AdminDashboard() {
                     />
                   </div>
 
-                  <div className="flex items-center">
+                  {/* <div className="flex items-center">
                     <label className="w-[130px] font-semibold text-gray-700">
                       email
                     </label>
@@ -592,7 +596,7 @@ function AdminDashboard() {
                       placeholder="company@email.com"
                       className="flex-1 h-[30px] border border-gray-400 rounded-full px-3 text-center outline-none focus:border-blue-500 text-xs"
                     />
-                  </div>
+                  </div> */}
 
                   <div className="flex items-center">
                     <label className="w-[130px] font-semibold text-gray-700">
@@ -646,7 +650,7 @@ function AdminDashboard() {
                   onClick={handleSaveNewCompany}
                   className="h-[38px] px-8 bg-[#42a884] hover:bg-emerald-600 text-white rounded-xl font-semibold transition shadow flex items-center gap-2 cursor-pointer"
                 >
-                  <Plus size={18} /> บันทึกข้อมูล
+                  บันทึกข้อมูล
                 </button>
               </div>
             </div>
@@ -993,11 +997,11 @@ function AdminDashboard() {
             </div>
 
             <p className="text-sm text-gray-600 mb-6">
-              คุณต้องการลบหรือปลดสถานะบริษัท{" "}
+              คุณต้องการลบข้อมูลบริษัท{" "}
               <span className="font-bold text-gray-900">
                 {selectedCompany?.companyName}
               </span>{" "}
-              (ลำดับที่ {editingDisplayId}) ใช่หรือไม่?
+              (ลำดับที่ {editingDisplayId}) ออกจากฐานข้อมูลใช่หรือไม่?
             </p>
 
             <div className="flex items-center justify-end gap-3">

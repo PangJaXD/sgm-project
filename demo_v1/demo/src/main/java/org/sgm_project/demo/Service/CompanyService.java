@@ -7,11 +7,13 @@ import org.sgm_project.demo.Exception.DuplicateUsernameException;
 import org.sgm_project.demo.Exception.ResourceNotFoundException;
 import org.sgm_project.demo.Model.Company;
 import org.sgm_project.demo.Repository.CompanyRepository;
+import org.sgm_project.demo.Repository.EventRepository;
 import org.sgm_project.demo.Repository.GuardRepository;
 import org.sgm_project.demo.Repository.UserRepository;
 import org.sgm_project.demo.Util.UserValidationUtil;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -22,14 +24,17 @@ public class CompanyService {
 
     private final CompanyRepository companyRepository;
     private final UserRepository userRepository;
+    private final EventRepository eventRepository;
     private final PasswordEncoder passwordEncoder;
 
     public CompanyService(
             CompanyRepository companyRepository,
             UserRepository userRepository,
+            EventRepository eventRepository,
             PasswordEncoder passwordEncoder) {
         this.companyRepository = companyRepository;
         this.userRepository = userRepository;
+        this.eventRepository = eventRepository;
         this.passwordEncoder = passwordEncoder;
     }
 
@@ -131,13 +136,26 @@ public class CompanyService {
         return mapToResponse(updated);
     }
 
+    @Transactional
     public void deleteCompany(Integer id) {
         Company existing = companyRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("ไม่พบข้อมูลบริษัทรักษาความปลอดภัยรหัส: " + id));
-        // Soft delete by default to maintain referential integrity with events/guards
-        existing.setStatus("พ้นสภาพ");
-        existing.setQuit_date(LocalDateTime.now());
-        companyRepository.save(existing);
+
+        if (existing.getEvents() != null) {
+            existing.getEvents().clear();
+        }
+
+        // Dissociate events referencing this company so foreign key constraint is not violated
+        eventRepository.clearCompanyIdFromEvents(id);
+
+        // Delete company and user data from database
+        companyRepository.delete(existing);
+        companyRepository.flush();
+
+        if (userRepository.existsById(id)) {
+            userRepository.deleteById(id);
+            userRepository.flush();
+        }
     }
 
     private CompanyResponse mapToResponse(Company company) {
