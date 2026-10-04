@@ -341,7 +341,6 @@ CREATE TABLE `users` (
   `profile_img` varchar(255) COLLATE utf8mb3_unicode_ci NOT NULL,
   `quit_date` datetime(6) DEFAULT NULL,
   `start_date` datetime(6) NOT NULL,
-  `user_detail` varchar(255) COLLATE utf8mb3_unicode_ci NOT NULL,
   `username` varchar(50) COLLATE utf8mb3_unicode_ci NOT NULL,
   PRIMARY KEY (`users_id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_unicode_ci;

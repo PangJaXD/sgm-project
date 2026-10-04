@@ -13,7 +13,6 @@ public class UpdateCompanyRequest {
     private String last_name;
     private String phone;
     private String address;
-    private String user_detail;
     private LocalDateTime start_date;
     private LocalDateTime quit_date;
     private String profile_img;

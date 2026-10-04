@@ -17,7 +17,6 @@ class UserService extends ChangeNotifier {
     lastName: 'แสงธรรม',
     phone: '081-234-5678',
     address: 'โซนมหาวิทยาลัยแม่โจ้ และ เชียงใหม่',
-    userDetail: 'มีพื้นฐานยิวยิตสู ปฏิบัติการสายตรวจ',
     startDate: DateTime(2026, 8, 11),
     role: 'GUARD',
     companyName: 'ABC Security Company',
@@ -60,7 +59,6 @@ class UserService extends ChangeNotifier {
       role: data['role'] ?? _currentUser.role,
       status: data['status']?.toString() ?? _currentUser.status,
       startDate: parsedStartDate ?? _currentUser.startDate,
-      userDetail: _currentUser.userDetail,
       companyName: data['company_name'] ?? _currentUser.companyName,
       headName: data['head_name'] ?? _currentUser.headName,
     );

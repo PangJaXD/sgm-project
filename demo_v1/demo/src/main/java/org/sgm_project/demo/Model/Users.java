@@ -31,8 +31,6 @@ public class Users {
     private String phone;
     @Column(length = 255, nullable = false)
     private String address;
-    @Column(length = 255, nullable = false)
-    private String user_detail;
     @Column(nullable = false)
     private LocalDateTime start_date;
     @Column

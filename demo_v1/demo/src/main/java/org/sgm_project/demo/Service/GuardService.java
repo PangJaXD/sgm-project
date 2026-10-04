@@ -40,7 +40,6 @@ public class GuardService {
                         : "-");
         guard.setPhone(request.getPhone());
         guard.setAddress(request.getAddress());
-        guard.setUser_detail(request.getUser_detail());
         guard.setStart_date(request.getStart_date());
         guard.setProfile_img(request.getProfile_img());
         guard.setCompany_name(request.getCompany_name());
@@ -90,7 +89,6 @@ public class GuardService {
             existingGuard.setPhone(guard.getPhone().trim());
         }
         existingGuard.setAddress(guard.getAddress());
-        existingGuard.setUser_detail(guard.getUser_detail());
         existingGuard.setStart_date(guard.getStart_date());
         existingGuard.setQuit_date(guard.getQuit_date());
         if (guard.getStatus() != null) {

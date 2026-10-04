@@ -53,7 +53,6 @@ public class CompanyService {
         company.setLast_name(request.getLast_name() != null ? request.getLast_name() : "-");
         company.setPhone(request.getPhone());
         company.setAddress(request.getAddress());
-        company.setUser_detail(request.getUser_detail() != null ? request.getUser_detail() : "-");
         company.setStart_date(request.getStart_date() != null ? request.getStart_date() : LocalDateTime.now());
         company.setProfile_img(request.getProfile_img() != null ? request.getProfile_img() : "default.png");
         company.setAdmin_name(request.getAdmin_name() != null ? request.getAdmin_name() : "Admin");
@@ -112,8 +111,6 @@ public class CompanyService {
             existing.setPhone(request.getPhone());
         if (request.getAddress() != null)
             existing.setAddress(request.getAddress());
-        if (request.getUser_detail() != null)
-            existing.setUser_detail(request.getUser_detail());
         if (request.getStart_date() != null)
             existing.setStart_date(request.getStart_date());
         if (request.getProfile_img() != null)
@@ -170,7 +167,6 @@ public class CompanyService {
                 .last_name(company.getLast_name())
                 .phone(company.getPhone())
                 .address(company.getAddress())
-                .user_detail(company.getUser_detail())
                 .start_date(company.getStart_date())
                 .quit_date(company.getQuit_date())
                 .profile_img(company.getProfile_img())

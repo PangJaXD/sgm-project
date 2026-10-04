@@ -16,7 +16,6 @@ public class CreateGuardRequest {
 
     private String phone;
     private String address;
-    private String user_detail;
 
     private LocalDateTime start_date;
 

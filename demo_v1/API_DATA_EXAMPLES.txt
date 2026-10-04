@@ -153,7 +153,6 @@ Content-Type: application/json
   "last_name": "เจริญสุข",
   "phone": "0891234567",
   "address": "99 หมู่ 4 ต.หนองหาร อ.สันทราย จ.เชียงใหม่",
-  "user_detail": "ผู้ดูแลระบบฝ่ายประสานงานกลาง",
   "start_date": "2026-09-01T08:30:00",
   "profile_img": "admin_profiles/warunee.png",
   "status": "ACTIVE",
@@ -174,7 +173,6 @@ Content-Type: application/json
   "gender": "หญิง",
   "phone": "0891234567",
   "address": "99 หมู่ 4 ต.หนองหาร อ.สันทราย จ.เชียงใหม่",
-  "user_detail": "ผู้ดูแลระบบฝ่ายประสานงานกลาง",
   "start_date": "2026-09-01T08:30:00",
   "quit_date": null,
   "status": "ACTIVE",
@@ -221,7 +219,6 @@ Content-Type: application/json
   "last_name": "มั่นคงทรัพย์",
   "phone": "053123456",
   "address": "123 ถ.นิมมานเหมินท์ ต.สุเทพ อ.เมือง จ.เชียงใหม่ 50200",
-  "user_detail": "ให้บริการรักษาความปลอดภัยอาคารและอีเวนต์ภาคเหนือ",
   "start_date": "2026-09-25T09:00:00",
   "profile_img": "companies/cm_guard_pro.jpg",
   "username": "cm_guard_pro",
@@ -237,7 +234,6 @@ Content-Type: application/json
   "last_name": "มั่นคงทรัพย์",
   "phone": "053123456",
   "address": "123 ถ.นิมมานเหมินท์ ต.สุเทพ อ.เมือง จ.เชียงใหม่ 50200",
-  "user_detail": "ให้บริการรักษาความปลอดภัยอาคารและอีเวนต์ภาคเหนือ",
   "start_date": "2026-09-25T09:00:00",
   "quit_date": null,
   "profile_img": "companies/cm_guard_pro.jpg",
@@ -270,7 +266,6 @@ Query Parameters:
     "last_name": "-",
     "phone": "025891122",
     "address": "88/1 อาคารสยามทาวเวอร์ ถ.วิภาวดี กรุงเทพฯ",
-    "user_detail": "ให้บริการรักษาความปลอดภัยระดับมาตรฐานสากล",
     "start_date": "2026-08-01T09:00:00",
     "quit_date": null,
     "profile_img": "company_logo_1.png",
@@ -302,7 +297,6 @@ Path Variable:
   "last_name": "-",
   "phone": "025891122",
   "address": "88/1 อาคารสยามทาวเวอร์ ถ.วิภาวดี กรุงเทพฯ",
-  "user_detail": "ให้บริการรักษาความปลอดภัยระดับมาตรฐานสากล",
   "start_date": "2026-08-01T09:00:00",
   "quit_date": null,
   "profile_img": "company_logo_1.png",
@@ -331,7 +325,6 @@ Content-Type: application/json
   "last_name": "เจริญพรหม",
   "phone": "025891199",
   "address": "88/1 อาคารสยามทาวเวอร์ ชั้น 12 ถ.วิภาวดี กรุงเทพฯ",
-  "user_detail": "อัปเดตข้อมูลผู้ติดต่อและที่อยู่สำนักงานใหญ่",
   "start_date": "2026-08-01T09:00:00",
   "quit_date": null,
   "profile_img": "company_logo_v2.png",
@@ -349,7 +342,6 @@ Content-Type: application/json
   "last_name": "เจริญพรหม",
   "phone": "025891199",
   "address": "88/1 อาคารสยามทาวเวอร์ ชั้น 12 ถ.วิภาวดี กรุงเทพฯ",
-  "user_detail": "อัปเดตข้อมูลผู้ติดต่อและที่อยู่สำนักงานใหญ่",
   "start_date": "2026-08-01T09:00:00",
   "quit_date": null,
   "profile_img": "company_logo_v2.png",
@@ -706,7 +698,6 @@ Content-Type: application/json
   "gender": "ชาย",
   "phone": "0895556677",
   "address": "45 หมู่ 2 ต.ป่าไผ่ อ.สันทราย จ.เชียงใหม่",
-  "user_detail": "ผ่านการอบรมหลักสูตร รปภ. ขั้นสูงและดับเพลิงเบื้องต้น",
   "start_date": "2026-08-01T09:00:00",
   "profile_img": "guards/somchai.jpg",
   "company_name": "บริษัท สยาม ซีเคียวริตี้ กรุ๊ป จำกัด",
@@ -724,7 +715,6 @@ Content-Type: application/json
   "gender": "ชาย",
   "phone": "0895556677",
   "address": "45 หมู่ 2 ต.ป่าไผ่ อ.สันทราย จ.เชียงใหม่",
-  "user_detail": "ผ่านการอบรมหลักสูตร รปภ. ขั้นสูงและดับเพลิงเบื้องต้น",
   "start_date": "2026-08-01T09:00:00",
   "quit_date": null,
   "status": "ACTIVE",
@@ -807,7 +797,6 @@ Path Variable:
   "gender": "ชาย",
   "phone": "0895556677",
   "address": "45 หมู่ 2 ต.ป่าไผ่ อ.สันทราย จ.เชียงใหม่",
-  "user_detail": "ผ่านการอบรมหลักสูตร รปภ. ขั้นสูงและดับเพลิงเบื้องต้น",
   "start_date": "2026-08-01T09:00:00",
   "status": "ACTIVE",
   "profile_img": "guards/somchai.jpg",
@@ -830,7 +819,6 @@ Content-Type: application/json
 {
   "phone": "0895559999",
   "address": "45 หมู่ 2 ต.ป่าไผ่ อ.สันทราย จ.เชียงใหม่ (ปรับปรุงที่อยู่)",
-  "user_detail": "เพิ่มทักษะการปฐมพยาบาลเบื้องต้น (CPR)",
   "rank": "เจ้าหน้าที่ รปภ. อาวุโส",
   "status": "ACTIVE"
 }
@@ -895,7 +883,6 @@ Content-Type: application/json
   "gender": "ชาย",
   "phone": "0814443322",
   "address": "12 หมู่ 1 ต.หนองหาร อ.สันทราย จ.เชียงใหม่",
-  "user_detail": "ผู้ควบคุมทีมและวางแผนการตรวจตรางานอีเวนต์",
   "start_date": "2026-08-01T08:00:00",
   "profile_img": "headguards/somporn.jpg",
   "company_name": "บริษัท สยาม ซีเคียวริตี้ กรุ๊ป จำกัด"
@@ -912,7 +899,6 @@ Content-Type: application/json
   "gender": "ชาย",
   "phone": "0814443322",
   "address": "12 หมู่ 1 ต.หนองหาร อ.สันทราย จ.เชียงใหม่",
-  "user_detail": "ผู้ควบคุมทีมและวางแผนการตรวจตรางานอีเวนต์",
   "start_date": "2026-08-01T08:00:00",
   "quit_date": null,
   "status": "ACTIVE",
@@ -945,7 +931,6 @@ Query Parameters:
     "gender": "ชาย",
     "phone": "0814443322",
     "address": "12 หมู่ 1 ต.หนองหาร อ.สันทราย จ.เชียงใหม่",
-    "user_detail": "ผู้ควบคุมทีมและวางแผนการตรวจตรางานอีเวนต์",
     "start_date": "2026-08-01T08:00:00",
     "quit_date": null,
     "status": "ACTIVE",
@@ -1017,8 +1002,7 @@ Path Variable:
 Content-Type: application/json
 {
   "phone": "0814449988",
-  "address": "12/5 หมู่ 1 ต.หนองหาร อ.สันทราย จ.เชียงใหม่",
-  "user_detail": "อัปเดตเบอร์ติดต่อใหม่"
+  "address": "12/5 หมู่ 1 ต.หนองหาร อ.สันทราย จ.เชียงใหม่"
 }
 
 [OUTPUT EXAMPLE - HTTP 200 OK]

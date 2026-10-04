@@ -41,7 +41,6 @@ function AdminDashboard() {
     firstName: "",
     lastName: "",
     phone: "",
-    email: "",
     address: "",
     startDate: new Date().toISOString().split("T")[0],
     status: "ปฏิบัติงาน",
@@ -117,7 +116,6 @@ function AdminDashboard() {
             companyName: c.company_name || c.username || "-",
             username: c.username,
             phone: c.phone || "-",
-            email: c.user_detail || "-",
             address: c.address || "-",
             startDate: c.start_date ? c.start_date.split("T")[0] : "-",
             status: isActive ? "ปฏิบัติงาน" : "พ้นสภาพ",
@@ -155,7 +153,6 @@ function AdminDashboard() {
       firstName: "",
       lastName: "",
       phone: "",
-      email: "",
       address: "",
       startDate: new Date().toISOString().split("T")[0],
       status: "ปฏิบัติงาน",
@@ -222,7 +219,6 @@ function AdminDashboard() {
       last_name: "-",
       phone: formData.phone || "064-XXXXXXX",
       address: formData.address || "-",
-      user_detail: formData.email || "-",
       start_date: formData.startDate
         ? `${toISODate(formData.startDate)}T00:00:00`
         : new Date().toISOString(),
@@ -261,7 +257,6 @@ function AdminDashboard() {
       firstName: item.raw.first_name || item.companyName,
       lastName: item.raw.last_name || "-",
       phone: item.phone,
-      email: item.email,
       address: item.address,
       startDate: item.startDate !== "-" ? item.startDate : "",
       status: item.status,
@@ -298,7 +293,6 @@ function AdminDashboard() {
       last_name: "-",
       phone: formData.phone,
       address: formData.address,
-      user_detail: formData.email,
       start_date: formData.startDate
         ? `${toISODate(formData.startDate)}T00:00:00`
         : null,

@@ -16,7 +16,6 @@ public class CreateCompanyRequest {
 
     private String phone;
     private String address;
-    private String user_detail;
 
     private LocalDateTime start_date;
 

@@ -107,7 +107,6 @@ def generate_full_dataset():
             "last_name": lname,
             "phone": phone,
             "address": addr,
-            "user_detail": detail,
             "start_date": "2026-08-01 09:00:00",
             "quit_date": None,
             "profile_img": "profile_admin.jpg"
@@ -132,7 +131,6 @@ def generate_full_dataset():
             "last_name": "-",
             "phone": phone,
             "address": addr,
-            "user_detail": detail,
             "start_date": "2026-08-05 08:00:00",
             "quit_date": None,
             "profile_img": "default_company.png",
@@ -165,7 +163,6 @@ def generate_full_dataset():
                 "full_name": hg_name,
                 "phone": hg_phone,
                 "address": "เชียงใหม่ ประเทศไทย",
-                "user_detail": f"หัวหน้าชุดปฏิบัติการ รปภ. ประจำ {comp_name}",
                 "start_date": "2026-08-10 08:00:00",
                 "quit_date": None, # Active
                 "profile_img": "default_headguard.png",
@@ -191,7 +188,6 @@ def generate_full_dataset():
                     "last_name": g_lname,
                     "phone": g_phone,
                     "address": "เชียงใหม่ ประเทศไทย",
-                    "user_detail": "เจ้าหน้าที่รักษาความปลอดภัย ผ่านการฝึกอบรมมาตรฐาน",
                     "start_date": "2026-08-12 08:00:00",
                     "quit_date": None, # Active status
                     "profile_img": "default_guard.png",
@@ -440,10 +436,10 @@ def run_seed():
                     print(f"Admin {adm['username']} already exists (id: {u_id})")
                 else:
                     cur.execute("""
-                        INSERT INTO users (address, first_name, last_name, password, phone, profile_img, quit_date, start_date, user_detail, username)
-                        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                        INSERT INTO users (address, first_name, last_name, password, phone, profile_img, quit_date, start_date, username)
+                        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
                     """, (adm["address"], adm["first_name"], adm["last_name"], adm["password_hash"], adm["phone"],
-                          adm["profile_img"], adm["quit_date"], adm["start_date"], adm["user_detail"], adm["username"]))
+                          adm["profile_img"], adm["quit_date"], adm["start_date"], adm["username"]))
                     u_id = cur.lastrowid
                     cur.execute("INSERT IGNORE INTO admin (users_id) VALUES (%s)", (u_id,))
                 admin_id_map[adm["username"]] = u_id
@@ -458,10 +454,10 @@ def run_seed():
                     print(f"Company {comp['username']} already exists (id: {u_id})")
                 else:
                     cur.execute("""
-                        INSERT INTO users (address, first_name, last_name, password, phone, profile_img, quit_date, start_date, user_detail, username)
-                        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                        INSERT INTO users (address, first_name, last_name, password, phone, profile_img, quit_date, start_date, username)
+                        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
                     """, (comp["address"], comp["first_name"], comp["last_name"], comp["password_hash"], comp["phone"],
-                          comp["profile_img"], comp["quit_date"], comp["start_date"], comp["user_detail"], comp["username"]))
+                          comp["profile_img"], comp["quit_date"], comp["start_date"], comp["username"]))
                     u_id = cur.lastrowid
                     cur.execute("""
                         INSERT IGNORE INTO company (users_id, company_name, admin_name)
@@ -478,10 +474,10 @@ def run_seed():
                     u_id = row[0]
                 else:
                     cur.execute("""
-                        INSERT INTO users (address, first_name, last_name, password, phone, profile_img, quit_date, start_date, user_detail, username)
-                        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                        INSERT INTO users (address, first_name, last_name, password, phone, profile_img, quit_date, start_date, username)
+                        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
                     """, (hg["address"], hg["first_name"], hg["last_name"], hg["password_hash"], hg["phone"],
-                          hg["profile_img"], hg["quit_date"], hg["start_date"], hg["user_detail"], hg["username"]))
+                          hg["profile_img"], hg["quit_date"], hg["start_date"], hg["username"]))
                     u_id = cur.lastrowid
                     cur.execute("""
                         INSERT IGNORE INTO staff (users_id, performance_score)
@@ -504,10 +500,10 @@ def run_seed():
                     u_id = row[0]
                 else:
                     cur.execute("""
-                        INSERT INTO users (address, first_name, last_name, password, phone, profile_img, quit_date, start_date, user_detail, username)
-                        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                        INSERT INTO users (address, first_name, last_name, password, phone, profile_img, quit_date, start_date, username)
+                        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
                     """, (g["address"], g["first_name"], g["last_name"], g["password_hash"], g["phone"],
-                          g["profile_img"], g["quit_date"], g["start_date"], g["user_detail"], g["username"]))
+                          g["profile_img"], g["quit_date"], g["start_date"], g["username"]))
                     u_id = cur.lastrowid
                     cur.execute("""
                         INSERT IGNORE INTO staff (users_id, performance_score)
@@ -597,4 +593,3 @@ def run_seed():
 
 if __name__ == "__main__":
     run_seed()
-

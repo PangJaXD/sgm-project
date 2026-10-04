@@ -17,7 +17,6 @@ public class CreateHeadGuardRequest {
 
     private String phone;
     private String address;
-    private String user_detail;
 
     private LocalDateTime start_date;
 

@@ -91,7 +91,6 @@ function CompanyDashboard() {
     lastName: "",
     gender: "",
     phone: "",
-    userDetail: "",
     startDate: "",
     address: "",
     status: "ปฏิบัติงาน",
@@ -567,7 +566,6 @@ function CompanyDashboard() {
       lastName: "",
       gender: "",
       phone: "",
-      userDetail: "",
       startDate: "",
       address: "",
       status: "ปฏิบัติงาน",
@@ -601,7 +599,6 @@ function CompanyDashboard() {
       gender: formData.gender?.trim() || "-",
       phone: formData.phone.trim(),
       address: formData.address,
-      user_detail: formData.userDetail || "-",
       start_date: formData.startDate
         ? `${toISODate(formData.startDate)}T00:00:00`
         : new Date().toISOString(),
@@ -648,7 +645,6 @@ function CompanyDashboard() {
       lastName: raw.last_name || "",
       gender: raw.gender || "-",
       phone: raw.phone || "",
-      userDetail: raw.user_detail || "",
       startDate: startDateStr,
       address: raw.address || "",
       status: dataItem.status,
@@ -686,7 +682,6 @@ function CompanyDashboard() {
         lastName: raw.last_name || "",
         gender: raw.gender || "-",
         phone: raw.phone || "",
-        userDetail: raw.user_detail || "",
         startDate: startDateStr,
         address: raw.address || "",
         status: selectedGuard.status,
@@ -721,7 +716,6 @@ function CompanyDashboard() {
       gender: formData.gender?.trim() || "-",
       phone: formData.phone.trim(),
       address: formData.address,
-      user_detail: formData.userDetail || "-",
       start_date: formData.startDate
         ? `${toISODate(formData.startDate)}T00:00:00`
         : null,
@@ -1353,19 +1347,6 @@ function CompanyDashboard() {
                 </div>
               </div>
 
-              {/* <div className="flex mt-4">
-                <label className="w-[120px] font-semibold pt-1">
-                  รายละเอียดผู้ใช้
-                </label>
-                <textarea
-                  name="userDetail"
-                  value={formData.userDetail}
-                  onChange={handleInputChange}
-                  rows="2"
-                  className="flex-1 border border-gray-400 rounded-[12px] p-2 outline-none focus:border-blue-500 resize-none"
-                />
-              </div> */}
-
               <div className="flex mt-3">
                 <label className="w-[120px] font-semibold pt-1">ที่อยู่</label>
                 <textarea
@@ -1607,18 +1588,6 @@ function CompanyDashboard() {
                   </div>
                 </div>
               </div>
-
-              {/* <div className="flex mt-4">
-                <label className="w-[120px] font-semibold pt-1">
-                  รายละเอียดผู้ใช้
-                </label>
-                <textarea
-                  readOnly
-                  value={formData.userDetail}
-                  rows="2"
-                  className="flex-1 border border-gray-400 rounded-[12px] p-2 bg-gray-50 outline-none cursor-default resize-none"
-                />
-              </div> */}
 
               <div className="flex mt-3">
                 <label className="w-[120px] font-semibold pt-1">ที่อยู่</label>
@@ -1915,19 +1884,6 @@ function CompanyDashboard() {
                   )}
                 </div>
               </div>
-
-              {/* <div className="flex mt-4">
-                <label className="w-[120px] font-semibold pt-1">
-                  รายละเอียดผู้ใช้
-                </label>
-                <textarea
-                  name="userDetail"
-                  value={formData.userDetail}
-                  onChange={handleInputChange}
-                  rows="2"
-                  className="flex-1 border border-gray-400 rounded-[12px] p-2 outline-none focus:border-blue-500 resize-none"
-                />
-              </div> */}
 
               <div className="flex mt-3">
                 <label className="w-[120px] font-semibold pt-1">ที่อยู่</label>

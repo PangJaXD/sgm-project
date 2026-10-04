@@ -41,7 +41,6 @@ public class HeadGuardService {
                         : "-");
         headGuard.setPhone(request.getPhone());
         headGuard.setAddress(request.getAddress());
-        headGuard.setUser_detail(request.getUser_detail());
         headGuard.setStart_date(request.getStart_date());
         headGuard.setProfile_img(request.getProfile_img());
         headGuard.setCompany_name(request.getCompany_name());
@@ -88,7 +87,6 @@ public class HeadGuardService {
             existingHeadGuard.setPhone(headGuard.getPhone().trim());
         }
         existingHeadGuard.setAddress(headGuard.getAddress());
-        existingHeadGuard.setUser_detail(headGuard.getUser_detail());
         existingHeadGuard.setStart_date(headGuard.getStart_date());
         existingHeadGuard.setQuit_date(headGuard.getQuit_date());
         if (headGuard.getStatus() != null) {
@@ -125,7 +123,6 @@ public class HeadGuardService {
                 .gender(headGuard.getGender() != null ? headGuard.getGender() : "-")
                 .phone(headGuard.getPhone())
                 .address(headGuard.getAddress())
-                .user_detail(headGuard.getUser_detail())
                 .start_date(headGuard.getStart_date())
                 .quit_date(headGuard.getQuit_date())
                 .status(status)

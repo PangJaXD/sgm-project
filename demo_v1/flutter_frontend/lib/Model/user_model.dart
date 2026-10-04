@@ -5,7 +5,6 @@ class UserModel {
   final String lastName;
   final String phone;
   final String address;
-  final String userDetail;
   final DateTime? startDate;
   final DateTime? quitDate;
   final String profileImg;
@@ -22,7 +21,6 @@ class UserModel {
     required this.lastName,
     this.phone = '081-234-5678',
     this.address = 'โซนมหาวิทยาลัยแม่โจ้ และ เชียงใหม่',
-    this.userDetail = '-',
     this.startDate,
     this.quitDate,
     this.profileImg = 'default.png',
@@ -42,7 +40,6 @@ class UserModel {
       phone: json['phone']?.toString() ?? '081-234-5678',
       address:
           json['address']?.toString() ?? 'โซนมหาวิทยาลัยแม่โจ้ และ เชียงใหม่',
-      userDetail: json['user_detail']?.toString() ?? '-',
       startDate: json['start_date'] != null
           ? DateTime.tryParse(json['start_date'].toString())
           : null,
@@ -67,7 +64,6 @@ class UserModel {
         'last_name': lastName,
         'phone': phone,
         'address': address,
-        'user_detail': userDetail,
         'start_date': startDate?.toIso8601String(),
         'quit_date': quitDate?.toIso8601String(),
         'profile_img': profileImg,
@@ -126,7 +122,6 @@ class UserModel {
   UserModel copyWith({
     String? phone,
     String? address,
-    String? userDetail,
     String? status,
   }) {
     return UserModel(
@@ -136,7 +131,6 @@ class UserModel {
       lastName: lastName,
       phone: phone ?? this.phone,
       address: address ?? this.address,
-      userDetail: userDetail ?? this.userDetail,
       startDate: startDate,
       quitDate: quitDate,
       profileImg: profileImg,
