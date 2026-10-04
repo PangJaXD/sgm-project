@@ -9,7 +9,6 @@ import java.time.LocalDateTime;
 @Setter
 public class CreateHeadGuardRequest {
 
-    private String rank;
     private String title;
     private String first_name;
     private String last_name;

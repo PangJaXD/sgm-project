@@ -1,5 +1,5 @@
 import { Eye, X, User } from "lucide-react";
-import { formatRankAndName } from "../../utils/formatters";
+import { formatTitleAndName } from "../../utils/formatters";
 
 export default function ViewGuardModal({ isOpen, onClose, guardData }) {
   if (!isOpen || !guardData) return null;
@@ -68,8 +68,7 @@ export default function ViewGuardModal({ isOpen, onClose, guardData }) {
                 <input
                   type="text"
                   readOnly
-                  value={formatRankAndName({
-                    rank: raw.rank,
+                  value={formatTitleAndName({
                     title: raw.title,
                     firstName: raw.first_name,
                     lastName: raw.last_name,

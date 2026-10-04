@@ -5,7 +5,7 @@ import AddEventModal from "./AddEventModal";
 import ViewEventModal from "./ViewEventModal";
 import EditEventModal from "./EditEventModal";
 import {
-  formatRankAndName,
+  formatTitleAndName,
   formatThaiDate,
   toISODate,
 } from "../../utils/formatters";
@@ -85,7 +85,6 @@ function CompanyDashboard() {
   const [formData, setFormData] = useState({
     username: "",
     password: "",
-    rank: "",
     title: "",
     firstName: "",
     lastName: "",
@@ -250,7 +249,6 @@ function CompanyDashboard() {
             const ordinalNumber = (index + 1).toString();
             return {
               id: `${ordinalNumber}`,
-              rank: guard.rank || "-",
               title: guard.title || "-",
               name: `${guard.first_name || ""} ${guard.last_name || ""}`.trim(),
               gender: guard.gender || "-",
@@ -346,7 +344,6 @@ function CompanyDashboard() {
             const ordinalNumber = (index + 1).toString();
             return {
               id: `${ordinalNumber}`,
-              rank: guard.rank || "-",
               title: guard.title || "-",
               name: `${guard.first_name || ""} ${guard.last_name || ""}`.trim(),
               gender: guard.gender || "-",
@@ -560,7 +557,6 @@ function CompanyDashboard() {
     setFormData({
       username: "",
       password: "",
-      rank: "",
       title: "",
       firstName: "",
       lastName: "",
@@ -592,7 +588,6 @@ function CompanyDashboard() {
     }
 
     const payload = {
-      rank: formData.rank?.trim() || "-",
       title: formData.title?.trim() || "-",
       first_name: formData.firstName,
       last_name: formData.lastName,
@@ -639,7 +634,6 @@ function CompanyDashboard() {
     setFormData({
       username: raw.username || "",
       password: "********",
-      rank: raw.rank || "-",
       title: raw.title || "-",
       firstName: raw.first_name || "",
       lastName: raw.last_name || "",
@@ -676,7 +670,6 @@ function CompanyDashboard() {
       setFormData({
         username: raw.username || "",
         password: "********",
-        rank: raw.rank || "-",
         title: raw.title || "-",
         firstName: raw.first_name || "",
         lastName: raw.last_name || "",
@@ -709,7 +702,6 @@ function CompanyDashboard() {
       editProfileImg || selectedGuard?.raw?.profile_img || "default.png";
 
     const payload = {
-      rank: formData.rank?.trim() || "-",
       title: formData.title?.trim() || "-",
       first_name: formData.firstName,
       last_name: formData.lastName,
@@ -801,10 +793,9 @@ function CompanyDashboard() {
     const keyword = search.toLowerCase();
     return (
       item.id?.toLowerCase().includes(keyword) ||
-      item.rank?.toLowerCase().includes(keyword) ||
       item.title?.toLowerCase().includes(keyword) ||
       item.name?.toLowerCase().includes(keyword) ||
-      formatRankAndName(item).toLowerCase().includes(keyword) ||
+      formatTitleAndName(item).toLowerCase().includes(keyword) ||
       item.gender?.toLowerCase().includes(keyword) ||
       item.experience?.toLowerCase().includes(keyword) ||
       item.status?.toLowerCase().includes(keyword)
@@ -956,7 +947,7 @@ function CompanyDashboard() {
                       {dataItem.id}
                     </div>
                     <div className="font-medium text-gray-900 truncate pr-2">
-                      {formatRankAndName(dataItem)}
+                      {formatTitleAndName(dataItem)}
                     </div>
                     <div>{dataItem.gender}</div>
                     <div>{dataItem.experience}</div>
@@ -1150,39 +1141,15 @@ function CompanyDashboard() {
                     />
                   </div>
                   <div className="flex items-center">
-                    <label className="w-[120px] font-semibold">
-                      ยศ (ทหาร/ตำรวจ)
-                    </label>
+                    <label className="w-[120px] font-semibold">คำนำหน้า</label>
                     <input
                       type="text"
-                      name="rank"
-                      placeholder="เช่น ร.ต.อ. (เว้นว่างหรือ - หากไม่มี)"
-                      value={formData.rank}
-                      onChange={handleInputChange}
-                      className="flex-1 h-[32px] border border-gray-300 rounded-lg px-3 bg-gray-100 outline-none"
-                    />
-                  </div>
-                  <div className="flex items-center">
-                    <label className="w-[120px] font-semibold">คำนำหน้า</label>
-                    <select
                       name="title"
                       value={formData.title === "-" ? "" : formData.title}
                       onChange={handleInputChange}
-                      className="flex-1 h-[32px] border border-gray-300 rounded-lg px-3 bg-gray-100 outline-none cursor-pointer text-gray-700"
-                    >
-                      <option value="">-- ระบุคำนำหน้า --</option>
-                      <option value="นาย">นาย</option>
-                      <option value="นาง">นาง</option>
-                      <option value="นางสาว">นางสาว</option>
-                      {formData.title &&
-                        !["นาย", "นาง", "นางสาว", "-", ""].includes(
-                          formData.title,
-                        ) && (
-                          <option value={formData.title}>
-                            {formData.title}
-                          </option>
-                        )}
-                    </select>
+                      placeholder="Combined prefix, e.g. rank + title"
+                      className="flex-1 h-[32px] border border-gray-300 rounded-lg px-3 bg-gray-100 outline-none text-gray-700"
+                    />
                   </div>
                   <div className="flex items-center">
                     <label className="w-[120px] font-semibold">ชื่อ</label>
@@ -1510,8 +1477,7 @@ function CompanyDashboard() {
                     <input
                       type="text"
                       readOnly
-                      value={formatRankAndName({
-                        rank: formData.rank,
+                      value={formatTitleAndName({
                         title: formData.title,
                         firstName: formData.firstName,
                         lastName: formData.lastName,
@@ -1683,39 +1649,15 @@ function CompanyDashboard() {
                     />
                   </div>
                   <div className="flex items-center">
-                    <label className="w-[120px] font-semibold">
-                      ยศ (ทหาร/ตำรวจ)
-                    </label>
+                    <label className="w-[120px] font-semibold">คำนำหน้า</label>
                     <input
                       type="text"
-                      name="rank"
-                      placeholder="เช่น ร.ต.อ. (เว้นว่างหรือ - หากไม่มี)"
-                      value={formData.rank}
-                      onChange={handleInputChange}
-                      className="flex-1 h-[28px] border border-gray-400 rounded-full px-3 outline-none focus:border-blue-500"
-                    />
-                  </div>
-                  <div className="flex items-center">
-                    <label className="w-[120px] font-semibold">คำนำหน้า</label>
-                    <select
                       name="title"
                       value={formData.title === "-" ? "" : formData.title}
                       onChange={handleInputChange}
-                      className="flex-1 h-[28px] border border-gray-400 rounded-full px-3 bg-white outline-none focus:border-blue-500 cursor-pointer text-gray-700"
-                    >
-                      <option value="">-- ระบุคำนำหน้า --</option>
-                      <option value="นาย">นาย</option>
-                      <option value="นาง">นาง</option>
-                      <option value="นางสาว">นางสาว</option>
-                      {formData.title &&
-                        !["นาย", "นาง", "นางสาว", "-", ""].includes(
-                          formData.title,
-                        ) && (
-                          <option value={formData.title}>
-                            {formData.title}
-                          </option>
-                        )}
-                    </select>
+                      placeholder="Combined prefix, e.g. rank + title"
+                      className="flex-1 h-[28px] border border-gray-400 rounded-full px-3 outline-none focus:border-blue-500"
+                    />
                   </div>
                   <div className="flex items-center">
                     <label className="w-[120px] font-semibold">ชื่อ</label>

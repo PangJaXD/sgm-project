@@ -4,7 +4,7 @@ import ViewGuardModal from "./ViewGuardModal";
 import AssignTaskModal from "./AssignTaskModal";
 import ViewAssignmentModal from "./ViewAssignmentModal";
 import {
-  formatRankAndName,
+  formatTitleAndName,
   formatThaiDate,
   formatThaiTimeRange,
 } from "../../utils/formatters";
@@ -106,13 +106,10 @@ function HeadGuardDashboard() {
     currentUser?.firstName;
   const lname =
     userProfile?.last_name || currentUser?.last_name || currentUser?.lastName;
-  const userRank =
-    userProfile?.rank || currentUser?.rank || currentUser?.user_rank;
   const userTitle = userProfile?.title || currentUser?.title;
   const headGuardName =
     fname && lname
-      ? formatRankAndName({
-          rank: userRank,
+      ? formatTitleAndName({
           title: userTitle,
           firstName: fname,
           lastName: lname,
@@ -178,7 +175,6 @@ function HeadGuardDashboard() {
           sequence: ordinalNumber,
           id: ordinalNumber,
           guardId: guardId,
-          rank: guard.rank || "-",
           title: guard.title || "-",
           name: `${guard.first_name || ""} ${guard.last_name || ""}`.trim(),
           gender: guard.gender || "-",
@@ -273,11 +269,10 @@ function HeadGuardDashboard() {
   const filteredGuards = guards.filter(
     (g) =>
       g.name.toLowerCase().includes(search.toLowerCase()) ||
-      formatRankAndName(g).toLowerCase().includes(search.toLowerCase()) ||
+      formatTitleAndName(g).toLowerCase().includes(search.toLowerCase()) ||
       g.sequence?.toLowerCase().includes(search.toLowerCase()) ||
       g.guardId?.toLowerCase().includes(search.toLowerCase()) ||
       g.id.toLowerCase().includes(search.toLowerCase()) ||
-      g.rank?.toLowerCase().includes(search.toLowerCase()) ||
       g.title?.toLowerCase().includes(search.toLowerCase()) ||
       g.gender?.toLowerCase().includes(search.toLowerCase()) ||
       g.headName?.toLowerCase().includes(search.toLowerCase()),
@@ -359,18 +354,10 @@ function HeadGuardDashboard() {
             fullName = "ไม่ระบุ";
           }
 
-          const rank =
-            a.rank ||
-            a.user_rank ||
-            matchedGuard?.rank ||
-            matchedGuard?.raw?.rank ||
-            "";
-
           const title =
             a.title || matchedGuard?.title || matchedGuard?.raw?.title || "";
 
-          const formattedFullName = formatRankAndName({
-            rank,
+          const formattedFullName = formatTitleAndName({
             title,
             firstName,
             lastName,
@@ -381,7 +368,6 @@ function HeadGuardDashboard() {
             id: a.assignment_id,
             guardId: `${(a.guard_id || 0).toString()}`,
             guardName: formattedFullName,
-            rank: rank,
             title: title,
             firstName: firstName,
             lastName: lastName,
@@ -1060,7 +1046,7 @@ function HeadGuardDashboard() {
                           {g.sequence || g.id}
                         </div>
                         <div className="font-medium text-gray-900">
-                          {formatRankAndName(g)}
+                          {formatTitleAndName(g)}
                         </div>
                         <div>{g.gender}</div>
                         <div>{g.experience}</div>

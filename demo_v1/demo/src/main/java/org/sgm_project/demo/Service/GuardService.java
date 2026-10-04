@@ -29,8 +29,6 @@ public class GuardService {
 
         Guards guard = new Guards();
 
-        guard.setRank(
-                request.getRank() != null && !request.getRank().trim().isEmpty() ? request.getRank().trim() : "-");
         guard.setTitle(
                 request.getTitle() != null && !request.getTitle().trim().isEmpty() ? request.getTitle().trim() : "-");
         guard.setFirst_name(request.getFirst_name());
@@ -76,8 +74,6 @@ public class GuardService {
         Guards existingGuard = guardRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Guard not found"));
 
-        existingGuard
-                .setRank(guard.getRank() != null && !guard.getRank().trim().isEmpty() ? guard.getRank().trim() : "-");
         existingGuard.setTitle(
                 guard.getTitle() != null && !guard.getTitle().trim().isEmpty() ? guard.getTitle().trim() : "-");
         existingGuard.setFirst_name(guard.getFirst_name());

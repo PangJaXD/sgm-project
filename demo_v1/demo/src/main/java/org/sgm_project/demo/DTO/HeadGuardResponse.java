@@ -11,7 +11,6 @@ import java.time.LocalDateTime;
 public class HeadGuardResponse {
     private Integer users_id;
     private String username;
-    private String rank;
     private String title;
     private String first_name;
     private String last_name;

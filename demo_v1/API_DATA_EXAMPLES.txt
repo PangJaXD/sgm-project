@@ -156,8 +156,7 @@ Content-Type: application/json
   "start_date": "2026-09-01T08:30:00",
   "profile_img": "admin_profiles/warunee.png",
   "status": "ACTIVE",
-  "rank": "หัวหน้าผู้ดูแลระบบ",
-  "title": "นางสาว",
+  "title": "หัวหน้าผู้ดูแลระบบ นางสาว",
   "gender": "หญิง"
 }
 
@@ -166,8 +165,7 @@ Content-Type: application/json
   "users_id": 5,
   "username": "admin_warunee",
   "password": "$2a$10$wK1F5n832iK...",
-  "rank": "หัวหน้าผู้ดูแลระบบ",
-  "title": "นางสาว",
+  "title": "หัวหน้าผู้ดูแลระบบ นางสาว",
   "first_name": "วารุณี",
   "last_name": "เจริญสุข",
   "gender": "หญิง",
@@ -691,8 +689,7 @@ Content-Type: application/json
 {
   "username": "guard_somchai",
   "password": "Password123!",
-  "rank": "เจ้าหน้าที่ รปภ. ประจำจุด",
-  "title": "นาย",
+  "title": "เจ้าหน้าที่ รปภ. ประจำจุด นาย",
   "first_name": "สมชาย",
   "last_name": "สายตรวจ",
   "gender": "ชาย",
@@ -708,8 +705,7 @@ Content-Type: application/json
 {
   "users_id": 14,
   "username": "guard_somchai",
-  "rank": "เจ้าหน้าที่ รปภ. ประจำจุด",
-  "title": "นาย",
+  "title": "เจ้าหน้าที่ รปภ. ประจำจุด นาย",
   "first_name": "สมชาย",
   "last_name": "สายตรวจ",
   "gender": "ชาย",
@@ -741,8 +737,7 @@ Query Parameters:
   {
     "users_id": 14,
     "username": "guard_somchai",
-    "rank": "เจ้าหน้าที่ รปภ. ประจำจุด",
-    "title": "นาย",
+    "title": "เจ้าหน้าที่ รปภ. ประจำจุด นาย",
     "first_name": "สมชาย",
     "last_name": "สายตรวจ",
     "gender": "ชาย",
@@ -790,8 +785,7 @@ Path Variable:
 {
   "users_id": 14,
   "username": "guard_somchai",
-  "rank": "เจ้าหน้าที่ รปภ. ประจำจุด",
-  "title": "นาย",
+  "title": "เจ้าหน้าที่ รปภ. ประจำจุด นาย",
   "first_name": "สมชาย",
   "last_name": "สายตรวจ",
   "gender": "ชาย",
@@ -810,7 +804,7 @@ Path Variable:
 Method: PUT
 URL: /api/guard/{id}
 Controller Function: GuardController.updateGuard(Integer id, Guards guard)
-Description: Updates guard information (phone, address, ranking, status).
+Description: Updates guard information (title, phone, address, status).
 
 [INPUT EXAMPLE]
 Path Variable:
@@ -819,7 +813,7 @@ Content-Type: application/json
 {
   "phone": "0895559999",
   "address": "45 หมู่ 2 ต.ป่าไผ่ อ.สันทราย จ.เชียงใหม่ (ปรับปรุงที่อยู่)",
-  "rank": "เจ้าหน้าที่ รปภ. อาวุโส",
+  "title": "เจ้าหน้าที่ รปภ. อาวุโส",
   "status": "ACTIVE"
 }
 
@@ -827,7 +821,7 @@ Content-Type: application/json
 {
   "users_id": 14,
   "phone": "0895559999",
-  "rank": "เจ้าหน้าที่ รปภ. อาวุโส",
+  "title": "เจ้าหน้าที่ รปภ. อาวุโส",
   "status": "ACTIVE"
 }
 
@@ -876,8 +870,7 @@ Content-Type: application/json
 {
   "username": "head_somporn",
   "password": "Password123!",
-  "rank": "หัวหน้าชุดปฏิบัติการ",
-  "title": "นาย",
+  "title": "หัวหน้าชุดปฏิบัติการ นาย",
   "first_name": "สมพร",
   "last_name": "หัวหน้าชุด",
   "gender": "ชาย",
@@ -892,8 +885,7 @@ Content-Type: application/json
 {
   "users_id": 2,
   "username": "head_somporn",
-  "rank": "หัวหน้าชุดปฏิบัติการ",
-  "title": "นาย",
+  "title": "หัวหน้าชุดปฏิบัติการ นาย",
   "first_name": "สมพร",
   "last_name": "หัวหน้าชุด",
   "gender": "ชาย",
@@ -924,8 +916,7 @@ Query Parameters:
   {
     "users_id": 2,
     "username": "head_somporn",
-    "rank": "หัวหน้าชุดปฏิบัติการ",
-    "title": "นาย",
+    "title": "หัวหน้าชุดปฏิบัติการ นาย",
     "first_name": "สมพร",
     "last_name": "หัวหน้าชุด",
     "gender": "ชาย",
@@ -977,8 +968,7 @@ Path Variable:
 {
   "users_id": 2,
   "username": "head_somporn",
-  "rank": "หัวหน้าชุดปฏิบัติการ",
-  "title": "นาย",
+  "title": "หัวหน้าชุดปฏิบัติการ นาย",
   "first_name": "สมพร",
   "last_name": "หัวหน้าชุด",
   "gender": "ชาย",
@@ -1064,7 +1054,7 @@ Query Parameters:
   {
     "users_id": 14,
     "username": "guard_somchai",
-    "rank": "เจ้าหน้าที่ รปภ. ประจำจุด",
+    "title": "เจ้าหน้าที่ รปภ. ประจำจุด",
     "first_name": "สมชาย",
     "last_name": "สายตรวจ",
     "phone": "0895556677",
@@ -1174,9 +1164,7 @@ Path Variable:
     "latitude": "18.895123",
     "longitude": "99.014567",
     "guard_id": 14,
-    "rank": "เจ้าหน้าที่ รปภ. ประจำจุด",
-    "user_rank": "เจ้าหน้าที่ รปภ. ประจำจุด",
-    "title": "นาย",
+    "title": "เจ้าหน้าที่ รปภ. ประจำจุด นาย",
     "first_name": "สมชาย",
     "last_name": "สายตรวจ",
     "guard_name": "สมชาย สายตรวจ",
@@ -1189,9 +1177,7 @@ Path Variable:
     "latitude": null,
     "longitude": null,
     "guard_id": 15,
-    "rank": "เจ้าหน้าที่ รปภ.",
-    "user_rank": "เจ้าหน้าที่ รปภ.",
-    "title": "นาย",
+    "title": "เจ้าหน้าที่ รปภ. นาย",
     "first_name": "อเนก",
     "last_name": "มั่นเพียร",
     "guard_name": "อเนก มั่นเพียร",
@@ -1703,8 +1689,7 @@ final guard = await UserService().getGuardProfile(14);
 UserModel(
   usersId: 14,
   username: "guard_somchai",
-  rank: "เจ้าหน้าที่ รปภ. ประจำจุด",
-  title: "นาย",
+  "title": "เจ้าหน้าที่ รปภ. ประจำจุด นาย",
   firstName: "สมชาย",
   lastName: "สายตรวจ",
   gender: "ชาย",
@@ -1819,4 +1804,3 @@ final notifications = await NotificationService().getNotifications(guardId: 14);
 ================================================================================
 END OF SGM API & FUNCTION DATA EXAMPLES
 ================================================================================
-

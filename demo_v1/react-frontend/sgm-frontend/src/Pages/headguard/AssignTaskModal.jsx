@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { X, MapPin, PenSquare, Search, Loader2, Locate } from "lucide-react";
-import { formatRankAndName } from "../../utils/formatters";
+import { formatTitleAndName } from "../../utils/formatters";
 import {
   MapContainer,
   TileLayer,
@@ -241,7 +241,7 @@ export default function AssignTaskModal({
             <div>
               <span className="font-semibold text-gray-900">ชื่อ-นามสกุล:</span>
               <span className="ml-2 text-gray-600">
-                {formatRankAndName(assignmentData)}
+                {formatTitleAndName(assignmentData)}
               </span>
             </div>
           </div>

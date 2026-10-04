@@ -30,8 +30,6 @@ public class HeadGuardService {
 
         HeadGuard headGuard = new HeadGuard();
 
-        headGuard.setRank(
-                request.getRank() != null && !request.getRank().trim().isEmpty() ? request.getRank().trim() : "-");
         headGuard.setTitle(
                 request.getTitle() != null && !request.getTitle().trim().isEmpty() ? request.getTitle().trim() : "-");
         headGuard.setFirst_name(request.getFirst_name());
@@ -71,9 +69,6 @@ public class HeadGuardService {
         HeadGuard existingHeadGuard = headGuardRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("HeadGuard not found"));
 
-        existingHeadGuard.setRank(
-                headGuard.getRank() != null && !headGuard.getRank().trim().isEmpty() ? headGuard.getRank().trim()
-                        : "-");
         existingHeadGuard.setTitle(
                 headGuard.getTitle() != null && !headGuard.getTitle().trim().isEmpty() ? headGuard.getTitle().trim()
                         : "-");
@@ -116,7 +111,6 @@ public class HeadGuardService {
         return HeadGuardResponse.builder()
                 .users_id(headGuard.getUsers_id())
                 .username(headGuard.getUsername())
-                .rank(headGuard.getRank() != null ? headGuard.getRank() : "-")
                 .title(headGuard.getTitle() != null ? headGuard.getTitle() : "-")
                 .first_name(headGuard.getFirst_name())
                 .last_name(headGuard.getLast_name())
