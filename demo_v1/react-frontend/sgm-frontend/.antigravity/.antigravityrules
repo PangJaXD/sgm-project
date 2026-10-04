@@ -1,0 +1,71 @@
+# Antigravity Execution & Coding Rules
+
+## 1. Safety & File Modification Constraints (CRITICAL & NON-NEGOTIABLE)
+
+- **Strict Scope Lockdown:**
+  - Modify ONLY the exact functions, components, or lines explicitly requested or strictly required to solve the task.
+  - **Zero "drive-by" refactoring:** Do NOT clean up, format, optimize, or rename variables/methods outside the target scope, even if you spot anti-patterns, deprecations, or unused imports.
+  - **Respect User Code:** Treat all recently added or modified code as intentional and immutable. Never overwrite or revert user-written logic to match older patterns.
+  - If you think a change outside the immediate scope is necessary, **ask for confirmation first** before touching it.
+- **Zero Full-File Rewrites:**
+  - Never regenerate or rewrite an entire file unless explicitly instructed to "scaffold from scratch" or creating a brand-new file.
+  - Always apply surgical, targeted diffs/edits.
+- **Preserve Existing Logic & Context:**
+  - Never delete existing helper utilities, comments, configurations, or imports that are not directly related to the active task.
+  - Do not reorganize or reorder existing methods/classes.
+- **Pre-Execution Check (>100 lines):**
+  - Before applying changes to any file larger than 100 lines, briefly list the exact method/component names you intend to touch.
+
+---
+
+## 2. Backend Rules (Java & Spring Boot)
+
+- **Language / Framework:** Java 17+, Spring Boot 3.x.
+- **Architecture Integrity:** Maintain strict separation of concerns across `Controller -> Service -> Repository -> Entity / DTO`. Do not leak logic across layer boundaries.
+- **Persistence & Entity Protection:**
+  - Preserve all existing JPA/Hibernate annotations (`@Entity`, `@Table`, `@ManyToOne`, `@OneToMany`, `@JoinColumn`, etc.) unless schema changes are requested.
+  - Do not modify table/column mappings or cascading rules without explicit permission.
+- **DTOs & Payloads:**
+  - Always use dedicated DTOs or Java Records for request and response payloads.
+  - Never expose database entities directly in controllers.
+- **Validation & Errors:**
+  - Preserve existing Bean Validation annotations (`@Valid`, `@NotNull`, `@NotBlank`, etc.).
+  - Handle errors via custom domain exceptions and centralized `@ControllerAdvice` / `ResponseEntity` structures rather than exposing stack traces.
+
+---
+
+## 3. Web Frontend Rules (React, Vite, Tailwind CSS)
+
+- **Language / Framework:** TypeScript / JavaScript, React functional components, Vite, Tailwind CSS.
+- **Style Isolation:**
+  - Never remove, replace, or reset existing Tailwind CSS utility classes, layout classes, or custom design tokens unless a visual redesign is explicitly asked.
+  - Do not re-theme or alter global CSS (`index.css`, Tailwind config) during feature implementation.
+- **State Management:**
+  - Keep state as local as possible (`useState`, `useReducer`, custom hooks).
+  - Do not introduce new global state management libraries (Redux, Zustand, etc.) unless requested.
+- **Type Safety & Contracts:**
+  - Strictly preserve existing TypeScript types and interfaces.
+  - Do not downgrade strong types to `any` or strip generic parameters to silence compiler errors.
+
+---
+
+## 4. Mobile Rules (Flutter & Dart)
+
+- **Language / Framework:** Flutter, Dart with sound null safety.
+- **Widget Performance:**
+  - Always use `const` constructors wherever possible to prevent unnecessary widget tree rebuilds.
+  - Keep build methods lightweight and free of side-effects.
+- **Architecture & State:**
+  - Maintain the existing state management pattern (Provider, BLoC, Riverpod) used in the project; do not introduce competing patterns.
+  - Keep UI widgets separated from network calls and business logic.
+- **Dependencies & Assets:**
+  - Never modify `pubspec.yaml`, add new packages, or touch native platform folders (`android/`, `ios/`) unless explicitly requested.
+
+---
+
+## 5. Execution & Output Format
+
+- **Targeted Diff Delivery:**
+  - When presenting code, show only the modified block surrounded by minimal enclosing context (e.g., class header or parent function) so it is clear where it belongs.
+  - Do NOT print hundreds of lines of unchanged code just to show a 5-line change.
+- **Explicit Omission Markers:** Use clear comments (e.g., `// ... existing code ...`) for unchanged regions so no ambiguity exists about what is kept.

@@ -538,7 +538,7 @@ function AdminDashboard() {
                       value={formData.username}
                       onChange={handleInputChange}
                       placeholder="8-20 ตัวอักษร/ตัวเลข"
-                      className="flex-1 h-[30px] border border-gray-400 rounded-full px-3 text-center outline-none focus:border-blue-500 text-xs"
+                      className="flex-1 h-[30px] border border-gray-400 rounded-full px-3 outline-none focus:border-blue-500 text-xs"
                     />
                   </div>
 
@@ -552,7 +552,7 @@ function AdminDashboard() {
                       value={formData.password}
                       onChange={handleInputChange}
                       placeholder="8-16 ตัว รวม [ !#_. ]"
-                      className="flex-1 h-[30px] border border-gray-400 rounded-full px-3 text-center outline-none focus:border-blue-500 text-xs"
+                      className="flex-1 h-[30px] border border-gray-400 rounded-full px-3 outline-none focus:border-blue-500 text-xs"
                     />
                   </div>
 
@@ -566,7 +566,7 @@ function AdminDashboard() {
                       value={formData.companyName}
                       onChange={handleInputChange}
                       placeholder="ชื่อบริษัทรักษาความปลอดภัย"
-                      className="flex-1 h-[30px] border border-gray-400 rounded-full px-3 text-center outline-none focus:border-blue-500 text-xs"
+                      className="flex-1 h-[30px] border border-gray-400 rounded-full px-3 outline-none focus:border-blue-500 text-xs"
                     />
                   </div>
 
@@ -580,7 +580,7 @@ function AdminDashboard() {
                       value={formData.phone}
                       onChange={handleInputChange}
                       placeholder="064-XXXXXXX"
-                      className="flex-1 h-[30px] border border-gray-400 rounded-full px-3 text-center outline-none focus:border-blue-500 text-xs"
+                      className="flex-1 h-[30px] border border-gray-400 rounded-full px-3 outline-none focus:border-blue-500 text-xs"
                     />
                   </div>
 
@@ -690,7 +690,7 @@ function AdminDashboard() {
                       type="text"
                       readOnly
                       value={editingDisplayId}
-                      className="flex-1 h-[32px] border border-gray-300 rounded-lg px-3 bg-gray-100 outline-none text-center"
+                      className="flex-1 h-[32px] border border-gray-300 rounded-lg px-3 bg-gray-100 outline-none"
                     />
                   </div>
 
@@ -730,7 +730,7 @@ function AdminDashboard() {
                     />
                   </div>
 
-                  <div className="flex items-center">
+                  {/* <div className="flex items-center">
                     <label className="w-[130px] font-semibold text-gray-700">
                       email
                     </label>
@@ -740,7 +740,7 @@ function AdminDashboard() {
                       value={formData.email}
                       className="flex-1 h-[32px] border border-gray-300 rounded-lg px-3 bg-gray-100 outline-none"
                     />
-                  </div>
+                  </div> */}
 
                   <div className="flex items-center">
                     <label className="w-[130px] font-semibold text-gray-700">
@@ -840,7 +840,7 @@ function AdminDashboard() {
                       type="text"
                       readOnly
                       value={editingDisplayId}
-                      className="flex-1 h-[30px] border border-gray-400 rounded-full px-3 text-center bg-gray-100 outline-none text-xs font-semibold cursor-default"
+                      className="flex-1 h-[30px] border border-gray-400 rounded-full px-3 bg-gray-100 outline-none text-xs font-semibold cursor-default"
                     />
                   </div>
 
@@ -853,7 +853,7 @@ function AdminDashboard() {
                       name="username"
                       value={formData.username}
                       onChange={handleInputChange}
-                      className="flex-1 h-[30px] border border-gray-400 rounded-full px-3 text-center outline-none focus:border-blue-500 text-xs"
+                      className="flex-1 h-[30px] border border-gray-400 rounded-full px-3 outline-none focus:border-blue-500 text-xs"
                     />
                   </div>
 
@@ -867,7 +867,7 @@ function AdminDashboard() {
                       value={formData.password}
                       onChange={handleInputChange}
                       placeholder="เว้นว่างหากไม่ต้องการเปลี่ยน"
-                      className="flex-1 h-[30px] border border-gray-400 rounded-full px-3 text-center outline-none focus:border-blue-500 text-xs"
+                      className="flex-1 h-[30px] border border-gray-400 rounded-full px-3 outline-none focus:border-blue-500 text-xs"
                     />
                   </div>
 
@@ -880,7 +880,7 @@ function AdminDashboard() {
                       name="companyName"
                       value={formData.companyName}
                       onChange={handleInputChange}
-                      className="flex-1 h-[30px] border border-gray-400 rounded-full px-3 text-center outline-none focus:border-blue-500 text-xs"
+                      className="flex-1 h-[30px] border border-gray-400 rounded-full px-3 outline-none focus:border-blue-500 text-xs"
                     />
                   </div>
 
@@ -893,11 +893,11 @@ function AdminDashboard() {
                       name="phone"
                       value={formData.phone}
                       onChange={handleInputChange}
-                      className="flex-1 h-[30px] border border-gray-400 rounded-full px-3 text-center outline-none focus:border-blue-500 text-xs"
+                      className="flex-1 h-[30px] border border-gray-400 rounded-full px-3 outline-none focus:border-blue-500 text-xs"
                     />
                   </div>
 
-                  <div className="flex items-center">
+                  {/* <div className="flex items-center">
                     <label className="w-[130px] font-semibold text-gray-700">
                       email
                     </label>
@@ -906,9 +906,9 @@ function AdminDashboard() {
                       name="email"
                       value={formData.email}
                       onChange={handleInputChange}
-                      className="flex-1 h-[30px] border border-gray-400 rounded-full px-3 text-center outline-none focus:border-blue-500 text-xs"
+                      className="flex-1 h-[30px] border border-gray-400 rounded-full px-3 outline-none focus:border-blue-500 text-xs"
                     />
-                  </div>
+                  </div> */}
 
                   <div className="flex items-center">
                     <label className="w-[130px] font-semibold text-gray-700">
@@ -927,7 +927,7 @@ function AdminDashboard() {
                         allowInput: true,
                       }}
                       placeholder="วว/ดด/ปปปป"
-                      className="flex-1 h-[30px] border border-gray-400 rounded-full px-3 text-center outline-none focus:border-blue-500 text-xs bg-white text-gray-700"
+                      className="flex-1 h-[30px] border border-gray-400 rounded-full px-3 outline-none focus:border-blue-500 text-xs bg-white text-gray-700"
                     />
                   </div>
 
@@ -939,7 +939,7 @@ function AdminDashboard() {
                       name="status"
                       value={formData.status}
                       onChange={handleInputChange}
-                      className="flex-1 h-[30px] border border-gray-400 rounded-full px-3 text-center bg-white outline-none focus:border-blue-500 text-xs cursor-pointer"
+                      className="flex-1 h-[30px] border border-gray-400 rounded-full px-3 bg-white outline-none focus:border-blue-500 text-xs cursor-pointer"
                     >
                       <option value="ปฏิบัติงาน">ปฏิบัติงาน</option>
                       <option value="พักงาน">พักงาน (Suspended)</option>

@@ -39,7 +39,7 @@ export default function ViewGuardModal({ isOpen, onClose, guardData }) {
                   className="flex-1 h-[32px] border border-gray-300 rounded-lg px-3 bg-gray-100 outline-none"
                 />
               </div>
-              <div className="flex items-center">
+              {/* <div className="flex items-center">
                 <label className="w-[120px] font-semibold text-gray-700">
                   รหัสประจำตัว
                 </label>
@@ -49,7 +49,7 @@ export default function ViewGuardModal({ isOpen, onClose, guardData }) {
                   value={guardData.guardId || guardData.raw?.users_id || guardData.id}
                   className="flex-1 h-[32px] border border-gray-300 rounded-lg px-3 bg-gray-100 outline-none"
                 />
-              </div>
+              </div> */}
               <div className="flex items-center">
                 <label className="w-[120px] font-semibold text-gray-700">
                   ชื่อผู้ใช้งาน

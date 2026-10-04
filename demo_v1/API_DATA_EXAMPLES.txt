@@ -1,0 +1,1838 @@
+================================================================================
+          SGM (SECURITY GUARD MANAGEMENT) PROJECT - API & FUNCTION DATA EXAMPLES
+================================================================================
+Generated Date: 2026-09-25
+Project Components:
+  - Backend: Spring Boot (Java) - Controllers, Services, Repositories
+  - Frontend Web: React (Admin, Company, Head Guard Portals)
+  - Mobile: Flutter (Security Guard App)
+================================================================================
+
+TABLE OF CONTENTS:
+--------------------------------------------------------------------------------
+1. AUTHENTICATION (AuthController)
+   1.1 User Login [POST /api/auth/login]
+
+2. ADMIN MANAGEMENT (AdminController)
+   2.1 Create Admin [POST /api/admin]
+   2.2 Get System Statistics [GET /api/admin/stats]
+
+3. COMPANY MANAGEMENT (CompanyController)
+   3.1 Create Security Company [POST /api/company]
+   3.2 Get All Companies / Filter by Admin [GET /api/company]
+   3.3 Get Company by ID [GET /api/company/{id}]
+   3.4 Update Company [PUT /api/company/{id}]
+   3.5 Delete Company Permanently [DELETE /api/company/{id}]
+
+4. EVENT MANAGEMENT (EventController)
+   4.1 Get All Events / Filter [GET /api/events]
+   4.2 Get Event by ID [GET /api/events/{id}]
+   4.3 Create Event with Shifts [POST /api/events]
+   4.4 Update Event [PUT /api/events/{id}]
+   4.5 Delete Event [DELETE /api/events/{id}]
+   4.6 Update Event Visibility [PUT /api/events/{id}/visibility]
+   4.7 Get Shifts for Event [GET /api/events/{id}/shifts]
+
+5. GUARD MANAGEMENT (GuardController)
+   5.1 Create Security Guard [POST /api/guard]
+   5.2 Get All Guards / Filter by Company [GET /api/guard]
+   5.3 Get Active Guards [GET /api/guard/active]
+   5.4 Get Guard by ID [GET /api/guard/{id}]
+   5.5 Update Guard [PUT /api/guard/{id}]
+   5.6 Get Guard Shift/Assignment History [GET /api/guard/{id}/history]
+
+6. HEAD GUARD MANAGEMENT (HeadGuardController)
+   6.1 Create Head Guard [POST /api/headguard]
+   6.2 Get All Head Guards / Filter by Company [GET /api/headguard]
+   6.3 Get Active Head Guards [GET /api/headguard/active]
+   6.4 Get Head Guard by ID [GET /api/headguard/{id}]
+   6.5 Update Head Guard [PUT /api/headguard/{id}]
+
+7. HEAD GUARD DASHBOARD (HeadGuardDashboardController)
+   7.1 Get Dashboard Shifts for Head Guard [GET /api/headguard-dashboard/{headGuardId}/shifts]
+   7.2 Get Guards Under Head Guard [GET /api/headguard-dashboard/guards]
+   7.3 Get Events for Head Guard [GET /api/headguard-dashboard/events/{headId}]
+   7.4 Get Urgent / Incident Reports [GET /api/headguard-dashboard/requests]
+   7.5 Get Urgent Reports by Head Guard ID [GET /api/headguard-dashboard/{headGuardId}/requests]
+   7.6 Get Shift Assignments Breakdown [GET /api/headguard-dashboard/shifts/{shiftId}/assignments]
+   7.7 Update Assignment Status [PUT /api/headguard-dashboard/assignments/{id}/status]
+   7.8 Update Assignment Post & Coordinates [PUT /api/headguard-dashboard/assignments/{id}/detail]
+   7.9 Head Guard Create Assignment Request [POST /api/headguard-dashboard/assignments/request]
+   7.10 Update Guard Visibility by Shift [PUT /api/headguard-dashboard/shifts/{shiftId}/guard-visibility]
+
+8. ASSIGNMENT & SHIFT APPLICATION (AssignmentController)
+   8.1 Get All Assignments for Guard [GET /api/assignment/guard/{guardId}]
+   8.2 Get Active / Current Assignment for Guard [GET /api/assignment/guard/{guardId}/active]
+   8.3 Apply for Shift (Reserve Slot) [POST /api/assignment/request]
+   8.4 Withdraw from Assignment / Shift by Assignment ID [POST /api/assignment/{id}/withdraw]
+   8.5 Withdraw from Assignment by Guard ID & Shift ID [POST /api/assignment/withdraw]
+   8.6 Get Assignment Details by ID [GET /api/assignment/{id}]
+
+9. REPORT & INCIDENT LOGGING (ReportController)
+   9.1 Submit Situation Report (JSON Format) [POST /api/report]
+   9.2 Submit Situation Report with Image (Multipart Form) [POST /api/report]
+   9.3 Get Reports by Guard ID [GET /api/report/guard/{guardId}]
+   9.4 Get All Reports [GET /api/report]
+   9.5 Get Abnormal / Emergency Reports [GET /api/report/abnormal]
+
+10. FILE UPLOADS (FileUploadController)
+    10.1 Upload File / Image [POST /api/upload]
+
+11. FLUTTER CLIENT SERVICES (Mobile App Client Functions)
+    11.1 AuthService.login()
+    11.2 UserService.getProfile()
+    11.3 EventService.getEvents() & getEventShifts()
+    11.4 EventService.applyShift() & withdrawShift()
+    11.5 ReportService.submitReport() & getAbnormalReports()
+    11.6 NotificationService.getNotifications()
+
+================================================================================
+
+
+################################################################################
+1. AUTHENTICATION (AuthController)
+################################################################################
+
+--------------------------------------------------------------------------------
+1.1 User Login
+--------------------------------------------------------------------------------
+Method: POST
+URL: /api/auth/login
+Controller Function: AuthController.login(LoginRequest request)
+Description: Authenticates users across all roles (ADMIN, HEADGUARD, GUARD, COMPANY).
+Returns user profile metadata, role, and association details.
+
+[INPUT EXAMPLE]
+Content-Type: application/json
+{
+  "username": "guard_somchai",
+  "password": "Password123!",
+  "role": "GUARD"
+}
+
+[OUTPUT EXAMPLE - HTTP 200 OK]
+{
+  "users_id": 14,
+  "username": "guard_somchai",
+  "role": "GUARD",
+  "first_name": "สมชาย",
+  "last_name": "สายตรวจ",
+  "company_name": "บริษัท สยาม ซีเคียวริตี้ กรุ๊ป จำกัด",
+  "head_name": "นายสมพร หัวหน้าชุด",
+  "status": "ACTIVE",
+  "start_date": "2026-08-01T09:00:00"
+}
+
+[ERROR EXAMPLE - HTTP 400 / 401]
+{
+  "timestamp": "2026-09-25T14:00:00",
+  "status": 401,
+  "error": "Unauthorized",
+  "message": "ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง"
+}
+
+
+################################################################################
+2. ADMIN MANAGEMENT (AdminController)
+################################################################################
+
+--------------------------------------------------------------------------------
+2.1 Create Admin
+--------------------------------------------------------------------------------
+Method: POST
+URL: /api/admin
+Controller Function: AdminController.createAdmin(Admin admin)
+Description: Registers a new system administrator with hashed password credentials.
+
+[INPUT EXAMPLE]
+Content-Type: application/json
+{
+  "username": "admin_warunee",
+  "password": "Password123!",
+  "first_name": "วารุณี",
+  "last_name": "เจริญสุข",
+  "phone": "0891234567",
+  "address": "99 หมู่ 4 ต.หนองหาร อ.สันทราย จ.เชียงใหม่",
+  "user_detail": "ผู้ดูแลระบบฝ่ายประสานงานกลาง",
+  "start_date": "2026-09-01T08:30:00",
+  "profile_img": "admin_profiles/warunee.png",
+  "status": "ACTIVE",
+  "rank": "หัวหน้าผู้ดูแลระบบ",
+  "title": "นางสาว",
+  "gender": "หญิง"
+}
+
+[OUTPUT EXAMPLE - HTTP 201 CREATED]
+{
+  "users_id": 5,
+  "username": "admin_warunee",
+  "password": "$2a$10$wK1F5n832iK...",
+  "rank": "หัวหน้าผู้ดูแลระบบ",
+  "title": "นางสาว",
+  "first_name": "วารุณี",
+  "last_name": "เจริญสุข",
+  "gender": "หญิง",
+  "phone": "0891234567",
+  "address": "99 หมู่ 4 ต.หนองหาร อ.สันทราย จ.เชียงใหม่",
+  "user_detail": "ผู้ดูแลระบบฝ่ายประสานงานกลาง",
+  "start_date": "2026-09-01T08:30:00",
+  "quit_date": null,
+  "status": "ACTIVE",
+  "profile_img": "admin_profiles/warunee.png"
+}
+
+--------------------------------------------------------------------------------
+2.2 Get System Statistics
+--------------------------------------------------------------------------------
+Method: GET
+URL: /api/admin/stats
+Controller Function: AdminController.getSystemStats()
+Description: Retrieves system-wide metric counts for the Admin Dashboard overview.
+
+[INPUT EXAMPLE]
+No request body or parameters required.
+
+[OUTPUT EXAMPLE - HTTP 200 OK]
+{
+  "totalCompanies": 6,
+  "totalHeadGuards": 12,
+  "totalGuards": 48,
+  "totalEvents": 15
+}
+
+
+################################################################################
+3. COMPANY MANAGEMENT (CompanyController)
+################################################################################
+
+--------------------------------------------------------------------------------
+3.1 Create Security Company
+--------------------------------------------------------------------------------
+Method: POST
+URL: /api/company
+Controller Function: CompanyController.createCompany(CreateCompanyRequest request)
+Description: Registers a new security company profile under a responsible admin.
+
+[INPUT EXAMPLE]
+Content-Type: application/json
+{
+  "company_name": "บริษัท เชียงใหม่ การ์ด โปร จำกัด",
+  "first_name": "คุณวิชัย",
+  "last_name": "มั่นคงทรัพย์",
+  "phone": "053123456",
+  "address": "123 ถ.นิมมานเหมินท์ ต.สุเทพ อ.เมือง จ.เชียงใหม่ 50200",
+  "user_detail": "ให้บริการรักษาความปลอดภัยอาคารและอีเวนต์ภาคเหนือ",
+  "start_date": "2026-09-25T09:00:00",
+  "profile_img": "companies/cm_guard_pro.jpg",
+  "username": "cm_guard_pro",
+  "password": "Password123!",
+  "admin_name": "สามารถ คุ้มภัย"
+}
+
+[OUTPUT EXAMPLE - HTTP 201 CREATED]
+{
+  "users_id": 18,
+  "company_name": "บริษัท เชียงใหม่ การ์ด โปร จำกัด",
+  "first_name": "คุณวิชัย",
+  "last_name": "มั่นคงทรัพย์",
+  "phone": "053123456",
+  "address": "123 ถ.นิมมานเหมินท์ ต.สุเทพ อ.เมือง จ.เชียงใหม่ 50200",
+  "user_detail": "ให้บริการรักษาความปลอดภัยอาคารและอีเวนต์ภาคเหนือ",
+  "start_date": "2026-09-25T09:00:00",
+  "quit_date": null,
+  "profile_img": "companies/cm_guard_pro.jpg",
+  "username": "cm_guard_pro",
+  "admin_name": "สามารถ คุ้มภัย",
+  "total_guards": 0,
+  "total_events": 0,
+  "status": "ปฏิบัติงาน"
+}
+
+--------------------------------------------------------------------------------
+3.2 Get All Companies / Filter by Admin
+--------------------------------------------------------------------------------
+Method: GET
+URL: /api/company?adminName=สามารถ%20คุ้มภัย
+Controller Function: CompanyController.getAllCompanies(adminName, adminUsername)
+Description: Returns list of registered companies, optionally filtered by responsible admin.
+
+[INPUT EXAMPLE]
+Query Parameters:
+  adminName: "สามารถ คุ้มภัย" (optional)
+  adminUsername: "admin_samart" (optional)
+
+[OUTPUT EXAMPLE - HTTP 200 OK]
+[
+  {
+    "users_id": 1,
+    "company_name": "บริษัท สยาม ซีเคียวริตี้ กรุ๊ป จำกัด",
+    "first_name": "บริษัท สยาม ซีเคียวริตี้ กรุ๊ป จำกัด",
+    "last_name": "-",
+    "phone": "025891122",
+    "address": "88/1 อาคารสยามทาวเวอร์ ถ.วิภาวดี กรุงเทพฯ",
+    "user_detail": "ให้บริการรักษาความปลอดภัยระดับมาตรฐานสากล",
+    "start_date": "2026-08-01T09:00:00",
+    "quit_date": null,
+    "profile_img": "company_logo_1.png",
+    "username": "company_siamgroup",
+    "admin_name": "สามารถ คุ้มภัย",
+    "total_guards": 0,
+    "total_events": 4,
+    "status": "ปฏิบัติงาน"
+  }
+]
+
+--------------------------------------------------------------------------------
+3.3 Get Company by ID
+--------------------------------------------------------------------------------
+Method: GET
+URL: /api/company/{id}
+Controller Function: CompanyController.getCompanyById(Integer id)
+Description: Retrieves single company profile by its primary key ID.
+
+[INPUT EXAMPLE]
+Path Variable:
+  id: 1
+
+[OUTPUT EXAMPLE - HTTP 200 OK]
+{
+  "users_id": 1,
+  "company_name": "บริษัท สยาม ซีเคียวริตี้ กรุ๊ป จำกัด",
+  "first_name": "บริษัท สยาม ซีเคียวริตี้ กรุ๊ป จำกัด",
+  "last_name": "-",
+  "phone": "025891122",
+  "address": "88/1 อาคารสยามทาวเวอร์ ถ.วิภาวดี กรุงเทพฯ",
+  "user_detail": "ให้บริการรักษาความปลอดภัยระดับมาตรฐานสากล",
+  "start_date": "2026-08-01T09:00:00",
+  "quit_date": null,
+  "profile_img": "company_logo_1.png",
+  "username": "company_siamgroup",
+  "admin_name": "สามารถ คุ้มภัย",
+  "total_guards": 0,
+  "total_events": 4,
+  "status": "ปฏิบัติงาน"
+}
+
+--------------------------------------------------------------------------------
+3.4 Update Company
+--------------------------------------------------------------------------------
+Method: PUT
+URL: /api/company/{id}
+Controller Function: CompanyController.updateCompany(Integer id, UpdateCompanyRequest request)
+Description: Modifies company details, status, contact, or credentials.
+
+[INPUT EXAMPLE]
+Path Variable:
+  id: 1
+Content-Type: application/json
+{
+  "company_name": "บริษัท สยาม ซีเคียวริตี้ แอนด์ การ์ด จำกัด",
+  "first_name": "คุณนที",
+  "last_name": "เจริญพรหม",
+  "phone": "025891199",
+  "address": "88/1 อาคารสยามทาวเวอร์ ชั้น 12 ถ.วิภาวดี กรุงเทพฯ",
+  "user_detail": "อัปเดตข้อมูลผู้ติดต่อและที่อยู่สำนักงานใหญ่",
+  "start_date": "2026-08-01T09:00:00",
+  "quit_date": null,
+  "profile_img": "company_logo_v2.png",
+  "username": "company_siamgroup",
+  "password": "",
+  "admin_name": "สามารถ คุ้มภัย",
+  "status": "ปฏิบัติงาน"
+}
+
+[OUTPUT EXAMPLE - HTTP 200 OK]
+{
+  "users_id": 1,
+  "company_name": "บริษัท สยาม ซีเคียวริตี้ แอนด์ การ์ด จำกัด",
+  "first_name": "คุณนที",
+  "last_name": "เจริญพรหม",
+  "phone": "025891199",
+  "address": "88/1 อาคารสยามทาวเวอร์ ชั้น 12 ถ.วิภาวดี กรุงเทพฯ",
+  "user_detail": "อัปเดตข้อมูลผู้ติดต่อและที่อยู่สำนักงานใหญ่",
+  "start_date": "2026-08-01T09:00:00",
+  "quit_date": null,
+  "profile_img": "company_logo_v2.png",
+  "username": "company_siamgroup",
+  "admin_name": "สามารถ คุ้มภัย",
+  "total_guards": 0,
+  "total_events": 4,
+  "status": "ปฏิบัติงาน"
+}
+
+--------------------------------------------------------------------------------
+3.5 Delete Company Permanently
+--------------------------------------------------------------------------------
+Method: DELETE
+URL: /api/company/{id}
+Controller Function: CompanyController.deleteCompany(Integer id)
+Description: Permanently deletes company entity and associated user record from database.
+
+[INPUT EXAMPLE]
+Path Variable:
+  id: 18
+
+[OUTPUT EXAMPLE - HTTP 200 OK]
+{
+  "message": "ลบบริษัทรักษาความปลอดภัยเรียบร้อยแล้ว",
+  "success": true
+}
+
+
+################################################################################
+4. EVENT MANAGEMENT (EventController)
+################################################################################
+
+--------------------------------------------------------------------------------
+4.1 Get All Events / Filter
+--------------------------------------------------------------------------------
+Method: GET
+URL: /api/events?companyId=1
+Controller Function: EventController.getAllEvents(...)
+Description: Lists events filtered by company ID, company name, guardId, headId, or headName.
+
+[INPUT EXAMPLE]
+Query Parameters:
+  companyId: 1
+  (or company: "บริษัท สยาม ซีเคียวริตี้ กรุ๊ป จำกัด")
+  (or guardId: 14)
+  (or headId: 2)
+
+[OUTPUT EXAMPLE - HTTP 200 OK]
+[
+  {
+    "event_id": 101,
+    "event_name": "มหกรรมคอนเสิร์ต มหาวิทยาลัยแม่โจ้ 2026",
+    "location": "ศูนย์กีฬาเฉลิมพระเกียรติ มหาวิทยาลัยแม่โจ้",
+    "latitude": "18.895123",
+    "longitude": "99.014567",
+    "contractor": "องค์การบริหารนักศึกษา แม่โจ้",
+    "contact": "0812345678",
+    "contact_phone": "0812345678",
+    "contact_email": "event@mju.ac.th",
+    "event_img": "events/mju_concert.jpg",
+    "event_detail": "งานแสดงดนตรีกลางแจ้ง ดูแลความปลอดภัยรอบประตูทางเข้าและเวที",
+    "start_date": "2026-10-15",
+    "end_date": "2026-10-16",
+    "status": "PENDING",
+    "headguard_visible": true,
+    "guard_visible": true,
+    "required_tools": ["วิทยุสื่อสาร", "ไฟฉายกระบอง", "เสื้อสะท้อนแสง"],
+    "provided_tools": ["วิทยุสื่อสารช่อง 1", "กุญแจมือ"],
+    "required_guards": 20,
+    "company_id": 1,
+    "shift_times": []
+  }
+]
+
+--------------------------------------------------------------------------------
+4.2 Get Event by ID
+--------------------------------------------------------------------------------
+Method: GET
+URL: /api/events/{id}
+Controller Function: EventController.getEventById(Integer id)
+Description: Retrieves comprehensive event record including child shift times.
+
+[INPUT EXAMPLE]
+Path Variable:
+  id: 101
+
+[OUTPUT EXAMPLE - HTTP 200 OK]
+{
+  "event_id": 101,
+  "event_name": "มหกรรมคอนเสิร์ต มหาวิทยาลัยแม่โจ้ 2026",
+  "location": "ศูนย์กีฬาเฉลิมพระเกียรติ มหาวิทยาลัยแม่โจ้",
+  "latitude": "18.895123",
+  "longitude": "99.014567",
+  "contractor": "องค์การบริหารนักศึกษา แม่โจ้",
+  "contact": "0812345678",
+  "contact_phone": "0812345678",
+  "contact_email": "event@mju.ac.th",
+  "event_img": "events/mju_concert.jpg",
+  "event_detail": "งานแสดงดนตรีกลางแจ้ง ดูแลความปลอดภัยรอบประตูทางเข้าและเวที",
+  "start_date": "2026-10-15",
+  "end_date": "2026-10-16",
+  "status": "PENDING",
+  "headguard_visible": true,
+  "guard_visible": true,
+  "required_tools": ["วิทยุสื่อสาร", "เสื้อสะท้อนแสง"],
+  "provided_tools": ["วิทยุสื่อสาร"],
+  "required_guards": 20,
+  "company_id": 1,
+  "shift_times": [
+    {
+      "shift_id": 201,
+      "shift_date": "2026-10-15T00:00:00",
+      "start_time": "2026-10-15T08:00:00",
+      "end_time": "2026-10-15T16:00:00",
+      "maximum_guards": 10
+    },
+    {
+      "shift_id": 202,
+      "shift_date": "2026-10-15T00:00:00",
+      "start_time": "2026-10-15T16:00:00",
+      "end_time": "2026-10-16T00:00:00",
+      "maximum_guards": 10
+    }
+  ]
+}
+
+--------------------------------------------------------------------------------
+4.3 Create Event with Shifts
+--------------------------------------------------------------------------------
+Method: POST
+URL: /api/events
+Controller Function: EventController.createEvent(CreateEventRequest request)
+Description: Creates new event entry along with assigned shift times and assigned head guards.
+
+[INPUT EXAMPLE]
+Content-Type: application/json
+{
+  "event_name": "นิทรรศการเกษตรภาคเหนือ 2026",
+  "location": "อาคารแผ่พืช มหาวิทยาลัยแม่โจ้",
+  "latitude": "18.892345",
+  "longitude": "99.016789",
+  "contractor": "คณะผลิตกรรมการเกษตร",
+  "contact": "053873000",
+  "contact_phone": "053873000",
+  "contact_email": "agri_expo@mju.ac.th",
+  "event_detail": "ดูแลความปลอดภัยสถานที่จัดแสดงและลานจอดรถผู้เข้าร่วมงาน",
+  "event_img": "events/agri_expo_2026.png",
+  "start_date": "2026-11-01",
+  "end_date": "2026-11-03",
+  "status": "PENDING",
+  "company_id": 1,
+  "headguard_visible": true,
+  "guard_visible": false,
+  "required_tools": ["วิทยุสื่อสาร", "นกหวีด", "ไฟฉาย"],
+  "provided_tools": ["กรวยจราจร", "วิทยุสื่อสาร"],
+  "required_guards": 12,
+  "shift_times": [
+    {
+      "guards": "6",
+      "shift_date": "2026-11-01",
+      "startTime": "07:00",
+      "endTime": "15:00",
+      "headGuard": "สมพร หัวหน้าชุด"
+    },
+    {
+      "guards": "6",
+      "shift_date": "2026-11-01",
+      "startTime": "15:00",
+      "endTime": "23:00",
+      "headGuard": "สมพร หัวหน้าชุด"
+    }
+  ]
+}
+
+[OUTPUT EXAMPLE - HTTP 201 CREATED]
+{
+  "event_id": 105,
+  "event_name": "นิทรรศการเกษตรภาคเหนือ 2026",
+  "location": "อาคารแผ่พืช มหาวิทยาลัยแม่โจ้",
+  "latitude": "18.892345",
+  "longitude": "99.016789",
+  "contractor": "คณะผลิตกรรมการเกษตร",
+  "contact": "053873000",
+  "contact_phone": "053873000",
+  "contact_email": "agri_expo@mju.ac.th",
+  "event_img": "events/agri_expo_2026.png",
+  "event_detail": "ดูแลความปลอดภัยสถานที่จัดแสดงและลานจอดรถผู้เข้าร่วมงาน",
+  "start_date": "2026-11-01",
+  "end_date": "2026-11-03",
+  "status": "PENDING",
+  "headguard_visible": true,
+  "guard_visible": false,
+  "required_tools": ["วิทยุสื่อสาร", "นกหวีด", "ไฟฉาย"],
+  "provided_tools": ["กรวยจราจร", "วิทยุสื่อสาร"],
+  "required_guards": 12,
+  "company_id": 1,
+  "shift_times": [
+    {
+      "shift_id": 210,
+      "shift_date": "2026-11-01T00:00:00",
+      "start_time": "2026-11-01T07:00:00",
+      "end_time": "2026-11-01T15:00:00",
+      "maximum_guards": 6
+    },
+    {
+      "shift_id": 211,
+      "shift_date": "2026-11-01T00:00:00",
+      "start_time": "2026-11-01T15:00:00",
+      "end_time": "2026-11-01T23:00:00",
+      "maximum_guards": 6
+    }
+  ]
+}
+
+--------------------------------------------------------------------------------
+4.4 Update Event
+--------------------------------------------------------------------------------
+Method: PUT
+URL: /api/events/{id}
+Controller Function: EventController.updateEvent(Integer id, CreateEventRequest request)
+Description: Modifies event details, shifts, requirements, or dates.
+
+[INPUT EXAMPLE]
+Path Variable:
+  id: 105
+Content-Type: application/json
+{
+  "event_name": "นิทรรศการเกษตรภาคเหนือ 2026 (ปรับปรุงแผนรักษาความปลอดภัย)",
+  "location": "อาคารแผ่พืช มหาวิทยาลัยแม่โจ้",
+  "latitude": "18.892345",
+  "longitude": "99.016789",
+  "contractor": "คณะผลิตกรรมการเกษตร",
+  "contact": "053873000",
+  "contact_phone": "053873000",
+  "contact_email": "agri_expo@mju.ac.th",
+  "event_detail": "เพิ่มกำลังพลจุดทางเข้าหลัก",
+  "event_img": "events/agri_expo_2026.png",
+  "start_date": "2026-11-01",
+  "end_date": "2026-11-03",
+  "status": "APPROVED",
+  "company_id": 1,
+  "headguard_visible": true,
+  "guard_visible": true,
+  "required_tools": ["วิทยุสื่อสาร", "นกหวีด"],
+  "provided_tools": ["กรวยจราจร"],
+  "required_guards": 14,
+  "shift_times": []
+}
+
+[OUTPUT EXAMPLE - HTTP 200 OK]
+{
+  "event_id": 105,
+  "event_name": "นิทรรศการเกษตรภาคเหนือ 2026 (ปรับปรุงแผนรักษาความปลอดภัย)",
+  "status": "APPROVED",
+  "guard_visible": true,
+  "required_guards": 14
+}
+
+--------------------------------------------------------------------------------
+4.5 Delete Event
+--------------------------------------------------------------------------------
+Method: DELETE
+URL: /api/events/{id}
+Controller Function: EventController.deleteEvent(Integer id)
+Description: Deletes event and associated shifts from system.
+
+[INPUT EXAMPLE]
+Path Variable:
+  id: 105
+
+[OUTPUT EXAMPLE - HTTP 204 NO CONTENT]
+(Empty response body)
+
+--------------------------------------------------------------------------------
+4.6 Update Event Visibility
+--------------------------------------------------------------------------------
+Method: PUT
+URL: /api/events/{id}/visibility
+Controller Function: EventController.updateEventVisibility(Integer id, Map<String, Boolean> payload)
+Description: Toggles visibility for head guards or guards.
+
+[INPUT EXAMPLE]
+Path Variable:
+  id: 101
+Content-Type: application/json
+{
+  "headguard_visible": true,
+  "guard_visible": true
+}
+
+[OUTPUT EXAMPLE - HTTP 200 OK]
+{
+  "event_id": 101,
+  "event_name": "มหกรรมคอนเสิร์ต มหาวิทยาลัยแม่โจ้ 2026",
+  "headguard_visible": true,
+  "guard_visible": true
+}
+
+--------------------------------------------------------------------------------
+4.7 Get Shifts for Event
+--------------------------------------------------------------------------------
+Method: GET
+URL: /api/events/{id}/shifts?guardId=14
+Controller Function: EventController.getEventShifts(Integer id, guardId, headId, headName)
+Description: Retrieves shifts belonging to an event with live vacancy calculation (OPEN / FULL).
+
+[INPUT EXAMPLE]
+Path Variable:
+  id: 101
+Query Parameters:
+  guardId: 14 (optional, used to resolve head guard team)
+
+[OUTPUT EXAMPLE - HTTP 200 OK]
+[
+  {
+    "shift_id": 201,
+    "event_id": 101,
+    "event_name": "มหกรรมคอนเสิร์ต มหาวิทยาลัยแม่โจ้ 2026",
+    "shift_date": "2026-10-15T00:00:00",
+    "start_time": "2026-10-15T08:00:00",
+    "end_time": "2026-10-15T16:00:00",
+    "maximum_guards": 10,
+    "current_guards": 4,
+    "available_slots": 6,
+    "status": "OPEN",
+    "duty_location": "ศูนย์กีฬาเฉลิมพระเกียรติ มหาวิทยาลัยแม่โจ้",
+    "title": "กะงานที่ 201"
+  }
+]
+
+
+################################################################################
+5. GUARD MANAGEMENT (GuardController)
+################################################################################
+
+--------------------------------------------------------------------------------
+5.1 Create Security Guard
+--------------------------------------------------------------------------------
+Method: POST
+URL: /api/guard
+Controller Function: GuardController.createGuard(CreateGuardRequest request)
+Description: Registers a new security guard under a company and assigned head guard.
+
+[INPUT EXAMPLE]
+Content-Type: application/json
+{
+  "username": "guard_somchai",
+  "password": "Password123!",
+  "rank": "เจ้าหน้าที่ รปภ. ประจำจุด",
+  "title": "นาย",
+  "first_name": "สมชาย",
+  "last_name": "สายตรวจ",
+  "gender": "ชาย",
+  "phone": "0895556677",
+  "address": "45 หมู่ 2 ต.ป่าไผ่ อ.สันทราย จ.เชียงใหม่",
+  "user_detail": "ผ่านการอบรมหลักสูตร รปภ. ขั้นสูงและดับเพลิงเบื้องต้น",
+  "start_date": "2026-08-01T09:00:00",
+  "profile_img": "guards/somchai.jpg",
+  "company_name": "บริษัท สยาม ซีเคียวริตี้ กรุ๊ป จำกัด",
+  "head_name": "นายสมพร หัวหน้าชุด"
+}
+
+[OUTPUT EXAMPLE - HTTP 201 CREATED]
+{
+  "users_id": 14,
+  "username": "guard_somchai",
+  "rank": "เจ้าหน้าที่ รปภ. ประจำจุด",
+  "title": "นาย",
+  "first_name": "สมชาย",
+  "last_name": "สายตรวจ",
+  "gender": "ชาย",
+  "phone": "0895556677",
+  "address": "45 หมู่ 2 ต.ป่าไผ่ อ.สันทราย จ.เชียงใหม่",
+  "user_detail": "ผ่านการอบรมหลักสูตร รปภ. ขั้นสูงและดับเพลิงเบื้องต้น",
+  "start_date": "2026-08-01T09:00:00",
+  "quit_date": null,
+  "status": "ACTIVE",
+  "profile_img": "guards/somchai.jpg",
+  "company_name": "บริษัท สยาม ซีเคียวริตี้ กรุ๊ป จำกัด",
+  "head_name": "นายสมพร หัวหน้าชุด",
+  "performance_score": 95.0
+}
+
+--------------------------------------------------------------------------------
+5.2 Get All Guards / Filter by Company
+--------------------------------------------------------------------------------
+Method: GET
+URL: /api/guard?company=บริษัท%20สยาม%20ซีเคียวริตี้%20กรุ๊ป%20จำกัด
+Controller Function: GuardController.getAllGuards(String company)
+Description: Retrieves list of guards, optionally filtered by company.
+
+[INPUT EXAMPLE]
+Query Parameters:
+  company: "บริษัท สยาม ซีเคียวริตี้ กรุ๊ป จำกัด" (optional)
+
+[OUTPUT EXAMPLE - HTTP 200 OK]
+[
+  {
+    "users_id": 14,
+    "username": "guard_somchai",
+    "rank": "เจ้าหน้าที่ รปภ. ประจำจุด",
+    "title": "นาย",
+    "first_name": "สมชาย",
+    "last_name": "สายตรวจ",
+    "gender": "ชาย",
+    "phone": "0895556677",
+    "company_name": "บริษัท สยาม ซีเคียวริตี้ กรุ๊ป จำกัด",
+    "head_name": "นายสมพร หัวหน้าชุด",
+    "status": "ACTIVE"
+  }
+]
+
+--------------------------------------------------------------------------------
+5.3 Get Active Guards
+--------------------------------------------------------------------------------
+Method: GET
+URL: /api/guard/active
+Controller Function: GuardController.getActiveGuards()
+Description: Returns all currently active guards (quit_date is null).
+
+[INPUT EXAMPLE]
+No request body or parameters required.
+
+[OUTPUT EXAMPLE - HTTP 200 OK]
+[
+  {
+    "users_id": 14,
+    "first_name": "สมชาย",
+    "last_name": "สายตรวจ",
+    "status": "ACTIVE"
+  }
+]
+
+--------------------------------------------------------------------------------
+5.4 Get Guard by ID
+--------------------------------------------------------------------------------
+Method: GET
+URL: /api/guard/{id}
+Controller Function: GuardController.getGuardById(Integer id)
+Description: Fetches specific guard profile data.
+
+[INPUT EXAMPLE]
+Path Variable:
+  id: 14
+
+[OUTPUT EXAMPLE - HTTP 200 OK]
+{
+  "users_id": 14,
+  "username": "guard_somchai",
+  "rank": "เจ้าหน้าที่ รปภ. ประจำจุด",
+  "title": "นาย",
+  "first_name": "สมชาย",
+  "last_name": "สายตรวจ",
+  "gender": "ชาย",
+  "phone": "0895556677",
+  "address": "45 หมู่ 2 ต.ป่าไผ่ อ.สันทราย จ.เชียงใหม่",
+  "user_detail": "ผ่านการอบรมหลักสูตร รปภ. ขั้นสูงและดับเพลิงเบื้องต้น",
+  "start_date": "2026-08-01T09:00:00",
+  "status": "ACTIVE",
+  "profile_img": "guards/somchai.jpg",
+  "company_name": "บริษัท สยาม ซีเคียวริตี้ กรุ๊ป จำกัด",
+  "head_name": "นายสมพร หัวหน้าชุด"
+}
+
+--------------------------------------------------------------------------------
+5.5 Update Guard
+--------------------------------------------------------------------------------
+Method: PUT
+URL: /api/guard/{id}
+Controller Function: GuardController.updateGuard(Integer id, Guards guard)
+Description: Updates guard information (phone, address, ranking, status).
+
+[INPUT EXAMPLE]
+Path Variable:
+  id: 14
+Content-Type: application/json
+{
+  "phone": "0895559999",
+  "address": "45 หมู่ 2 ต.ป่าไผ่ อ.สันทราย จ.เชียงใหม่ (ปรับปรุงที่อยู่)",
+  "user_detail": "เพิ่มทักษะการปฐมพยาบาลเบื้องต้น (CPR)",
+  "rank": "เจ้าหน้าที่ รปภ. อาวุโส",
+  "status": "ACTIVE"
+}
+
+[OUTPUT EXAMPLE - HTTP 200 OK]
+{
+  "users_id": 14,
+  "phone": "0895559999",
+  "rank": "เจ้าหน้าที่ รปภ. อาวุโส",
+  "status": "ACTIVE"
+}
+
+--------------------------------------------------------------------------------
+5.6 Get Guard Shift/Assignment History
+--------------------------------------------------------------------------------
+Method: GET
+URL: /api/guard/{id}/history
+Controller Function: GuardController.getGuardHistory(Integer id)
+Description: Returns working history summary of all shifts the guard served in.
+
+[INPUT EXAMPLE]
+Path Variable:
+  id: 14
+
+[OUTPUT EXAMPLE - HTTP 200 OK]
+[
+  {
+    "history_id": 501,
+    "event_name": "มหกรรมคอนเสิร์ต มหาวิทยาลัยแม่โจ้ 2026",
+    "location": "ศูนย์กีฬาเฉลิมพระเกียรติ มหาวิทยาลัยแม่โจ้",
+    "date": "2026-10-15T00:00:00",
+    "shift_time": "08:00 - 16:00 น.",
+    "check_in_time": "ตรงเวลา",
+    "status": "ปฏิบัติงานสำเร็จ",
+    "assigned_duty": "ตรวจค้นอาวุธและบัตรเข้างาน ประตูทิศเหนือ",
+    "report_summary": "เหตุการณ์ปกติ มีการบันทึกการตรวจตราครบถ้วน"
+  }
+]
+
+
+################################################################################
+6. HEAD GUARD MANAGEMENT (HeadGuardController)
+################################################################################
+
+--------------------------------------------------------------------------------
+6.1 Create Head Guard
+--------------------------------------------------------------------------------
+Method: POST
+URL: /api/headguard
+Controller Function: HeadGuardController.createHeadGuard(CreateHeadGuardRequest request)
+Description: Creates a new Head Guard account assigned to a security company.
+
+[INPUT EXAMPLE]
+Content-Type: application/json
+{
+  "username": "head_somporn",
+  "password": "Password123!",
+  "rank": "หัวหน้าชุดปฏิบัติการ",
+  "title": "นาย",
+  "first_name": "สมพร",
+  "last_name": "หัวหน้าชุด",
+  "gender": "ชาย",
+  "phone": "0814443322",
+  "address": "12 หมู่ 1 ต.หนองหาร อ.สันทราย จ.เชียงใหม่",
+  "user_detail": "ผู้ควบคุมทีมและวางแผนการตรวจตรางานอีเวนต์",
+  "start_date": "2026-08-01T08:00:00",
+  "profile_img": "headguards/somporn.jpg",
+  "company_name": "บริษัท สยาม ซีเคียวริตี้ กรุ๊ป จำกัด"
+}
+
+[OUTPUT EXAMPLE - HTTP 201 CREATED]
+{
+  "users_id": 2,
+  "username": "head_somporn",
+  "rank": "หัวหน้าชุดปฏิบัติการ",
+  "title": "นาย",
+  "first_name": "สมพร",
+  "last_name": "หัวหน้าชุด",
+  "gender": "ชาย",
+  "phone": "0814443322",
+  "address": "12 หมู่ 1 ต.หนองหาร อ.สันทราย จ.เชียงใหม่",
+  "user_detail": "ผู้ควบคุมทีมและวางแผนการตรวจตรางานอีเวนต์",
+  "start_date": "2026-08-01T08:00:00",
+  "quit_date": null,
+  "status": "ACTIVE",
+  "profile_img": "headguards/somporn.jpg",
+  "company_name": "บริษัท สยาม ซีเคียวริตี้ กรุ๊ป จำกัด",
+  "performance_score": 98.5
+}
+
+--------------------------------------------------------------------------------
+6.2 Get All Head Guards / Filter by Company
+--------------------------------------------------------------------------------
+Method: GET
+URL: /api/headguard?company=บริษัท%20สยาม%20ซีเคียวริตี้%20กรุ๊ป%20จำกัด
+Controller Function: HeadGuardController.getAllHeadGuards(String company)
+Description: Retrieves head guards list mapped to HeadGuardResponse DTO.
+
+[INPUT EXAMPLE]
+Query Parameters:
+  company: "บริษัท สยาม ซีเคียวริตี้ กรุ๊ป จำกัด" (optional)
+
+[OUTPUT EXAMPLE - HTTP 200 OK]
+[
+  {
+    "users_id": 2,
+    "username": "head_somporn",
+    "rank": "หัวหน้าชุดปฏิบัติการ",
+    "title": "นาย",
+    "first_name": "สมพร",
+    "last_name": "หัวหน้าชุด",
+    "gender": "ชาย",
+    "phone": "0814443322",
+    "address": "12 หมู่ 1 ต.หนองหาร อ.สันทราย จ.เชียงใหม่",
+    "user_detail": "ผู้ควบคุมทีมและวางแผนการตรวจตรางานอีเวนต์",
+    "start_date": "2026-08-01T08:00:00",
+    "quit_date": null,
+    "status": "ACTIVE",
+    "profile_img": "headguards/somporn.jpg",
+    "company_name": "บริษัท สยาม ซีเคียวริตี้ กรุ๊ป จำกัด",
+    "performance_score": 98.5
+  }
+]
+
+--------------------------------------------------------------------------------
+6.3 Get Active Head Guards
+--------------------------------------------------------------------------------
+Method: GET
+URL: /api/headguard/active
+Controller Function: HeadGuardController.getActiveHeadGuards()
+Description: Retrieves list of head guards without quit dates.
+
+[INPUT EXAMPLE]
+No parameters required.
+
+[OUTPUT EXAMPLE - HTTP 200 OK]
+[
+  {
+    "users_id": 2,
+    "first_name": "สมพร",
+    "last_name": "หัวหน้าชุด",
+    "status": "ACTIVE"
+  }
+]
+
+--------------------------------------------------------------------------------
+6.4 Get Head Guard by ID
+--------------------------------------------------------------------------------
+Method: GET
+URL: /api/headguard/{id}
+Controller Function: HeadGuardController.getHeadGuardById(Integer id)
+Description: Retrieves specific head guard details.
+
+[INPUT EXAMPLE]
+Path Variable:
+  id: 2
+
+[OUTPUT EXAMPLE - HTTP 200 OK]
+{
+  "users_id": 2,
+  "username": "head_somporn",
+  "rank": "หัวหน้าชุดปฏิบัติการ",
+  "title": "นาย",
+  "first_name": "สมพร",
+  "last_name": "หัวหน้าชุด",
+  "gender": "ชาย",
+  "phone": "0814443322",
+  "address": "12 หมู่ 1 ต.หนองหาร อ.สันทราย จ.เชียงใหม่",
+  "company_name": "บริษัท สยาม ซีเคียวริตี้ กรุ๊ป จำกัด",
+  "performance_score": 98.5
+}
+
+--------------------------------------------------------------------------------
+6.5 Update Head Guard
+--------------------------------------------------------------------------------
+Method: PUT
+URL: /api/headguard/{id}
+Controller Function: HeadGuardController.updateHeadGuard(Integer id, HeadGuard headGuard)
+Description: Updates head guard profile data.
+
+[INPUT EXAMPLE]
+Path Variable:
+  id: 2
+Content-Type: application/json
+{
+  "phone": "0814449988",
+  "address": "12/5 หมู่ 1 ต.หนองหาร อ.สันทราย จ.เชียงใหม่",
+  "user_detail": "อัปเดตเบอร์ติดต่อใหม่"
+}
+
+[OUTPUT EXAMPLE - HTTP 200 OK]
+{
+  "users_id": 2,
+  "phone": "0814449988",
+  "address": "12/5 หมู่ 1 ต.หนองหาร อ.สันทราย จ.เชียงใหม่"
+}
+
+
+################################################################################
+7. HEAD GUARD DASHBOARD (HeadGuardDashboardController)
+################################################################################
+
+--------------------------------------------------------------------------------
+7.1 Get Dashboard Shifts for Head Guard
+--------------------------------------------------------------------------------
+Method: GET
+URL: /api/headguard-dashboard/{headGuardId}/shifts
+Controller Function: HeadGuardDashboardController.getShiftsForDashboard(Integer headGuardId)
+Description: Provides shifts assigned to the head guard with event names, times, and filled quota counts.
+
+[INPUT EXAMPLE]
+Path Variable:
+  headGuardId: 2
+
+[OUTPUT EXAMPLE - HTTP 200 OK]
+[
+  {
+    "shiftId": 201,
+    "eventId": 101,
+    "guard_visible": true,
+    "eventName": "มหกรรมคอนเสิร์ต มหาวิทยาลัยแม่โจ้ 2026",
+    "shiftName": "กะงานที่ 201",
+    "location": "ศูนย์กีฬาเฉลิมพระเกียรติ มหาวิทยาลัยแม่โจ้",
+    "startDate": "2026-10-15",
+    "endDate": "2026-10-16",
+    "workTime": "08:00 - 16:00 น.",
+    "totalGuards": 4,
+    "status": "APPROVED",
+    "headGuardName": "สมพร หัวหน้าชุด"
+  }
+]
+
+--------------------------------------------------------------------------------
+7.2 Get Guards Under Head Guard
+--------------------------------------------------------------------------------
+Method: GET
+URL: /api/headguard-dashboard/guards?headName=นายสมพร%20หัวหน้าชุด
+Controller Function: HeadGuardDashboardController.getGuardsUnderHead(String headName)
+Description: Lists security guards assigned to work under a specific head guard.
+
+[INPUT EXAMPLE]
+Query Parameters:
+  headName: "นายสมพร หัวหน้าชุด"
+
+[OUTPUT EXAMPLE - HTTP 200 OK]
+[
+  {
+    "users_id": 14,
+    "username": "guard_somchai",
+    "rank": "เจ้าหน้าที่ รปภ. ประจำจุด",
+    "first_name": "สมชาย",
+    "last_name": "สายตรวจ",
+    "phone": "0895556677",
+    "status": "ACTIVE",
+    "head_name": "นายสมพร หัวหน้าชุด"
+  }
+]
+
+--------------------------------------------------------------------------------
+7.3 Get Events for Head Guard
+--------------------------------------------------------------------------------
+Method: GET
+URL: /api/headguard-dashboard/events/{headId}
+Controller Function: HeadGuardDashboardController.getEventsForHeadGuard(Integer headId)
+Description: Retrieves events where this head guard oversees one or more shifts.
+
+[INPUT EXAMPLE]
+Path Variable:
+  headId: 2
+
+[OUTPUT EXAMPLE - HTTP 200 OK]
+[
+  {
+    "event_id": 101,
+    "event_name": "มหกรรมคอนเสิร์ต มหาวิทยาลัยแม่โจ้ 2026",
+    "location": "ศูนย์กีฬาเฉลิมพระเกียรติ มหาวิทยาลัยแม่โจ้",
+    "start_date": "2026-10-15",
+    "end_date": "2026-10-16",
+    "headguard_visible": true,
+    "guard_visible": true
+  }
+]
+
+--------------------------------------------------------------------------------
+7.4 Get Urgent / Incident Reports
+--------------------------------------------------------------------------------
+Method: GET
+URL: /api/headguard-dashboard/requests?headGuardId=2
+Controller Function: HeadGuardDashboardController.getUrgentRequests(Integer headGuardId)
+Description: Retrieves abnormal / incident reports relevant to the shifts managed by this head guard.
+
+[INPUT EXAMPLE]
+Query Parameters:
+  headGuardId: 2 (optional)
+
+[OUTPUT EXAMPLE - HTTP 200 OK]
+[
+  {
+    "report_id": 301,
+    "report_type": "เหตุฉุกเฉิน",
+    "report_desc": "พบกลุ่มวัยรุ่นทะเลาะวิวาทบริเวณประตูด้านทิศเหนือ เจ้าหน้าที่เข้าระงับเหตุแล้ว",
+    "report_time": "2026-10-15T14:35:10",
+    "report_img": "reports/incident_fight_1.jpg",
+    "is_normal": false,
+    "guard_id": 14,
+    "shift_id": 201,
+    "eventName": "มหกรรมคอนเสิร์ต มหาวิทยาลัยแม่โจ้ 2026",
+    "event_name": "มหกรรมคอนเสิร์ต มหาวิทยาลัยแม่โจ้ 2026"
+  }
+]
+
+--------------------------------------------------------------------------------
+7.5 Get Urgent Reports by Head Guard ID
+--------------------------------------------------------------------------------
+Method: GET
+URL: /api/headguard-dashboard/{headGuardId}/requests
+Controller Function: HeadGuardDashboardController.getUrgentRequestsByHeadGuard(Integer headGuardId)
+Description: Direct path-variable endpoint for urgent reports under a head guard.
+
+[INPUT EXAMPLE]
+Path Variable:
+  headGuardId: 2
+
+[OUTPUT EXAMPLE - HTTP 200 OK]
+[
+  {
+    "report_id": 301,
+    "report_type": "เหตุฉุกเฉิน",
+    "report_desc": "พบกลุ่มวัยรุ่นทะเลาะวิวาทบริเวณประตูด้านทิศเหนือ",
+    "report_time": "2026-10-15T14:35:10",
+    "report_img": "reports/incident_fight_1.jpg",
+    "is_normal": false,
+    "guard_id": 14,
+    "shift_id": 201,
+    "eventName": "มหกรรมคอนเสิร์ต มหาวิทยาลัยแม่โจ้ 2026"
+  }
+]
+
+--------------------------------------------------------------------------------
+7.6 Get Shift Assignments Breakdown
+--------------------------------------------------------------------------------
+Method: GET
+URL: /api/headguard-dashboard/shifts/{shiftId}/assignments
+Controller Function: HeadGuardDashboardController.getAssignmentsByShift(Integer shiftId)
+Description: Returns list of all guards assigned to a shift, distinguishing ASSIGNED vs RESERVE.
+
+[INPUT EXAMPLE]
+Path Variable:
+  shiftId: 201
+
+[OUTPUT EXAMPLE - HTTP 200 OK]
+[
+  {
+    "assignment_id": 501,
+    "assignment_status": "ASSIGNED",
+    "description": "เฝ้าระวังและตรวจตั๋วเข้างาน ประตูทิศเหนือ",
+    "latitude": "18.895123",
+    "longitude": "99.014567",
+    "guard_id": 14,
+    "rank": "เจ้าหน้าที่ รปภ. ประจำจุด",
+    "user_rank": "เจ้าหน้าที่ รปภ. ประจำจุด",
+    "title": "นาย",
+    "first_name": "สมชาย",
+    "last_name": "สายตรวจ",
+    "guard_name": "สมชาย สายตรวจ",
+    "time_range": "08:00 - 16:00 น."
+  },
+  {
+    "assignment_id": 502,
+    "assignment_status": "RESERVE",
+    "description": "รอการมอบหมายจุดปฏิบัติการ",
+    "latitude": null,
+    "longitude": null,
+    "guard_id": 15,
+    "rank": "เจ้าหน้าที่ รปภ.",
+    "user_rank": "เจ้าหน้าที่ รปภ.",
+    "title": "นาย",
+    "first_name": "อเนก",
+    "last_name": "มั่นเพียร",
+    "guard_name": "อเนก มั่นเพียร",
+    "time_range": "08:00 - 16:00 น."
+  }
+]
+
+--------------------------------------------------------------------------------
+7.7 Update Assignment Status
+--------------------------------------------------------------------------------
+Method: PUT
+URL: /api/headguard-dashboard/assignments/{id}/status
+Controller Function: HeadGuardDashboardController.updateAssignmentStatus(Integer id, Map<String, String> body)
+Description: Promotes or alters guard assignment state (e.g. from RESERVE to ASSIGNED or WITHDRAWN).
+
+[INPUT EXAMPLE]
+Path Variable:
+  id: 502
+Content-Type: application/json
+{
+  "status": "ASSIGNED"
+}
+
+[OUTPUT EXAMPLE - HTTP 200 OK]
+(Empty response body)
+
+--------------------------------------------------------------------------------
+7.8 Update Assignment Post & Coordinates
+--------------------------------------------------------------------------------
+Method: PUT
+URL: /api/headguard-dashboard/assignments/{id}/detail
+Controller Function: HeadGuardDashboardController.updateAssignmentDetail(Integer id, Map<String, String> body)
+Description: Pins specific duty description, status, latitude, and longitude on map for guard.
+
+[INPUT EXAMPLE]
+Path Variable:
+  id: 502
+Content-Type: application/json
+{
+  "status": "ASSIGNED",
+  "latitude": "18.895400",
+  "longitude": "99.014800",
+  "description": "จุดตรวจความปลอดภัย ลานจอดรถ VIP ฝั่งตะวันออก"
+}
+
+[OUTPUT EXAMPLE - HTTP 200 OK]
+(Empty response body)
+
+--------------------------------------------------------------------------------
+7.9 Head Guard Create Assignment Request
+--------------------------------------------------------------------------------
+Method: POST
+URL: /api/headguard-dashboard/assignments/request
+Controller Function: HeadGuardDashboardController.createAssignmentRequest(AssignmentRequest request)
+Description: Directly registers a guard into a shift with RESERVE status from the head guard portal.
+
+[INPUT EXAMPLE]
+Content-Type: application/json
+{
+  "guard_id": 16,
+  "shift_id": 201,
+  "assignment_status": "RESERVE",
+  "latitude": null,
+  "longitude": null,
+  "description": "สำรองกำลังพลกะเช้า"
+}
+
+[OUTPUT EXAMPLE - HTTP 200 OK]
+"บันทึกคำขอเข้าทำงานสำเร็จ (RESERVE)"
+
+--------------------------------------------------------------------------------
+7.10 Update Guard Visibility by Shift
+--------------------------------------------------------------------------------
+Method: PUT
+URL: /api/headguard-dashboard/shifts/{shiftId}/guard-visibility
+Controller Function: HeadGuardDashboardController.updateGuardVisibilityByShift(Integer shiftId, Map<String, Boolean> body)
+Description: Toggles open registration for guards via shift ID.
+
+[INPUT EXAMPLE]
+Path Variable:
+  shiftId: 201
+Content-Type: application/json
+{
+  "guard_visible": true
+}
+
+[OUTPUT EXAMPLE - HTTP 200 OK]
+(Empty response body)
+
+
+################################################################################
+8. ASSIGNMENT & SHIFT APPLICATION (AssignmentController)
+################################################################################
+
+--------------------------------------------------------------------------------
+8.1 Get All Assignments for Guard
+--------------------------------------------------------------------------------
+Method: GET
+URL: /api/assignment/guard/{guardId}
+Controller Function: AssignmentController.getAssignmentsByGuard(Integer guardId)
+Description: Returns list of shifts and events assigned to a specific guard.
+
+[INPUT EXAMPLE]
+Path Variable:
+  guardId: 14
+
+[OUTPUT EXAMPLE - HTTP 200 OK]
+[
+  {
+    "assignment_id": 501,
+    "assignment_status": "ASSIGNED",
+    "description": "ตรวจค้นอาวุธและบัตรเข้างาน ประตูทิศเหนือ",
+    "latitude": "18.895123",
+    "longitude": "99.014567",
+    "request_date": "2026-10-10T10:15:00",
+    "guard_id": 14,
+    "guard_name": "สมชาย สายตรวจ",
+    "shift_id": 201,
+    "shift_date": "2026-10-15T00:00:00",
+    "start_time": "2026-10-15T08:00:00",
+    "end_time": "2026-10-15T16:00:00",
+    "maximum_guards": 10,
+    "event_id": 101,
+    "event_name": "มหกรรมคอนเสิร์ต มหาวิทยาลัยแม่โจ้ 2026",
+    "location": "ศูนย์กีฬาเฉลิมพระเกียรติ มหาวิทยาลัยแม่โจ้",
+    "contractor": "องค์การบริหารนักศึกษา แม่โจ้",
+    "contact_phone": "0812345678",
+    "contact_email": "event@mju.ac.th",
+    "contact": "0812345678",
+    "event_img": "events/mju_concert.jpg",
+    "start_date": "2026-10-15",
+    "end_date": "2026-10-16",
+    "required_tools": ["วิทยุสื่อสาร", "เสื้อสะท้อนแสง"],
+    "provided_tools": ["วิทยุสื่อสาร"]
+  }
+]
+
+--------------------------------------------------------------------------------
+8.2 Get Active / Current Assignment for Guard
+--------------------------------------------------------------------------------
+Method: GET
+URL: /api/assignment/guard/{guardId}/active
+Controller Function: AssignmentController.getActiveAssignmentByGuard(Integer guardId)
+Description: Retrieves the top active assignment for the mobile app home screen (ASSIGNED prioritized).
+
+[INPUT EXAMPLE]
+Path Variable:
+  guardId: 14
+
+[OUTPUT EXAMPLE - HTTP 200 OK]
+{
+  "assignment_id": 501,
+  "assignment_status": "ASSIGNED",
+  "description": "ตรวจค้นอาวุธและบัตรเข้างาน ประตูทิศเหนือ",
+  "latitude": "18.895123",
+  "longitude": "99.014567",
+  "request_date": "2026-10-10T10:15:00",
+  "guard_id": 14,
+  "guard_name": "สมชาย สายตรวจ",
+  "shift_id": 201,
+  "shift_date": "2026-10-15T00:00:00",
+  "start_time": "2026-10-15T08:00:00",
+  "end_time": "2026-10-15T16:00:00",
+  "maximum_guards": 10,
+  "event_id": 101,
+  "event_name": "มหกรรมคอนเสิร์ต มหาวิทยาลัยแม่โจ้ 2026",
+  "location": "ศูนย์กีฬาเฉลิมพระเกียรติ มหาวิทยาลัยแม่โจ้",
+  "contractor": "องค์การบริหารนักศึกษา แม่โจ้",
+  "contact_phone": "0812345678",
+  "contact_email": "event@mju.ac.th",
+  "contact": "0812345678",
+  "event_img": "events/mju_concert.jpg",
+  "start_date": "2026-10-15",
+  "end_date": "2026-10-16",
+  "required_tools": ["วิทยุสื่อสาร", "เสื้อสะท้อนแสง"],
+  "provided_tools": ["วิทยุสื่อสาร"]
+}
+
+--------------------------------------------------------------------------------
+8.3 Apply for Shift (Reserve Slot)
+--------------------------------------------------------------------------------
+Method: POST
+URL: /api/assignment/request
+Controller Function: AssignmentController.createAssignmentRequest(AssignmentRequest request)
+Description: Guard submits application to work in a shift. Creates a RESERVE assignment.
+
+[INPUT EXAMPLE]
+Content-Type: application/json
+{
+  "guard_id": 14,
+  "shift_id": 202,
+  "assignment_status": "RESERVE",
+  "description": "ขอสมัครเข้าปฏิบัติหน้าที่กะบ่าย"
+}
+
+[OUTPUT EXAMPLE - HTTP 201 CREATED]
+{
+  "assignment_id": 505,
+  "assignment_status": "RESERVE",
+  "description": "ขอสมัครเข้าปฏิบัติหน้าที่กะบ่าย",
+  "latitude": null,
+  "longitude": null,
+  "request_date": "2026-09-25T14:15:30",
+  "guard_id": 14,
+  "guard_name": "สมชาย สายตรวจ",
+  "shift_id": 202,
+  "shift_date": "2026-10-15T00:00:00",
+  "start_time": "2026-10-15T16:00:00",
+  "end_time": "2026-10-16T00:00:00",
+  "maximum_guards": 10,
+  "event_id": 101,
+  "event_name": "มหกรรมคอนเสิร์ต มหาวิทยาลัยแม่โจ้ 2026"
+}
+
+--------------------------------------------------------------------------------
+8.4 Withdraw from Assignment / Shift by Assignment ID
+--------------------------------------------------------------------------------
+Method: POST
+URL: /api/assignment/{id}/withdraw
+Controller Function: AssignmentController.withdrawAssignment(Integer id, Map<String, Object> body)
+Description: Guard cancels or withdraws from a shift by assignment ID with specified reason.
+
+[INPUT EXAMPLE]
+Path Variable:
+  id: 505
+Content-Type: application/json
+{
+  "reason": "ติดภารกิจครอบครัวด่วน",
+  "details": "มีธุระจำเป็นต้องเดินทางไปต่างจังหวัด"
+}
+
+[OUTPUT EXAMPLE - HTTP 200 OK]
+{
+  "message": "ถอนตัวจากการปฏิบัติหน้าที่เรียบร้อยแล้ว"
+}
+
+--------------------------------------------------------------------------------
+8.5 Withdraw from Assignment by Guard ID & Shift ID
+--------------------------------------------------------------------------------
+Method: POST
+URL: /api/assignment/withdraw
+Controller Function: AssignmentController.withdrawByGuardAndShift(Map<String, Object> body)
+Description: Guard cancels shift participation by specifying guard_id and shift_id directly.
+
+[INPUT EXAMPLE]
+Content-Type: application/json
+{
+  "guard_id": 14,
+  "shift_id": 202,
+  "reason": "ป่วยกะทันหัน",
+  "details": "มีอาการไข้สูง ได้ยื่นใบรับรองแพทย์แล้ว"
+}
+
+[OUTPUT EXAMPLE - HTTP 200 OK]
+{
+  "message": "ถอนตัวจากการปฏิบัติหน้าที่เรียบร้อยแล้ว"
+}
+
+--------------------------------------------------------------------------------
+8.6 Get Assignment Details by ID
+--------------------------------------------------------------------------------
+Method: GET
+URL: /api/assignment/{id}
+Controller Function: AssignmentController.getAssignmentById(Integer id)
+Description: Retrieves complete details of single assignment record.
+
+[INPUT EXAMPLE]
+Path Variable:
+  id: 501
+
+[OUTPUT EXAMPLE - HTTP 200 OK]
+{
+  "assignment_id": 501,
+  "assignment_status": "ASSIGNED",
+  "description": "ตรวจค้นอาวุธและบัตรเข้างาน ประตูทิศเหนือ",
+  "latitude": "18.895123",
+  "longitude": "99.014567",
+  "request_date": "2026-10-10T10:15:00",
+  "guard_id": 14,
+  "guard_name": "สมชาย สายตรวจ",
+  "shift_id": 201,
+  "shift_date": "2026-10-15T00:00:00",
+  "start_time": "2026-10-15T08:00:00",
+  "end_time": "2026-10-15T16:00:00",
+  "maximum_guards": 10,
+  "event_id": 101,
+  "event_name": "มหกรรมคอนเสิร์ต มหาวิทยาลัยแม่โจ้ 2026",
+  "location": "ศูนย์กีฬาเฉลิมพระเกียรติ มหาวิทยาลัยแม่โจ้"
+}
+
+
+################################################################################
+9. REPORT & INCIDENT LOGGING (ReportController)
+################################################################################
+
+--------------------------------------------------------------------------------
+9.1 Submit Situation Report (JSON Format)
+--------------------------------------------------------------------------------
+Method: POST
+URL: /api/report
+Controller Function: ReportController.submitReportJson(Map<String, Object> body)
+Description: Submits regular or abnormal situation report via JSON body.
+
+[INPUT EXAMPLE]
+Content-Type: application/json
+{
+  "guard_id": 14,
+  "shift_id": 201,
+  "report_type": "ตรวจพื้นที่ปกติ",
+  "description": "ตรวจตราพื้นที่รอบรั้วศูนย์กีฬาเฉลิมพระเกียรติ เหตุการณ์ปกติ ไม่มีผู้บุกรุก",
+  "is_normal": true,
+  "report_img": "reports/patrol_gate_north.jpg"
+}
+
+[OUTPUT EXAMPLE - HTTP 201 CREATED]
+{
+  "report_id": 305,
+  "report_type": "ตรวจพื้นที่ปกติ",
+  "report_desc": "ตรวจตราพื้นที่รอบรั้วศูนย์กีฬาเฉลิมพระเกียรติ เหตุการณ์ปกติ ไม่มีผู้บุกรุก",
+  "report_time": "2026-09-25T14:20:00",
+  "report_img": "reports/patrol_gate_north.jpg",
+  "guard_id": 14,
+  "shift_id": 201,
+  "shift": null,
+  "eventName": null,
+  "event_name": null,
+  "_normal": true
+}
+
+--------------------------------------------------------------------------------
+9.2 Submit Situation Report with Image (Multipart Form)
+--------------------------------------------------------------------------------
+Method: POST
+URL: /api/report
+Controller Function: ReportController.submitReportMultipart(...)
+Description: Submits situation report with real camera snapshot image binary file.
+
+[INPUT EXAMPLE]
+Content-Type: multipart/form-data
+Form Fields:
+  guard_id: 14
+  shift_id: 201
+  report_type: "แจ้งเหตุฉุกเฉิน"
+  description: "พบกระเป๋าต้องสงสัยวางทิ้งไว้บริเวณหน้าห้องน้ำหญิง"
+  is_normal: false
+  file: [Binary File: suspicious_bag.jpg]
+
+[OUTPUT EXAMPLE - HTTP 201 CREATED]
+{
+  "report_id": 306,
+  "report_type": "แจ้งเหตุฉุกเฉิน",
+  "report_desc": "พบกระเป๋าต้องสงสัยวางทิ้งไว้บริเวณหน้าห้องน้ำหญิง",
+  "report_time": "2026-09-25T14:22:15",
+  "report_img": "reports/d3b07384-95a1-460d-83b6-suspicious_bag.jpg",
+  "guard_id": 14,
+  "shift_id": 201,
+  "_normal": false
+}
+
+--------------------------------------------------------------------------------
+9.3 Get Reports by Guard ID
+--------------------------------------------------------------------------------
+Method: GET
+URL: /api/report/guard/{guardId}
+Controller Function: ReportController.getReportsByGuard(Integer guardId)
+Description: Retrieves all past reports filed by a specific guard.
+
+[INPUT EXAMPLE]
+Path Variable:
+  guardId: 14
+
+[OUTPUT EXAMPLE - HTTP 200 OK]
+[
+  {
+    "report_id": 305,
+    "report_type": "ตรวจพื้นที่ปกติ",
+    "report_desc": "ตรวจตราพื้นที่รอบรั้วศูนย์กีฬาเฉลิมพระเกียรติ เหตุการณ์ปกติ",
+    "report_time": "2026-09-25T14:20:00",
+    "report_img": "reports/patrol_gate_north.jpg",
+    "guard_id": 14,
+    "shift_id": 201,
+    "_normal": true
+  }
+]
+
+--------------------------------------------------------------------------------
+9.4 Get All Reports
+--------------------------------------------------------------------------------
+Method: GET
+URL: /api/report
+Controller Function: ReportController.getAllReports()
+Description: Retrieves all reports in the database across all shifts and guards.
+
+[INPUT EXAMPLE]
+No parameters required.
+
+[OUTPUT EXAMPLE - HTTP 200 OK]
+[
+  {
+    "report_id": 301,
+    "report_type": "เหตุฉุกเฉิน",
+    "report_desc": "พบกลุ่มวัยรุ่นทะเลาะวิวาท",
+    "report_time": "2026-10-15T14:35:10",
+    "report_img": "reports/incident_fight_1.jpg",
+    "guard_id": 14,
+    "shift_id": 201,
+    "_normal": false
+  }
+]
+
+--------------------------------------------------------------------------------
+9.5 Get Abnormal / Emergency Reports
+--------------------------------------------------------------------------------
+Method: GET
+URL: /api/report/abnormal
+Controller Function: ReportController.getAbnormalReports()
+Description: Filters exclusively for reports flagged with is_normal = false.
+
+[INPUT EXAMPLE]
+No parameters required.
+
+[OUTPUT EXAMPLE - HTTP 200 OK]
+[
+  {
+    "report_id": 301,
+    "report_type": "เหตุฉุกเฉิน",
+    "report_desc": "พบกลุ่มวัยรุ่นทะเลาะวิวาท",
+    "report_time": "2026-10-15T14:35:10",
+    "report_img": "reports/incident_fight_1.jpg",
+    "guard_id": 14,
+    "shift_id": 201,
+    "_normal": false
+  }
+]
+
+
+################################################################################
+10. FILE UPLOADS (FileUploadController)
+################################################################################
+
+--------------------------------------------------------------------------------
+10.1 Upload File / Image
+--------------------------------------------------------------------------------
+Method: POST
+URL: /api/upload
+Controller Function: FileUploadController.uploadFile(MultipartFile file, String folder)
+Description: Uploads general assets (e.g. event banners, profile images, evidence) to server directory.
+
+[INPUT EXAMPLE]
+Content-Type: multipart/form-data
+Form Fields:
+  folder: "events" (or "reports", "profiles")
+  file: [Binary File: concert_banner.jpg]
+
+[OUTPUT EXAMPLE - HTTP 201 CREATED]
+{
+  "fileName": "events/a83f124c-921f-4b07-92be-concert_banner.jpg",
+  "fileUrl": "/uploads/events/a83f124c-921f-4b07-92be-concert_banner.jpg",
+  "originalName": "concert_banner.jpg",
+  "size": 245812
+}
+
+[ERROR EXAMPLE - HTTP 400 BAD REQUEST]
+{
+  "error": "File is empty"
+}
+
+
+################################################################################
+11. FLUTTER CLIENT SERVICES (Mobile App Client Functions)
+################################################################################
+
+--------------------------------------------------------------------------------
+11.1 AuthService.login()
+--------------------------------------------------------------------------------
+Function: UserService.login(String username, String password, String role)
+File: flutter_frontend/lib/Service/user_service.dart
+
+[FUNCTION CALL EXAMPLE]
+final loginResponse = await UserService().login(
+  username: "guard_somchai",
+  password: "Password123!",
+  role: "GUARD",
+);
+
+[DATA OBJECT RETURNED]
+LoginResponse(
+  users_id: 14,
+  username: "guard_somchai",
+  role: "GUARD",
+  first_name: "สมชาย",
+  last_name: "สายตรวจ",
+  company_name: "บริษัท สยาม ซีเคียวริตี้ กรุ๊ป จำกัด",
+  head_name: "นายสมพร หัวหน้าชุด",
+  status: "ACTIVE",
+  start_date: "2026-08-01T09:00:00"
+)
+
+--------------------------------------------------------------------------------
+11.2 UserService.getProfile()
+--------------------------------------------------------------------------------
+Function: UserService.getGuardProfile(int guardId)
+File: flutter_frontend/lib/Service/user_service.dart
+
+[FUNCTION CALL EXAMPLE]
+final guard = await UserService().getGuardProfile(14);
+
+[DATA OBJECT RETURNED]
+UserModel(
+  usersId: 14,
+  username: "guard_somchai",
+  rank: "เจ้าหน้าที่ รปภ. ประจำจุด",
+  title: "นาย",
+  firstName: "สมชาย",
+  lastName: "สายตรวจ",
+  gender: "ชาย",
+  phone: "0895556677",
+  companyName: "บริษัท สยาม ซีเคียวริตี้ กรุ๊ป จำกัด",
+  headName: "นายสมพร หัวหน้าชุด"
+)
+
+--------------------------------------------------------------------------------
+11.3 EventService.getEvents() & getEventShifts()
+--------------------------------------------------------------------------------
+Function: EventService.getShiftsForEvent(int eventId, {int? guardId})
+File: flutter_frontend/lib/Service/event_service.dart
+
+[FUNCTION CALL EXAMPLE]
+final shifts = await EventService().getShiftsForEvent(101, guardId: 14);
+
+[DATA OBJECT RETURNED]
+[
+  {
+    "shift_id": 201,
+    "event_id": 101,
+    "event_name": "มหกรรมคอนเสิร์ต มหาวิทยาลัยแม่โจ้ 2026",
+    "shift_date": "2026-10-15T00:00:00",
+    "start_time": "2026-10-15T08:00:00",
+    "end_time": "2026-10-15T16:00:00",
+    "maximum_guards": 10,
+    "current_guards": 4,
+    "available_slots": 6,
+    "status": "OPEN",
+    "duty_location": "ศูนย์กีฬาเฉลิมพระเกียรติ มหาวิทยาลัยแม่โจ้"
+  }
+]
+
+--------------------------------------------------------------------------------
+11.4 EventService.applyShift() & withdrawShift()
+--------------------------------------------------------------------------------
+Function: EventService.applyForShift(int guardId, int shiftId)
+File: flutter_frontend/lib/Service/event_service.dart
+
+[FUNCTION CALL EXAMPLE - APPLY]
+final assignment = await EventService().applyForShift(guardId: 14, shiftId: 201);
+
+[DATA OBJECT RETURNED - APPLY]
+AssignmentModel(
+  assignmentId: 505,
+  assignmentStatus: "RESERVE",
+  shiftId: 201,
+  guardId: 14,
+  requestDate: DateTime.parse("2026-09-25T14:15:30")
+)
+
+[FUNCTION CALL EXAMPLE - WITHDRAW]
+final result = await EventService().withdrawShift(
+  guardId: 14,
+  shiftId: 201,
+  reason: "ติดภารกิจด่วน",
+  details: "มีธุระจำเป็น",
+);
+
+[DATA OBJECT RETURNED - WITHDRAW]
+{"message": "ถอนตัวจากการปฏิบัติหน้าที่เรียบร้อยแล้ว"}
+
+--------------------------------------------------------------------------------
+11.5 ReportService.submitReport()
+--------------------------------------------------------------------------------
+Function: ReportService.submitReportMultipart(...)
+File: flutter_frontend/lib/Service/report_service.dart
+
+[FUNCTION CALL EXAMPLE]
+final report = await ReportService().submitReport(
+  guardId: 14,
+  shiftId: 201,
+  reportType: "แจ้งเหตุฉุกเฉิน",
+  description: "ตรวจพบไฟลัดวงจรบริเวณตู้สวิตช์ไฟเวที ได้ประสานงานฝ่ายเทคนิคแล้ว",
+  isNormal: false,
+  imageFile: File("/path/to/circuit_fire.jpg"),
+);
+
+[DATA OBJECT RETURNED]
+ReportModel(
+  reportId: 308,
+  reportType: "แจ้งเหตุฉุกเฉิน",
+  reportDesc: "ตรวจพบไฟลัดวงจรบริเวณตู้สวิตช์ไฟเวที ได้ประสานงานฝ่ายเทคนิคแล้ว",
+  reportTime: DateTime.parse("2026-09-25T14:30:00"),
+  reportImg: "reports/uuid_circuit_fire.jpg",
+  isNormal: false,
+  guardId: 14,
+  shiftId: 201
+)
+
+--------------------------------------------------------------------------------
+11.6 NotificationService.getNotifications()
+--------------------------------------------------------------------------------
+Function: NotificationService.getNotifications(int guardId)
+File: flutter_frontend/lib/Service/notification_service.dart
+
+[FUNCTION CALL EXAMPLE]
+final notifications = await NotificationService().getNotifications(guardId: 14);
+
+[DATA OBJECT RETURNED]
+[
+  NotificationModel(
+    notificationId: "notif_01",
+    title: "ยืนยันการมอบหมายงาน",
+    message: "คุณได้รับการคัดเลือกให้ปฏิบัติหน้าที่ใน กะงานที่ 201 งานมหกรรมคอนเสิร์ต",
+    timestamp: DateTime.parse("2026-09-25T12:00:00"),
+    isRead: false
+  )
+]
+
+================================================================================
+END OF SGM API & FUNCTION DATA EXAMPLES
+================================================================================
+

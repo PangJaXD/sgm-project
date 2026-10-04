@@ -101,7 +101,9 @@ function HeadGuardDashboard() {
   }, [startDateStr]);
 
   const fname =
-    userProfile?.first_name || currentUser?.first_name || currentUser?.firstName;
+    userProfile?.first_name ||
+    currentUser?.first_name ||
+    currentUser?.firstName;
   const lname =
     userProfile?.last_name || currentUser?.last_name || currentUser?.lastName;
   const userRank =
@@ -633,7 +635,9 @@ function HeadGuardDashboard() {
             <div className="flex items-center gap-2">
               <span className="text-base">⚠️</span>
               <span>
-                ยังไม่ถึงเวลาเริ่มงาน (กำหนดเริ่มงาน: {formattedStartDate}) — ขณะนี้คุณอยู่ในโหมดดูข้อมูลเท่านั้น (Read-Only) ไม่สามารถมอบหมายงานหรือเปิดรับสมัครงานได้
+                ยังไม่ถึงเวลาเริ่มงาน (กำหนดเริ่มงาน: {formattedStartDate}) —
+                ขณะนี้คุณอยู่ในโหมดดูข้อมูลเท่านั้น (Read-Only)
+                ไม่สามารถมอบหมายงานหรือเปิดรับสมัครงานได้
               </span>
             </div>
             <span className="bg-amber-700/80 px-2 py-0.5 rounded text-[11px] uppercase tracking-wider font-bold">
@@ -913,7 +917,9 @@ function HeadGuardDashboard() {
                             <button
                               onClick={() => {
                                 if (isNotStartedYet) {
-                                  alert("ยังไม่ถึงเวลาเริ่มงาน ไม่สามารถดำเนินการได้");
+                                  alert(
+                                    "ยังไม่ถึงเวลาเริ่มงาน ไม่สามารถดำเนินการได้",
+                                  );
                                   return;
                                 }
                                 setSelectedAssignment(item);
@@ -973,7 +979,9 @@ function HeadGuardDashboard() {
                         key={item.id}
                         className="grid grid-cols-[70px_1.5fr_1.5fr_120px] h-[48px] items-center border-t border-gray-300 text-[12px] px-6"
                       >
-                        <div className="text-center text-gray-500">{index + 1}</div>
+                        <div className="text-center text-gray-500">
+                          {index + 1}
+                        </div>
                         <div>{item.guardName}</div>
                         <div className="font-semibold text-gray-800">
                           {formatThaiTimeRange(item.time)}
@@ -1027,7 +1035,6 @@ function HeadGuardDashboard() {
                 <div className="w-full border border-gray-300 rounded-xl overflow-hidden bg-white shadow-sm">
                   <div className="grid grid-cols-[70px_100px_1.8fr_70px_1.2fr_100px_120px_50px] h-[44px] bg-[#111827] text-white items-center text-[12px] font-medium px-6">
                     <div className="text-center">ลำดับที่</div>
-                    <div className="text-center">รหัสประจำตัว</div>
                     <div>ชื่อ - นามสกุล</div>
                     <div>เพศ</div>
                     <div>ประสบการณ์ทำงาน</div>
@@ -1051,9 +1058,6 @@ function HeadGuardDashboard() {
                       >
                         <div className="text-center font-medium text-gray-700">
                           {g.sequence || g.id}
-                        </div>
-                        <div className="text-center font-medium text-gray-700">
-                          {g.guardId || g.raw?.users_id || "-"}
                         </div>
                         <div className="font-medium text-gray-900">
                           {formatRankAndName(g)}
