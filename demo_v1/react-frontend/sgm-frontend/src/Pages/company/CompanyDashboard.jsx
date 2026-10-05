@@ -55,7 +55,7 @@ function CompanyDashboard() {
   useEffect(() => {
     if (currentUser?.users_id) {
       axios
-        .get(`http://localhost:8080/api/company/${currentUser.users_id}`)
+        .get(`http://localhost:8081/api/company/${currentUser.users_id}`)
         .then((res) => {
           if (res.data) {
             setCompanyProfile(res.data);
@@ -133,12 +133,12 @@ function CompanyDashboard() {
       return img;
     }
     if (img.startsWith("/uploads/")) {
-      return `http://localhost:8080${img}`;
+      return `http://localhost:8081${img}`;
     }
     if (img.startsWith("/")) {
-      return `http://localhost:8080/uploads${img}`;
+      return `http://localhost:8081/uploads${img}`;
     }
-    return `http://localhost:8080/uploads/${img}`;
+    return `http://localhost:8081/uploads/${img}`;
   };
 
   const calculateExperience = (startDateStr, quitDateStr = null) => {
@@ -203,7 +203,7 @@ function CompanyDashboard() {
           "";
 
         const response = await axios.get(
-          "http://localhost:8080/api/headguard",
+          "http://localhost:8081/api/headguard",
           {
             params: queryCompany ? { company: queryCompany } : {},
           },
@@ -300,7 +300,7 @@ function CompanyDashboard() {
           currentUser?.username ||
           "";
 
-        const response = await axios.get("http://localhost:8080/api/guard", {
+        const response = await axios.get("http://localhost:8081/api/guard", {
           params: queryCompany ? { company: queryCompany } : {},
         });
 
@@ -398,7 +398,7 @@ function CompanyDashboard() {
           currentUser?.username ||
           "";
 
-        const response = await axios.get("http://localhost:8080/api/events", {
+        const response = await axios.get("http://localhost:8081/api/events", {
           params: {
             ...(compId ? { companyId: compId } : {}),
             ...(queryCompany ? { company: queryCompany } : {}),
@@ -522,7 +522,7 @@ function CompanyDashboard() {
     setIsUploadingImage(true);
     try {
       const res = await axios.post(
-        "http://localhost:8080/api/upload",
+        "http://localhost:8081/api/upload",
         uploadFormData,
         {
           headers: { "Content-Type": "multipart/form-data" },
@@ -609,7 +609,7 @@ function CompanyDashboard() {
 
     try {
       const response = await axios.post(
-        `http://localhost:8080/api/${apiEndpoint}`,
+        `http://localhost:8081/api/${apiEndpoint}`,
         payload,
       );
 
@@ -728,7 +728,7 @@ function CompanyDashboard() {
 
     try {
       const response = await axios.put(
-        `http://localhost:8080/api/${apiEndpoint}/${editingId}`,
+        `http://localhost:8081/api/${apiEndpoint}/${editingId}`,
         payload,
       );
 
@@ -761,7 +761,7 @@ function CompanyDashboard() {
 
     try {
       const response = await axios.put(
-        `http://localhost:8080/api/events/${eventItem.event_id}/visibility`,
+        `http://localhost:8081/api/events/${eventItem.event_id}/visibility`,
         {
           headguard_visible: true,
         },
@@ -1364,7 +1364,7 @@ function CompanyDashboard() {
               company_id: payload.company_id || compId,
             };
             const response = await axios.post(
-              "http://localhost:8080/api/events",
+              "http://localhost:8081/api/events",
               fullPayload,
             );
             if (response.status === 201 || response.status === 200) {
@@ -1403,7 +1403,7 @@ function CompanyDashboard() {
                 payload.company_id || selectedEvent?.company_id || compId,
             };
             const response = await axios.put(
-              `http://localhost:8080/api/events/${selectedEvent.event_id}`,
+              `http://localhost:8081/api/events/${selectedEvent.event_id}`,
               fullPayload,
             );
             if (response.status === 200) {

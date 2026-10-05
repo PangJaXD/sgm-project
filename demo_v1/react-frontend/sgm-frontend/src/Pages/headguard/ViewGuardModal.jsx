@@ -105,7 +105,7 @@ export default function ViewGuardModal({ isOpen, onClose, guardData }) {
               <div className="w-full h-[150px] border border-gray-300 rounded-xl bg-gray-50 flex items-center justify-center text-gray-400 overflow-hidden shadow-inner">
                 {raw.profile_img && raw.profile_img !== "default.png" ? (
                   <img
-                    src={`http://localhost:8080/uploads/${raw.profile_img}`}
+                    src={`http://localhost:8081/uploads/${raw.profile_img}`}
                     alt="Profile"
                     className="w-full h-full object-cover"
                   />

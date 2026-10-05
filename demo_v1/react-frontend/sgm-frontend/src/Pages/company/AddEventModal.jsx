@@ -107,7 +107,7 @@ export default function AddEventModal({
     setIsUploadingImage(true);
     try {
       const res = await axios.post(
-        "http://localhost:8080/api/upload",
+        "http://localhost:8081/api/upload",
         formData,
         {
           headers: { "Content-Type": "multipart/form-data" },
@@ -198,7 +198,7 @@ export default function AddEventModal({
       const fetchHeadGuards = async () => {
         try {
           const response = await axios.get(
-            "http://localhost:8080/api/headguard",
+            "http://localhost:8081/api/headguard",
             {
               params: companyName ? { company: companyName } : {},
             },

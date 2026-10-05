@@ -70,7 +70,7 @@ function HeadGuardDashboard() {
   useEffect(() => {
     if (headGuardId) {
       axios
-        .get(`http://localhost:8080/api/headguards/${headGuardId}`)
+        .get(`http://localhost:8081/api/headguards/${headGuardId}`)
         .then((res) => {
           if (res.data) setUserProfile(res.data);
         })
@@ -161,7 +161,7 @@ function HeadGuardDashboard() {
     try {
       setIsLoading(true);
       const response = await axios.get(
-        `http://localhost:8080/api/headguard-dashboard/guards?headName=${encodeURIComponent(headGuardName)}`,
+        `http://localhost:8081/api/headguard-dashboard/guards?headName=${encodeURIComponent(headGuardName)}`,
       );
       const rawList = Array.isArray(response.data) ? response.data : [];
       const sorted = [...rawList].sort(
@@ -199,11 +199,11 @@ function HeadGuardDashboard() {
       setIsLoading(true);
       const [shiftsRes, eventsRes] = await Promise.all([
         axios.get(
-          `http://localhost:8080/api/headguard-dashboard/${headGuardId}/shifts`,
+          `http://localhost:8081/api/headguard-dashboard/${headGuardId}/shifts`,
         ),
         axios
           .get(
-            `http://localhost:8080/api/headguard-dashboard/events/${headGuardId}`,
+            `http://localhost:8081/api/headguard-dashboard/events/${headGuardId}`,
           )
           .catch(() => ({ data: [] })),
       ]);
@@ -288,7 +288,7 @@ function HeadGuardDashboard() {
     async (shiftId, currentShift) => {
       try {
         const response = await axios.get(
-          `http://localhost:8080/api/headguard-dashboard/shifts/${shiftId}/assignments`,
+          `http://localhost:8081/api/headguard-dashboard/shifts/${shiftId}/assignments`,
         );
         const shiftTimeRange =
           currentShift?.workTime ||
@@ -397,7 +397,7 @@ function HeadGuardDashboard() {
     if (eventId) {
       try {
         const evRes = await axios.get(
-          `http://localhost:8080/api/events/${eventId}`,
+          `http://localhost:8081/api/events/${eventId}`,
         );
         if (evRes.data) {
           setSelectedShiftDetail((prev) =>
@@ -419,7 +419,7 @@ function HeadGuardDashboard() {
     }
     try {
       await axios.put(
-        `http://localhost:8080/api/headguard-dashboard/assignments/${assignmentId}/status`,
+        `http://localhost:8081/api/headguard-dashboard/assignments/${assignmentId}/status`,
         { status: "ACTUAL" },
       );
       fetchAssignments(selectedShiftDetail.shiftId, selectedShiftDetail);
@@ -438,7 +438,7 @@ function HeadGuardDashboard() {
     }
     try {
       await axios.put(
-        `http://localhost:8080/api/headguard-dashboard/assignments/${updatedData.id}/detail`,
+        `http://localhost:8081/api/headguard-dashboard/assignments/${updatedData.id}/detail`,
         {
           latitude: updatedData.latitude,
           longitude: updatedData.longitude,
@@ -477,14 +477,14 @@ function HeadGuardDashboard() {
     try {
       if (eventId) {
         await axios.put(
-          `http://localhost:8080/api/events/${eventId}/visibility`,
+          `http://localhost:8081/api/events/${eventId}/visibility`,
           {
             guard_visible: true,
           },
         );
       } else if (shiftId) {
         await axios.put(
-          `http://localhost:8080/api/headguard-dashboard/shifts/${shiftId}/guard-visibility`,
+          `http://localhost:8081/api/headguard-dashboard/shifts/${shiftId}/guard-visibility`,
           { guard_visible: true },
         );
       }
@@ -542,10 +542,10 @@ function HeadGuardDashboard() {
     ? rawEventImg.startsWith("http://") || rawEventImg.startsWith("https://")
       ? rawEventImg
       : rawEventImg.startsWith("/uploads/")
-        ? `http://localhost:8080${rawEventImg}`
+        ? `http://localhost:8081${rawEventImg}`
         : rawEventImg.startsWith("/")
-          ? `http://localhost:8080/uploads${rawEventImg}`
-          : `http://localhost:8080/uploads/${rawEventImg}`
+          ? `http://localhost:8081/uploads${rawEventImg}`
+          : `http://localhost:8081/uploads/${rawEventImg}`
     : null;
 
   return (

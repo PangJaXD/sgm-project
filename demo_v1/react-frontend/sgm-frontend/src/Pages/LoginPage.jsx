@@ -10,7 +10,7 @@ import {
 } from "lucide-react";
 
 function LoginPage() {
-  const API_URL = "http://localhost:8080";
+  const API_URL = "http://localhost:8081";
   const [role, setRole] = useState(() =>
     window.location.pathname.includes("/admin") ? "admin" : "company",
   );

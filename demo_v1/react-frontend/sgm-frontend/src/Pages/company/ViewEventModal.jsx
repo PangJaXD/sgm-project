@@ -173,7 +173,7 @@ export default function ViewEventModal({ isOpen, onClose, eventData }) {
                     {eventData.event_img &&
                     eventData.event_img !== "default.png" ? (
                       <img
-                        src={`http://localhost:8080/uploads/${eventData.event_img}`}
+                        src={`http://localhost:8081/uploads/${eventData.event_img}`}
                         alt="Event"
                         className="w-full h-full object-cover"
                       />

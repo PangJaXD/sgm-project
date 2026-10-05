@@ -108,7 +108,7 @@ export default function EditEventModal({
     setIsUploadingImage(true);
     try {
       const res = await axios.post(
-        "http://localhost:8080/api/upload",
+        "http://localhost:8081/api/upload",
         formData,
         {
           headers: { "Content-Type": "multipart/form-data" },
@@ -258,10 +258,10 @@ export default function EditEventModal({
       const previewSrc = existingImg.startsWith("http")
         ? existingImg
         : existingImg.startsWith("/uploads/")
-          ? `http://localhost:8080${existingImg}`
+          ? `http://localhost:8081${existingImg}`
           : existingImg.startsWith("/")
-            ? `http://localhost:8080/uploads${existingImg}`
-            : `http://localhost:8080/uploads/${existingImg}`;
+            ? `http://localhost:8081/uploads${existingImg}`
+            : `http://localhost:8081/uploads/${existingImg}`;
       setImagePreview(previewSrc);
     } else {
       setImagePreview("");
@@ -274,7 +274,7 @@ export default function EditEventModal({
       const fetchHeadGuards = async () => {
         try {
           const response = await axios.get(
-            "http://localhost:8080/api/headguard",
+            "http://localhost:8081/api/headguard",
             {
               params: companyName ? { company: companyName } : {},
             },

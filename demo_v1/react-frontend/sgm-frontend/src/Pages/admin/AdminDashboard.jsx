@@ -77,7 +77,7 @@ function AdminDashboard() {
         params.adminUsername = currentUser.username;
       }
 
-      const res = await axios.get("http://localhost:8080/api/company", {
+      const res = await axios.get("http://localhost:8081/api/company", {
         params,
       });
       if (Array.isArray(res.data)) {
@@ -230,7 +230,7 @@ function AdminDashboard() {
 
     try {
       const res = await axios.post(
-        "http://localhost:8080/api/company",
+        "http://localhost:8081/api/company",
         payload,
       );
       if (res.status === 201 || res.status === 200) {
@@ -306,7 +306,7 @@ function AdminDashboard() {
 
     try {
       const res = await axios.put(
-        `http://localhost:8080/api/company/${editingId}`,
+        `http://localhost:8081/api/company/${editingId}`,
         payload,
       );
       if (res.status === 200) {
@@ -324,7 +324,7 @@ function AdminDashboard() {
   const handleConfirmDelete = async () => {
     if (!editingId) return;
     try {
-      await axios.delete(`http://localhost:8080/api/company/${editingId}`);
+      await axios.delete(`http://localhost:8081/api/company/${editingId}`);
       setIsDeleteModalOpen(false);
       setIsViewModalOpen(false);
       fetchCompanies();

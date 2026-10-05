@@ -89,10 +89,10 @@ export default function ViewRequestModal({ isOpen, onClose, requestData }) {
                     rawImg.startsWith("https://")
                       ? rawImg
                       : rawImg.startsWith("/uploads/")
-                        ? `http://localhost:8080${rawImg}`
+                        ? `http://localhost:8081${rawImg}`
                         : rawImg.startsWith("/")
-                          ? `http://localhost:8080/uploads${rawImg}`
-                          : `http://localhost:8080/uploads/${rawImg}`;
+                          ? `http://localhost:8081/uploads${rawImg}`
+                          : `http://localhost:8081/uploads/${rawImg}`;
 
                   return (
                     <div className="w-full h-[200px] bg-gray-100 rounded-xl border border-gray-300 overflow-hidden flex items-center justify-center group relative cursor-pointer">

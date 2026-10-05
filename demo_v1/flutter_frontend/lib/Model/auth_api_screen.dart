@@ -5,18 +5,18 @@ import '../Service/api_exception.dart';
 
 class AuthApiService {
   // Candidate URLs in priority order:
-  // 1. localhost:8080 (works with `adb reverse tcp:8080 tcp:8080` for emulator on port 5555 / LDPlayer / Nox / AVD)
-  // 2. 192.168.0.31:8080 (PC LAN IP - accessible from all emulators & physical devices on the same Wi-Fi)
-  // 3. 10.0.2.2:8080 (Default Android Studio AVD gateway)
+  // 1. localhost:8081 (works with `adb reverse tcp:8081 tcp:8081` for emulator on port 5555 / LDPlayer / Nox / AVD)
+  // 2. 192.168.0.31:8081 (PC LAN IP - accessible from all emulators & physical devices on the same Wi-Fi)
+  // 3. 10.0.2.2:8081 (Default Android Studio AVD gateway)
   static final List<String> _candidateUrls = Platform.isAndroid
       ? [
-          'http://localhost:8080/api',
-          'http://192.168.0.31:8080/api',
-          'http://10.0.2.2:8080/api',
-          'http://10.100.61.73:8080/api',
-          'http://10.10.13.129:8080/api',
+          'http://localhost:8081/api',
+          'http://192.168.0.31:8081/api',
+          'http://10.0.2.2:8081/api',
+          'http://10.100.61.73:8081/api',
+          'http://10.10.13.129:8081/api',
         ]
-      : ['http://localhost:8080/api'];
+      : ['http://localhost:8081/api'];
 
   static String baseUrl = _candidateUrls.first;
 
