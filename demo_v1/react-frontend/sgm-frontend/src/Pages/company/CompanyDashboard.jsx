@@ -353,7 +353,7 @@ function CompanyDashboard() {
               ),
               status: isActive ? "ปฏิบัติงาน" : "พ้นสภาพ/พักงาน",
               active: isActive,
-              headName: guard.head_name || "-",
+              headName: guard.head_name || guard.headguard_name || guard.headName || "-",
               raw: guard,
             };
           });
@@ -798,7 +798,8 @@ function CompanyDashboard() {
       formatTitleAndName(item).toLowerCase().includes(keyword) ||
       item.gender?.toLowerCase().includes(keyword) ||
       item.experience?.toLowerCase().includes(keyword) ||
-      item.status?.toLowerCase().includes(keyword)
+      item.status?.toLowerCase().includes(keyword) ||
+      item.headName?.toLowerCase().includes(keyword)
     );
   });
 
@@ -920,9 +921,12 @@ function CompanyDashboard() {
 
           {activeMenu !== "schedule" ? (
             <div className="w-full border border-gray-400 rounded-xl overflow-hidden bg-white/80">
-              <div className="grid grid-cols-[80px_1.8fr_90px_1.3fr_1.1fr_45px] h-[40px] bg-blue-400 text-white items-center text-[12px] font-medium px-4">
+              <div className={`grid ${isGuardMenu ? "grid-cols-[80px_1.5fr_1.5fr_80px_1.2fr_1.1fr_45px]" : "grid-cols-[80px_1.8fr_90px_1.3fr_1.1fr_45px]"} h-[40px] bg-blue-400 text-white items-center text-[12px] font-medium px-4`}>
                 <div className="text-center">ลำดับที่</div>
                 <div>ชื่อ - นามสกุล</div>
+                {isGuardMenu && (
+                  <div className="truncate pr-2">ชื่อหัวหน้าชุดรักษาความปลอดภัย</div>
+                )}
                 <div>เพศ</div>
                 <div>ประสบการณ์ทำงาน</div>
                 <div>สถานะการทำงาน</div>
@@ -941,7 +945,7 @@ function CompanyDashboard() {
                 filteredData.map((dataItem) => (
                   <div
                     key={dataItem.raw?.users_id || dataItem.id}
-                    className="grid grid-cols-[80px_1.8fr_90px_1.3fr_1.1fr_45px] min-h-[44px] items-center border-t border-gray-300 text-[12px] px-4 hover:bg-gray-50 transition"
+                    className={`grid ${isGuardMenu ? "grid-cols-[80px_1.5fr_1.5fr_80px_1.2fr_1.1fr_45px]" : "grid-cols-[80px_1.8fr_90px_1.3fr_1.1fr_45px]"} min-h-[44px] items-center border-t border-gray-300 text-[12px] px-4 hover:bg-gray-50 transition`}
                   >
                     <div className="text-center text-gray-600 bg-gray-200/50 py-1 rounded w-14 mx-auto">
                       {dataItem.id}
@@ -949,6 +953,14 @@ function CompanyDashboard() {
                     <div className="font-medium text-gray-900 truncate pr-2">
                       {formatTitleAndName(dataItem)}
                     </div>
+                    {isGuardMenu && (
+                      <div
+                        className="text-gray-700 truncate pr-2"
+                        title={dataItem.headName || "-"}
+                      >
+                        {dataItem.headName || "-"}
+                      </div>
+                    )}
                     <div>{dataItem.gender}</div>
                     <div>{dataItem.experience}</div>
                     <div className="flex items-center gap-2">
