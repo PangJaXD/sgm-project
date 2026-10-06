@@ -22,7 +22,7 @@ import {
   Edit,
   PenSquare,
   MapPin,
-  Trash,
+  Trash, Filter,
 } from "lucide-react";
 
 const PHONE_REGEX = /^0[689]\d{8}$/;
@@ -30,6 +30,7 @@ const PHONE_REGEX = /^0[689]\d{8}$/;
 function CompanyDashboard() {
   const [activeMenu, setActiveMenu] = useState("headguard");
   const [search, setSearch] = useState("");
+  const [selectedHeadGuardFilter, setSelectedHeadGuardFilter] = useState("");
 
   const [headGuards, setHeadGuards] = useState([]);
   const [guards, setGuards] = useState([]);
@@ -783,6 +784,21 @@ function CompanyDashboard() {
     }
   };
 
+  const headGuardFilterOptions = useMemo(() => {
+    const names = new Set();
+    headGuards.forEach((hg) => {
+      if (hg.name && hg.name.trim() && hg.name !== "-") {
+        names.add(hg.name.trim());
+      }
+    });
+    guards.forEach((g) => {
+      if (g.headName && g.headName.trim() && g.headName !== "-") {
+        names.add(g.headName.trim());
+      }
+    });
+    return Array.from(names).sort((a, b) => a.localeCompare(b, "th"));
+  }, [headGuards, guards]);
+
   const currentDataList = Array.isArray(isGuardMenu ? guards : headGuards)
     ? isGuardMenu
       ? guards
@@ -790,6 +806,19 @@ function CompanyDashboard() {
     : [];
 
   const filteredData = currentDataList.filter((item) => {
+    if (isGuardMenu && selectedHeadGuardFilter) {
+      if (selectedHeadGuardFilter === "none") {
+        if (item.headName && item.headName !== "-") {
+          return false;
+        }
+      } else {
+        const itemHead = (item.headName || "").trim().toLowerCase();
+        const filterHead = selectedHeadGuardFilter.trim().toLowerCase();
+        if (itemHead !== filterHead) {
+          return false;
+        }
+      }
+    }
     const keyword = search.toLowerCase();
     return (
       item.id?.toLowerCase().includes(keyword) ||
@@ -837,6 +866,7 @@ function CompanyDashboard() {
                 onClick={() => {
                   setActiveMenu(item.id);
                   setSearch("");
+                  setSelectedHeadGuardFilter("");
                 }}
                 className={`w-full h-[38px] mb-2 rounded flex items-center justify-center gap-2 px-3 text-[13px] transition ${
                   active
@@ -882,8 +912,9 @@ function CompanyDashboard() {
         </header>
 
         <section className="px-10 pt-8">
-          <div className="flex items-center justify-between mb-6">
-            <div className="relative w-[310px]">
+          <div className="flex items-center justify-between mb-6 gap-4">
+            <div className="flex items-center gap-3 flex-wrap">
+              <div className="relative w-[310px]">
               <Search
                 size={21}
                 className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
@@ -900,6 +931,29 @@ function CompanyDashboard() {
                 className="w-full h-[34px] border border-gray-400 rounded-xl pl-10 pr-3 text-sm outline-none focus:border-blue-500 bg-white"
               />
             </div>
+
+            {isGuardMenu && (
+              <div className="relative flex items-center">
+                <Filter
+                  size={15}
+                  className="absolute left-3 text-gray-400 pointer-events-none"
+                />
+                <select
+                  value={selectedHeadGuardFilter}
+                  onChange={(e) => setSelectedHeadGuardFilter(e.target.value)}
+                  className="h-[34px] border border-gray-400 rounded-xl pl-8 pr-4 text-sm outline-none focus:border-blue-500 bg-white cursor-pointer text-gray-700 shadow-sm"
+                >
+                  <option value="">หัวหน้าชุดทั้งหมด</option>
+                  {headGuardFilterOptions.map((name) => (
+                    <option key={name} value={name}>
+                      {name}
+                    </option>
+                  ))}
+                  <option value="none">-- ยังไม่ระบุหัวหน้าชุด --</option>
+                </select>
+              </div>
+            )}
+          </div>
 
             {activeMenu !== "schedule" ? (
               <button
