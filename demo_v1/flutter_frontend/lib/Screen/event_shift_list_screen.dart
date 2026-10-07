@@ -35,18 +35,54 @@ class _EventShiftListScreenState extends State<EventShiftListScreen> {
       );
       if (mounted) {
         setState(() {
-          _shifts = shifts.isNotEmpty ? shifts : widget.event.shiftTimes;
+          _shifts = _sortShiftsDesc(
+            shifts.isNotEmpty ? shifts : widget.event.shiftTimes,
+          );
           _isLoading = false;
         });
       }
     } catch (_) {
       if (mounted) {
         setState(() {
-          _shifts = widget.event.shiftTimes;
+          _shifts = _sortShiftsDesc(widget.event.shiftTimes);
           _isLoading = false;
         });
       }
     }
+  }
+
+  List<ShiftTimeModel> _sortShiftsDesc(List<ShiftTimeModel> list) {
+    final sorted = List<ShiftTimeModel>.from(list);
+    sorted.sort((a, b) {
+      final dtA = _getEffectiveDateTime(a);
+      final dtB = _getEffectiveDateTime(b);
+
+      if (dtA != null && dtB != null) {
+        final cmp = dtB.compareTo(dtA);
+        if (cmp != 0) return cmp;
+      } else if (dtA == null && dtB != null) {
+        return 1;
+      } else if (dtA != null && dtB == null) {
+        return -1;
+      }
+
+      return b.shiftId.compareTo(a.shiftId);
+    });
+    return sorted;
+  }
+
+  DateTime? _getEffectiveDateTime(ShiftTimeModel shift) {
+    if (shift.shiftDate != null && shift.startTime != null) {
+      return DateTime(
+        shift.shiftDate!.year,
+        shift.shiftDate!.month,
+        shift.shiftDate!.day,
+        shift.startTime!.hour,
+        shift.startTime!.minute,
+        shift.startTime!.second,
+      );
+    }
+    return shift.shiftDate ?? shift.startTime;
   }
 
   Map<String, List<ShiftTimeModel>> get _groupedShifts {
