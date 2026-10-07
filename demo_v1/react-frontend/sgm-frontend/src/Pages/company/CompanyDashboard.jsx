@@ -457,7 +457,7 @@ function CompanyDashboard() {
         });
 
         const sorted = [...filtered].sort(
-          (a, b) => (Number(a.event_id) || 0) - (Number(b.event_id) || 0),
+          (a, b) => (Number(b.event_id) || 0) - (Number(a.event_id) || 0),
         );
 
         const newEventIds = newlyAddedEventIdsRef.current;
