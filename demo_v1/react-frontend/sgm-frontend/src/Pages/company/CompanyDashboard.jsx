@@ -98,6 +98,7 @@ function CompanyDashboard() {
   });
 
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isAddEventModalOpen, setIsAddEventModalOpen] = useState(false);
@@ -568,6 +569,7 @@ function CompanyDashboard() {
       status: "ปฏิบัติงาน",
       headName: "",
     });
+    setConfirmPassword("");
     setProfileImg("default.png");
     setImagePreview("");
     if (addFileInputRef.current) {
@@ -581,6 +583,26 @@ function CompanyDashboard() {
   };
 
   const handleSaveData = async () => {
+    if (!formData.username || !formData.username.trim()) {
+      alert("กรุณากรอกชื่อผู้ใช้งาน");
+      return;
+    }
+
+    if (!formData.password) {
+      alert("กรุณากรอกรหัสผ่าน");
+      return;
+    }
+
+    if (!confirmPassword) {
+      alert("กรุณากรอกยืนยันรหัสผ่าน");
+      return;
+    }
+
+    if (formData.password !== confirmPassword) {
+      alert("รหัสผ่านและยืนยันรหัสผ่านไม่ตรงกัน กรุณาตรวจสอบอีกครั้ง");
+      return;
+    }
+
     if (!formData.phone || !PHONE_REGEX.test(formData.phone.trim())) {
       alert(
         "กรุณากรอกเบอร์โทรศัพท์ให้ถูกต้อง (ต้องขึ้นต้นด้วย 06, 08 หรือ 09 และมีความยาว 10 หลัก)",
@@ -1205,6 +1227,33 @@ function CompanyDashboard() {
                       onChange={handleInputChange}
                       className="flex-1 h-[32px] border border-gray-300 rounded-lg px-3 bg-gray-100 outline-none"
                     />
+                  </div>
+                  <div>
+                    <div className="flex items-center">
+                      <label className="w-[120px] font-semibold">
+                        ยืนยันรหัสผ่าน <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="password"
+                        name="confirmPassword"
+                        value={confirmPassword}
+                        onChange={(e) => setConfirmPassword(e.target.value)}
+                        placeholder="กรอกรหัสผ่านอีกครั้ง"
+                        className={`flex-1 h-[32px] border rounded-lg px-3 bg-gray-100 outline-none ${
+                          confirmPassword && formData.password !== confirmPassword
+                            ? "border-red-500 focus:border-red-500"
+                            : "border-gray-300 focus:border-blue-500"
+                        }`}
+                      />
+                    </div>
+                    {confirmPassword && formData.password !== confirmPassword && (
+                      <div className="flex items-center mt-1">
+                        <span className="w-[120px]"></span>
+                        <span className="text-red-500 text-[11px] font-medium">
+                          รหัสผ่านไม่ตรงกัน
+                        </span>
+                      </div>
+                    )}
                   </div>
                   <div className="flex items-center">
                     <label className="w-[120px] font-semibold">คำนำหน้า</label>
