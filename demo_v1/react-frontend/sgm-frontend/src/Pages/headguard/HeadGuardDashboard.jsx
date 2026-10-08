@@ -3,6 +3,7 @@ import axios from "axios";
 import ViewGuardModal from "./ViewGuardModal";
 import AssignTaskModal from "./AssignTaskModal";
 import ViewAssignmentModal from "./ViewAssignmentModal";
+import ConfirmGuardStatusModal from "./ConfirmGuardStatusModal";
 import {
   formatTitleAndName,
   formatThaiDate,
@@ -49,6 +50,12 @@ function HeadGuardDashboard() {
   const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
   const [isViewAssignmentModalOpen, setIsViewAssignmentModalOpen] =
     useState(false);
+  const [isConfirmStatusModalOpen, setIsConfirmStatusModalOpen] =
+    useState(false);
+  const [confirmStatusModalMode, setConfirmStatusModalMode] =
+    useState("TO_ACTUAL"); // "TO_ACTUAL" | "TO_RESERVE"
+  const [targetStatusAssignment, setTargetStatusAssignment] = useState(null);
+  const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
 
   const [selectedGuard, setSelectedGuard] = useState(null);
   const [selectedAssignment, setSelectedAssignment] = useState(null);
@@ -415,24 +422,88 @@ function HeadGuardDashboard() {
     }
   };
 
-  const moveToActual = async (assignmentId) => {
+  const currentActualGuards = useMemo(() => {
+    return assignmentsList.filter(
+      (a) => a.status === "ACTUAL" || a.status === "ASSIGNED",
+    );
+  }, [assignmentsList]);
+
+  const currentReserveGuards = useMemo(() => {
+    return assignmentsList.filter((a) => a.status === "RESERVE");
+  }, [assignmentsList]);
+
+  // เปิด Modal ยืนยันย้ายตัวสำรอง -> ตัวจริง (Starter)
+  const handleOpenAssignToStarter = (assignment) => {
     if (isNotStartedYet) {
       alert("ยังไม่ถึงเวลาเริ่มงาน ไม่สามารถดำเนินการได้");
       return;
     }
+    setTargetStatusAssignment(assignment);
+    setConfirmStatusModalMode("TO_ACTUAL");
+    setIsConfirmStatusModalOpen(true);
+  };
+
+  // เปิด Modal ยืนยันสลับตัวจริง -> ตัวสำรอง (Reserve)
+  const handleOpenSwitchToReserve = (assignment) => {
+    if (isNotStartedYet) {
+      alert("ยังไม่ถึงเวลาเริ่มงาน ไม่สามารถดำเนินการได้");
+      return;
+    }
+    setTargetStatusAssignment(assignment);
+    setConfirmStatusModalMode("TO_RESERVE");
+    setIsConfirmStatusModalOpen(true);
+  };
+
+  // ฟังก์ชันดำเนินการเปลี่ยนสถานะหลังจากกดปุ่มยืนยันใน Modal
+  const handleConfirmStatusChange = async (
+    targetAssignment,
+    swapWithAssignment,
+  ) => {
+    if (isNotStartedYet) {
+      alert("ยังไม่ถึงเวลาเริ่มงาน ไม่สามารถดำเนินการได้");
+      return;
+    }
+    setIsUpdatingStatus(true);
     try {
-      await axios.put(
-        `http://localhost:8081/api/headguard-dashboard/assignments/${assignmentId}/status`,
-        { status: "ACTUAL" },
-      );
+      if (confirmStatusModalMode === "TO_ACTUAL") {
+        // ย้ายตัวสำรองเป็นตัวจริง (หากเลือกตัวจริงมาสลับ ก็ย้ายคนนั้นเป็น RESERVE)
+        if (swapWithAssignment) {
+          await axios.put(
+            `http://localhost:8081/api/headguard-dashboard/assignments/${swapWithAssignment.id}/status`,
+            { status: "RESERVE" },
+          );
+        }
+        await axios.put(
+          `http://localhost:8081/api/headguard-dashboard/assignments/${targetAssignment.id}/status`,
+          { status: "ACTUAL" },
+        );
+      } else {
+        // confirmStatusModalMode === "TO_RESERVE"
+        // ย้ายตัวจริงเป็นตัวสำรอง (หากเลือกตัวสำรองมาสลับ ก็ย้ายคนนั้นเป็น ACTUAL)
+        await axios.put(
+          `http://localhost:8081/api/headguard-dashboard/assignments/${targetAssignment.id}/status`,
+          { status: "RESERVE" },
+        );
+        if (swapWithAssignment) {
+          await axios.put(
+            `http://localhost:8081/api/headguard-dashboard/assignments/${swapWithAssignment.id}/status`,
+            { status: "ACTUAL" },
+          );
+        }
+      }
+      setIsConfirmStatusModalOpen(false);
+      setTargetStatusAssignment(null);
       fetchAssignments(selectedShiftDetail.shiftId, selectedShiftDetail);
     } catch (error) {
-      console.error("Error updating status:", error);
+      console.error("Error updating assignment status:", error);
       const msg =
-        error.response?.data?.message || "เกิดข้อผิดพลาดในการย้ายสถานะ";
+        error.response?.data?.message || "เกิดข้อผิดพลาดในการเปลี่ยนสถานะ";
       alert(msg);
+    } finally {
+      setIsUpdatingStatus(false);
     }
   };
+
 
   const handleSaveAssignment = async (updatedData) => {
     if (isNotStartedYet) {
@@ -878,11 +949,12 @@ function HeadGuardDashboard() {
                 </div>
 
                 <div className="border border-gray-400 rounded-xl overflow-hidden bg-white">
-                  <div className="grid grid-cols-[70px_1.5fr_1.5fr_120px] h-[40px] bg-[#4b5563] text-white items-center text-[12px] font-medium px-6">
+                  <div className="grid grid-cols-[60px_1.4fr_1.3fr_110px_120px] h-[40px] bg-[#4b5563] text-white items-center text-[12px] font-medium px-6">
                     <div className="text-center">ลำดับที่</div>
                     <div>ชื่อ</div>
                     <div>ช่วงเวลาการทำงาน</div>
                     <div className="text-center">ข้อมูลงาน</div>
+                    <div className="text-center">การจัดการ</div>
                   </div>
 
                   {assignmentsList
@@ -892,12 +964,14 @@ function HeadGuardDashboard() {
                     .map((item, index) => (
                       <div
                         key={item.id}
-                        className="grid grid-cols-[70px_1.5fr_1.5fr_120px] h-[48px] items-center border-t border-gray-300 text-[12px] px-6"
+                        className="grid grid-cols-[60px_1.4fr_1.3fr_110px_120px] h-[48px] items-center border-t border-gray-300 text-[12px] px-6"
                       >
                         <div className="text-center font-medium text-gray-700">
                           {index + 1}
                         </div>
-                        <div>{item.guardName}</div>
+                        <div className="truncate pr-2" title={item.guardName}>
+                          {item.guardName}
+                        </div>
                         <div className="font-semibold text-gray-800">
                           {formatThaiTimeRange(item.time)}
                         </div>
@@ -934,11 +1008,30 @@ function HeadGuardDashboard() {
                                 setSelectedViewAssignment(item);
                                 setIsViewAssignmentModalOpen(true);
                               }}
-                              className="text-gray-400 hover:text-blue-600 transition"
+                              className="text-gray-400 hover:text-blue-600 transition cursor-pointer"
+                              title="ดูข้อมูลงานที่มอบหมาย"
                             >
                               <Eye size={18} />
                             </button>
                           )}
+                        </div>
+                        <div className="flex justify-center">
+                          <button
+                            onClick={() => handleOpenSwitchToReserve(item)}
+                            disabled={isNotStartedYet}
+                            title={
+                              isNotStartedYet
+                                ? "ยังไม่ถึงเวลาเริ่มงาน ไม่สามารถสลับไปตัวสำรองได้"
+                                : "สลับเป็นเจ้าหน้าที่ตัวสำรอง"
+                            }
+                            className={`${
+                              isNotStartedYet
+                                ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                                : "bg-amber-500 hover:bg-amber-600 text-white cursor-pointer"
+                            } px-2.5 py-1 rounded-full text-[10px] font-semibold transition border border-amber-600 flex items-center justify-center gap-1`}
+                          >
+                            สลับเป็นตัวสำรอง
+                          </button>
                         </div>
                       </div>
                     ))}
@@ -954,11 +1047,12 @@ function HeadGuardDashboard() {
                 </h3>
 
                 <div className="border border-gray-400 rounded-xl overflow-hidden bg-white">
-                  <div className="grid grid-cols-[70px_1.5fr_1.5fr_120px] h-[40px] bg-[#4b5563] text-white items-center text-[12px] font-medium px-6">
+                  <div className="grid grid-cols-[60px_1.4fr_1.3fr_110px_120px] h-[40px] bg-[#4b5563] text-white items-center text-[12px] font-medium px-6">
                     <div className="text-center">ลำดับที่</div>
                     <div>ชื่อ</div>
                     <div>ช่วงเวลาการทำงาน</div>
                     <div />
+                    <div className="text-center">การจัดการ</div>
                   </div>
 
                   {assignmentsList
@@ -966,23 +1060,26 @@ function HeadGuardDashboard() {
                     .map((item, index) => (
                       <div
                         key={item.id}
-                        className="grid grid-cols-[70px_1.5fr_1.5fr_120px] h-[48px] items-center border-t border-gray-300 text-[12px] px-6"
+                        className="grid grid-cols-[60px_1.4fr_1.3fr_110px_120px] h-[48px] items-center border-t border-gray-300 text-[12px] px-6"
                       >
                         <div className="text-center text-gray-500">
                           {index + 1}
                         </div>
-                        <div>{item.guardName}</div>
+                        <div className="truncate pr-2" title={item.guardName}>
+                          {item.guardName}
+                        </div>
                         <div className="font-semibold text-gray-800">
                           {formatThaiTimeRange(item.time)}
                         </div>
+                        <div />
                         <div className="flex justify-center">
                           <button
-                            onClick={() => moveToActual(item.id)}
+                            onClick={() => handleOpenAssignToStarter(item)}
                             disabled={isNotStartedYet}
                             title={
                               isNotStartedYet
                                 ? "ยังไม่ถึงเวลาเริ่มงาน ไม่สามารถย้ายไปตัวจริงได้"
-                                : ""
+                                : "ย้ายเป็นเจ้าหน้าที่ตัวจริง"
                             }
                             className={`${
                               isNotStartedYet
@@ -1211,6 +1308,27 @@ function HeadGuardDashboard() {
         isOpen={isViewAssignmentModalOpen}
         onClose={() => setIsViewAssignmentModalOpen(false)}
         assignmentData={selectedViewAssignment}
+      />
+
+      <ConfirmGuardStatusModal
+        isOpen={isConfirmStatusModalOpen}
+        onClose={() => {
+          if (!isUpdatingStatus) {
+            setIsConfirmStatusModalOpen(false);
+            setTargetStatusAssignment(null);
+          }
+        }}
+        onConfirm={handleConfirmStatusChange}
+        mode={confirmStatusModalMode}
+        guardAssignment={targetStatusAssignment}
+        availableGuardsToSwap={
+          confirmStatusModalMode === "TO_ACTUAL"
+            ? currentActualGuards
+            : currentReserveGuards
+        }
+        currentActualCount={currentActualGuards.length}
+        maxGuards={selectedShiftDetail?.totalGuards || 6}
+        isLoading={isUpdatingStatus}
       />
     </div>
   );
