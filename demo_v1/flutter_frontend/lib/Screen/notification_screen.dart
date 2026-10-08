@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import '../Model/auth_api_screen.dart';
 import '../Model/notification_model.dart';
 import '../Service/event_service.dart';
 import '../Service/notification_service.dart';
+import '../Service/report_service.dart';
 import '../Service/user_service.dart';
 import './assignment_detail_screen.dart';
 import './shift_detail_screen.dart';
@@ -18,11 +20,17 @@ class NotificationScreen extends StatefulWidget {
 
 class _NotificationScreenState extends State<NotificationScreen> {
   final NotificationService _service = NotificationService.instance;
+  int _headGuardTab = 0; // 0 = Team Reports, 1 = System Alerts
+  List<SituationReportItem> _teamReports = [];
+  bool _isLoadingTeamReports = false;
 
   @override
   void initState() {
     super.initState();
     _service.addListener(_onServiceUpdate);
+    if (UserService().currentUser.isHeadGuard) {
+      _loadTeamReports();
+    }
   }
 
   @override
@@ -33,6 +41,24 @@ class _NotificationScreenState extends State<NotificationScreen> {
 
   void _onServiceUpdate() {
     if (mounted) setState(() {});
+  }
+
+  Future<void> _loadTeamReports() async {
+    setState(() => _isLoadingTeamReports = true);
+    try {
+      final user = UserService().currentUser;
+      final reports = await ReportService().fetchTeamReports(user.usersId);
+      if (mounted) {
+        setState(() {
+          _teamReports = reports;
+          _isLoadingTeamReports = false;
+        });
+      }
+    } catch (_) {
+      if (mounted) {
+        setState(() => _isLoadingTeamReports = false);
+      }
+    }
   }
 
   void _handleBack() {
@@ -313,8 +339,8 @@ class _NotificationScreenState extends State<NotificationScreen> {
   Widget build(BuildContext context) {
     const primaryBlue = Color(0xFF2563EB);
     const backgroundColor = Color(0xFFF8FAFC);
+    final user = UserService().currentUser;
     final unread = _service.unreadCount;
-    final notifications = _service.notifications;
 
     return Scaffold(
       backgroundColor: backgroundColor,
@@ -355,9 +381,9 @@ class _NotificationScreenState extends State<NotificationScreen> {
                     Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        const Text(
-                          'การแจ้งเตือน',
-                          style: TextStyle(
+                        Text(
+                          user.isHeadGuard ? 'ศูนย์รายงาน & แจ้งเตือน' : 'การแจ้งเตือน',
+                          style: const TextStyle(
                             color: Colors.white,
                             fontSize: 21,
                             fontWeight: FontWeight.bold,
@@ -366,9 +392,11 @@ class _NotificationScreenState extends State<NotificationScreen> {
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          unread > 0
-                              ? 'คุณมี $unread ข้อความใหม่'
-                              : 'ไม่มีข้อความใหม่',
+                          user.isHeadGuard
+                              ? 'รายงานจากทีม ${_teamReports.length} รายการ • แจ้งเตือน $unread'
+                              : (unread > 0
+                                  ? 'คุณมี $unread ข้อความใหม่'
+                                  : 'ไม่มีข้อความใหม่'),
                           style: TextStyle(
                             color: Colors.white.withValues(alpha: 0.9),
                             fontSize: 14,
@@ -394,6 +422,8 @@ class _NotificationScreenState extends State<NotificationScreen> {
                             _service.markAllAsRead();
                           } else if (value == 'clear_all') {
                             _service.clearAll();
+                          } else if (value == 'refresh_team') {
+                            _loadTeamReports();
                           } else if (value == 'test_fcm') {
                             _service.simulateTestNotification(
                               title: 'อัปเดตงานด่วน!',
@@ -412,6 +442,21 @@ class _NotificationScreenState extends State<NotificationScreen> {
                           }
                         },
                         itemBuilder: (context) => [
+                          if (user.isHeadGuard)
+                            const PopupMenuItem(
+                              value: 'refresh_team',
+                              child: Row(
+                                children: [
+                                  Icon(
+                                    Icons.refresh_rounded,
+                                    size: 20,
+                                    color: Color(0xFF2563EB),
+                                  ),
+                                  SizedBox(width: 10),
+                                  Text('รีเฟรชรายงานจากทีม'),
+                                ],
+                              ),
+                            ),
                           const PopupMenuItem(
                             value: 'read_all',
                             child: Row(
@@ -477,54 +522,213 @@ class _NotificationScreenState extends State<NotificationScreen> {
             ),
           ),
 
-          // Notifications List
-          Expanded(
-            child: notifications.isEmpty
-                ? Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          Icons.notifications_none_rounded,
-                          size: 72,
-                          color: Colors.grey.shade400,
+          // HeadGuard Tab Bar
+          if (user.isHeadGuard)
+            Container(
+              margin: const EdgeInsets.fromLTRB(16, 12, 16, 6),
+              padding: const EdgeInsets.all(4),
+              decoration: BoxDecoration(
+                color: const Color(0xFFE2E8F0),
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: GestureDetector(
+                      onTap: () => setState(() => _headGuardTab = 0),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(vertical: 10),
+                        decoration: BoxDecoration(
+                          color: _headGuardTab == 0 ? Colors.white : Colors.transparent,
+                          borderRadius: BorderRadius.circular(12),
+                          boxShadow: _headGuardTab == 0
+                              ? [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 4)]
+                              : null,
                         ),
-                        const SizedBox(height: 14),
-                        Text(
-                          'ยังไม่มีการแจ้งเตือน',
-                          style: TextStyle(
-                            fontSize: 16,
-                            color: Colors.grey.shade600,
-                            fontWeight: FontWeight.w500,
-                          ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.shield_outlined,
+                              size: 18,
+                              color: _headGuardTab == 0 ? primaryBlue : const Color(0xFF64748B),
+                            ),
+                            const SizedBox(width: 6),
+                            Text(
+                              'รายงานจากทีม (${_teamReports.length})',
+                              style: TextStyle(
+                                fontSize: 13.5,
+                                fontWeight: _headGuardTab == 0 ? FontWeight.bold : FontWeight.w500,
+                                color: _headGuardTab == 0 ? primaryBlue : const Color(0xFF64748B),
+                              ),
+                            ),
+                          ],
                         ),
-                        const SizedBox(height: 8),
-                        TextButton.icon(
-                          onPressed: () => _service.simulateTestNotification(),
-                          icon: const Icon(Icons.refresh_rounded, size: 18),
-                          label: const Text('สร้างการแจ้งเตือนตัวอย่าง'),
-                        ),
-                      ],
-                    ),
-                  )
-                : RefreshIndicator(
-                    onRefresh: () async {
-                      // Trigger state refresh
-                      setState(() {});
-                    },
-                    color: primaryBlue,
-                    child: ListView.builder(
-                      physics: const AlwaysScrollableScrollPhysics(),
-                      padding: const EdgeInsets.only(top: 14, bottom: 24),
-                      itemCount: notifications.length,
-                      itemBuilder: (context, index) {
-                        final item = notifications[index];
-                        return _buildNotificationCard(item);
-                      },
+                      ),
                     ),
                   ),
+                  Expanded(
+                    child: GestureDetector(
+                      onTap: () => setState(() => _headGuardTab = 1),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(vertical: 10),
+                        decoration: BoxDecoration(
+                          color: _headGuardTab == 1 ? Colors.white : Colors.transparent,
+                          borderRadius: BorderRadius.circular(12),
+                          boxShadow: _headGuardTab == 1
+                              ? [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 4)]
+                              : null,
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.notifications_none_rounded,
+                              size: 18,
+                              color: _headGuardTab == 1 ? primaryBlue : const Color(0xFF64748B),
+                            ),
+                            const SizedBox(width: 6),
+                            Text(
+                              'แจ้งเตือน ($unread)',
+                              style: TextStyle(
+                                fontSize: 13.5,
+                                fontWeight: _headGuardTab == 1 ? FontWeight.bold : FontWeight.w500,
+                                color: _headGuardTab == 1 ? primaryBlue : const Color(0xFF64748B),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+          // Body Content (Team Reports or System Notifications)
+          Expanded(
+            child: user.isHeadGuard && _headGuardTab == 0
+                ? _buildTeamReportsBody()
+                : _buildSystemNotificationsBody(),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildTeamReportsBody() {
+    const primaryBlue = Color(0xFF2563EB);
+
+    if (_isLoadingTeamReports) {
+      return const Center(
+        child: CircularProgressIndicator(color: primaryBlue),
+      );
+    }
+
+    if (_teamReports.isEmpty) {
+      return RefreshIndicator(
+        onRefresh: _loadTeamReports,
+        color: primaryBlue,
+        child: ListView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          children: [
+            SizedBox(
+              height: MediaQuery.of(context).size.height * 0.45,
+              child: Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.shield_outlined,
+                      size: 72,
+                      color: Colors.grey.shade400,
+                    ),
+                    const SizedBox(height: 14),
+                    Text(
+                      'ยังไม่มีรายงานเหตุการณ์จากลูกทีม',
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: Colors.grey.shade600,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    TextButton.icon(
+                      onPressed: _loadTeamReports,
+                      icon: const Icon(Icons.refresh_rounded, size: 18),
+                      label: const Text('ดึงข้อมูลใหม่'),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return RefreshIndicator(
+      onRefresh: _loadTeamReports,
+      color: primaryBlue,
+      child: ListView.builder(
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: const EdgeInsets.only(top: 8, bottom: 24),
+        itemCount: _teamReports.length,
+        itemBuilder: (context, index) {
+          final report = _teamReports[index];
+          return _buildTeamReportCard(report);
+        },
+      ),
+    );
+  }
+
+  Widget _buildSystemNotificationsBody() {
+    const primaryBlue = Color(0xFF2563EB);
+    final notifications = _service.notifications;
+
+    if (notifications.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.notifications_none_rounded,
+              size: 72,
+              color: Colors.grey.shade400,
+            ),
+            const SizedBox(height: 14),
+            Text(
+              'ยังไม่มีการแจ้งเตือน',
+              style: TextStyle(
+                fontSize: 16,
+                color: Colors.grey.shade600,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+            const SizedBox(height: 8),
+            TextButton.icon(
+              onPressed: () => _service.simulateTestNotification(),
+              icon: const Icon(Icons.refresh_rounded, size: 18),
+              label: const Text('สร้างการแจ้งเตือนตัวอย่าง'),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return RefreshIndicator(
+      onRefresh: () async {
+        setState(() {});
+      },
+      color: primaryBlue,
+      child: ListView.builder(
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: const EdgeInsets.only(top: 8, bottom: 24),
+        itemCount: notifications.length,
+        itemBuilder: (context, index) {
+          final item = notifications[index];
+          return _buildNotificationCard(item);
+        },
       ),
     );
   }
@@ -678,6 +882,586 @@ class _NotificationScreenState extends State<NotificationScreen> {
               ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+
+  String _formatImageUrl(String raw) {
+    if (raw.isEmpty || raw == 'default_report.jpg') return '';
+    if (raw.startsWith('http://') || raw.startsWith('https://')) return raw;
+    final root = AuthApiService.baseUrl.replaceAll('/api', '');
+    if (raw.startsWith('/uploads/')) return '$root$raw';
+    if (raw.startsWith('uploads/')) return '$root/$raw';
+    return '$root/uploads/$raw';
+  }
+
+  void _showFullImagePreview(String imageUrl) {
+    showDialog(
+      context: context,
+      builder: (dialogCtx) => Dialog(
+        backgroundColor: Colors.transparent,
+        insetPadding: const EdgeInsets.all(12),
+        child: Stack(
+          alignment: Alignment.topRight,
+          children: [
+            ClipRRect(
+              borderRadius: BorderRadius.circular(16),
+              child: InteractiveViewer(
+                minScale: 0.5,
+                maxScale: 4.0,
+                child: Image.network(
+                  imageUrl,
+                  fit: BoxFit.contain,
+                  errorBuilder: (ctx, err, stack) => Container(
+                    color: Colors.black87,
+                    padding: const EdgeInsets.all(32),
+                    child: const Center(
+                      child: Text(
+                        'ไม่สามารถแสดงรูปภาพได้',
+                        style: TextStyle(color: Colors.white),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            IconButton(
+              onPressed: () => Navigator.pop(dialogCtx),
+              icon: const CircleAvatar(
+                backgroundColor: Colors.black54,
+                child: Icon(Icons.close, color: Colors.white, size: 20),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showTeamReportDetailDialog(SituationReportItem report) {
+    final isCritical = !report.isNormal || report.urgency == 'ด่วนมาก';
+    final isMedium = report.urgency == 'ปานกลาง';
+    final urgencyColor = isCritical
+        ? const Color(0xFFEF4444)
+        : (isMedium ? const Color(0xFFF97316) : const Color(0xFF2563EB));
+    final urgencyBg = isCritical
+        ? const Color(0xFFFEE2E2)
+        : (isMedium ? const Color(0xFFFFEDD5) : const Color(0xFFDBEAFE));
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (sheetCtx) => DraggableScrollableSheet(
+        initialChildSize: 0.8,
+        minChildSize: 0.5,
+        maxChildSize: 0.95,
+        builder: (_, scrollController) => Container(
+          padding: const EdgeInsets.fromLTRB(22, 16, 22, 32),
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+          ),
+          child: ListView(
+            controller: scrollController,
+            children: [
+              Center(
+                child: Container(
+                  width: 44,
+                  height: 5,
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade300,
+                    borderRadius: BorderRadius.circular(3),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 18),
+
+              // Header with title and urgency badge
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: urgencyBg,
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(
+                      isCritical
+                          ? Icons.warning_rounded
+                          : (isMedium
+                              ? Icons.error_outline_rounded
+                              : Icons.shield_outlined),
+                      color: urgencyColor,
+                      size: 26,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          report.reportType,
+                          style: const TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF1E293B),
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 3,
+                              ),
+                              decoration: BoxDecoration(
+                                color: urgencyBg,
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Text(
+                                report.urgency,
+                                style: TextStyle(
+                                  fontSize: 11.5,
+                                  fontWeight: FontWeight.bold,
+                                  color: urgencyColor,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Text(
+                              report.reportTime,
+                              style: const TextStyle(
+                                fontSize: 12.5,
+                                color: Color(0xFF64748B),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 18),
+              const Divider(),
+              const SizedBox(height: 14),
+
+              // Reporter Info Card
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF8FAFC),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: const Color(0xFFE2E8F0)),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'ข้อมูลผู้รายงานและพื้นที่',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF334155),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    _buildDetailRow(
+                      icon: Icons.person_rounded,
+                      label: 'เจ้าหน้าที่:',
+                      value: report.guardName ?? 'เจ้าหน้าที่ รปภ.',
+                    ),
+                    if (report.guardPhone != null &&
+                        report.guardPhone!.isNotEmpty) ...[
+                      const SizedBox(height: 8),
+                      _buildDetailRow(
+                        icon: Icons.phone_rounded,
+                        label: 'เบอร์ติดต่อ:',
+                        value: report.guardPhone!,
+                      ),
+                    ],
+                    if (report.eventName != null &&
+                        report.eventName!.isNotEmpty) ...[
+                      const SizedBox(height: 8),
+                      _buildDetailRow(
+                        icon: Icons.event_rounded,
+                        label: 'งาน/อีเวนต์:',
+                        value: report.eventName!,
+                      ),
+                    ],
+                    const SizedBox(height: 8),
+                    _buildDetailRow(
+                      icon: Icons.location_on_rounded,
+                      label: 'จุดเกิดเหตุ:',
+                      value: report.location.isNotEmpty
+                          ? report.location
+                          : 'จุดตรวจประจำการ',
+                    ),
+                  ],
+                ),
+              ),
+
+              const SizedBox(height: 18),
+
+              // Description
+              const Text(
+                'รายละเอียดสถานการณ์',
+                style: TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF1E293B),
+                ),
+              ),
+              const SizedBox(height: 8),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF8FAFC),
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(color: const Color(0xFFE2E8F0)),
+                ),
+                child: Text(
+                  report.description.isNotEmpty
+                      ? report.description
+                      : 'ไม่มีข้อความอธิบายเพิ่มเติม',
+                  style: const TextStyle(
+                    fontSize: 14.5,
+                    color: Color(0xFF334155),
+                    height: 1.5,
+                  ),
+                ),
+              ),
+
+              // Image Gallery
+              if (report.images.isNotEmpty) ...[
+                const SizedBox(height: 20),
+                Row(
+                  children: [
+                    const Icon(
+                      Icons.photo_library_rounded,
+                      size: 18,
+                      color: Color(0xFF2563EB),
+                    ),
+                    const SizedBox(width: 6),
+                    Text(
+                      'รูปภาพหลักฐาน (${report.images.length} รูป)',
+                      style: const TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF1E293B),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 10),
+                SizedBox(
+                  height: 130,
+                  child: ListView.separated(
+                    scrollDirection: Axis.horizontal,
+                    itemCount: report.images.length,
+                    separatorBuilder: (ctx, idx) => const SizedBox(width: 12),
+                    itemBuilder: (ctx, i) {
+                      final raw = report.images[i];
+                      final fullUrl = _formatImageUrl(raw);
+                      return GestureDetector(
+                        onTap: () {
+                          if (fullUrl.isNotEmpty) {
+                            _showFullImagePreview(fullUrl);
+                          }
+                        },
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(14),
+                          child: Container(
+                            width: 130,
+                            height: 130,
+                            color: const Color(0xFFF1F5F9),
+                            child: fullUrl.isNotEmpty
+                                ? Image.network(
+                                    fullUrl,
+                                    fit: BoxFit.cover,
+                                    errorBuilder: (ctx, err, stack) =>
+                                        const Center(
+                                      child: Icon(
+                                        Icons.image_not_supported_rounded,
+                                        color: Colors.grey,
+                                        size: 36,
+                                      ),
+                                    ),
+                                  )
+                                : const Center(
+                                    child: Icon(
+                                      Icons.image_outlined,
+                                      color: Colors.grey,
+                                      size: 36,
+                                    ),
+                                  ),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ],
+
+              const SizedBox(height: 28),
+              SizedBox(
+                width: double.infinity,
+                height: 48,
+                child: ElevatedButton(
+                  onPressed: () => Navigator.pop(sheetCtx),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF2563EB),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                  ),
+                  child: const Text(
+                    'รับทราบรายงาน / ปิด',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 15.5,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDetailRow({
+    required IconData icon,
+    required String label,
+    required String value,
+  }) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Icon(icon, size: 16, color: const Color(0xFF64748B)),
+        const SizedBox(width: 8),
+        Text(
+          label,
+          style: const TextStyle(
+            fontSize: 13.5,
+            fontWeight: FontWeight.w600,
+            color: Color(0xFF64748B),
+          ),
+        ),
+        const SizedBox(width: 6),
+        Expanded(
+          child: Text(
+            value,
+            style: const TextStyle(
+              fontSize: 13.5,
+              fontWeight: FontWeight.bold,
+              color: Color(0xFF1E293B),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildTeamReportCard(SituationReportItem report) {
+    final isCritical = !report.isNormal || report.urgency == 'ด่วนมาก';
+    final isMedium = report.urgency == 'ปานกลาง';
+    final urgencyColor = isCritical
+        ? const Color(0xFFEF4444)
+        : (isMedium ? const Color(0xFFF97316) : const Color(0xFF2563EB));
+    final urgencyBg = isCritical
+        ? const Color(0xFFFEE2E2)
+        : (isMedium ? const Color(0xFFFFEDD5) : const Color(0xFFDBEAFE));
+
+    final firstImgUrl =
+        report.images.isNotEmpty ? _formatImageUrl(report.images.first) : '';
+
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(18),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.035),
+            blurRadius: 10,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(18),
+        child: Stack(
+          children: [
+            // Left indicator
+            Positioned(
+              left: 0,
+              top: 0,
+              bottom: 0,
+              child: Container(
+                width: 4.5,
+                decoration: BoxDecoration(
+                  color: urgencyColor,
+                  borderRadius:
+                      const BorderRadius.horizontal(right: Radius.circular(3)),
+                ),
+              ),
+            ),
+            Material(
+              color: Colors.transparent,
+              child: InkWell(
+                onTap: () => _showTeamReportDetailDialog(report),
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Image thumbnail or icon
+                      if (firstImgUrl.isNotEmpty)
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(12),
+                          child: SizedBox(
+                            width: 50,
+                            height: 50,
+                            child: Image.network(
+                              firstImgUrl,
+                              fit: BoxFit.cover,
+                              errorBuilder: (ctx, err, stack) => Container(
+                                color: urgencyBg,
+                                child: Icon(
+                                  Icons.shield_outlined,
+                                  color: urgencyColor,
+                                  size: 24,
+                                ),
+                              ),
+                            ),
+                          ),
+                        )
+                      else
+                        Container(
+                          width: 50,
+                          height: 50,
+                          decoration: BoxDecoration(
+                            color: urgencyBg,
+                            shape: BoxShape.circle,
+                          ),
+                          child: Icon(
+                            isCritical
+                                ? Icons.warning_rounded
+                                : (isMedium
+                                    ? Icons.error_outline_rounded
+                                    : Icons.shield_outlined),
+                            color: urgencyColor,
+                            size: 24,
+                          ),
+                        ),
+                      const SizedBox(width: 14),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: Text(
+                                    report.reportType,
+                                    style: const TextStyle(
+                                      fontSize: 15.5,
+                                      fontWeight: FontWeight.bold,
+                                      color: Color(0xFF1E293B),
+                                    ),
+                                  ),
+                                ),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 8,
+                                    vertical: 3,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: urgencyBg,
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: Text(
+                                    report.urgency,
+                                    style: TextStyle(
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.bold,
+                                      color: urgencyColor,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              'ผู้รายงาน: ${report.guardName ?? "เจ้าหน้าที่"} • ${report.eventName ?? report.location}',
+                              style: const TextStyle(
+                                fontSize: 12.5,
+                                color: Color(0xFF64748B),
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            if (report.description.isNotEmpty) ...[
+                              const SizedBox(height: 4),
+                              Text(
+                                report.description,
+                                style: const TextStyle(
+                                  fontSize: 13,
+                                  color: Color(0xFF334155),
+                                ),
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ],
+                            const SizedBox(height: 6),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  report.reportTime,
+                                  style: const TextStyle(
+                                    fontSize: 11.5,
+                                    color: Color(0xFF94A3B8),
+                                  ),
+                                ),
+                                if (report.images.isNotEmpty)
+                                  Row(
+                                    children: [
+                                      const Icon(
+                                        Icons.photo_camera,
+                                        size: 13,
+                                        color: Color(0xFF64748B),
+                                      ),
+                                      const SizedBox(width: 4),
+                                      Text(
+                                        '${report.images.length} รูป',
+                                        style: const TextStyle(
+                                          fontSize: 11.5,
+                                          color: Color(0xFF64748B),
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );

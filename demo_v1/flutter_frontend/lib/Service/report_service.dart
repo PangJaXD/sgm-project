@@ -15,6 +15,9 @@ class SituationReportItem {
   final bool isNormal;
   final String reportTime;
   final List<String> images;
+  final String? guardName;
+  final String? guardPhone;
+  final String? eventName;
 
   SituationReportItem({
     required this.reportId,
@@ -27,6 +30,9 @@ class SituationReportItem {
     this.isNormal = true,
     required this.reportTime,
     this.images = const [],
+    this.guardName,
+    this.guardPhone,
+    this.eventName,
   });
 
   factory SituationReportItem.fromJson(Map<String, dynamic> json) {
@@ -42,6 +48,9 @@ class SituationReportItem {
       description: json['report_desc'] ?? json['description'] ?? '',
       isNormal: json['is_normal'] == true || json['is_normal'] == 1,
       reportTime: json['report_time']?.toString() ?? '',
+      guardName: json['guard_name']?.toString(),
+      guardPhone: json['guard_phone']?.toString(),
+      eventName: json['event_name']?.toString(),
       images:
           (json['images'] as List<dynamic>?)
               ?.map((e) => e.toString())
@@ -233,5 +242,26 @@ class ReportService extends ChangeNotifier {
       debugPrint('[ReportService] fetchGuardReports error: $e');
     }
     return _submittedReports;
+  }
+
+  /// Fetch all reports for HeadGuard team: GET /api/report/headguard/{headGuardId}
+  Future<List<SituationReportItem>> fetchTeamReports(int headGuardId) async {
+    try {
+      final response = await _createDio().get('/report/headguard/$headGuardId');
+      if (response.statusCode == 200 && response.data is List) {
+        final reports = (response.data as List)
+            .map(
+              (json) =>
+                  SituationReportItem.fromJson(json as Map<String, dynamic>),
+            )
+            .toList();
+        return reports;
+      }
+    } on DioException catch (e) {
+      debugPrint('[ReportService] fetchTeamReports Dio error: ${e.message}');
+    } catch (e) {
+      debugPrint('[ReportService] fetchTeamReports error: $e');
+    }
+    return [];
   }
 }

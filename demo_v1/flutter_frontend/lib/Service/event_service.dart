@@ -95,6 +95,49 @@ class ShiftTimeModel {
     ];
     return 'วันที่ ${d.day} ${months[d.month]} $thaiYear';
   }
+
+  /// Check whether current time is within this shift's operating window
+  bool isWithinShift([DateTime? testNow]) {
+    final now = testNow ?? DateTime.now();
+    DateTime? sTime = startTime;
+    DateTime? eTime = endTime ?? (duration != null && sTime != null ? sTime.add(Duration(hours: duration!)) : null);
+
+    if (sTime == null && eTime == null) {
+      return true; // No time limits defined
+    }
+
+    if (shiftDate != null && sTime != null) {
+      sTime = DateTime(
+        shiftDate!.year,
+        shiftDate!.month,
+        shiftDate!.day,
+        sTime.hour,
+        sTime.minute,
+        sTime.second,
+      );
+      if (eTime != null) {
+        final crossDay = eTime.hour < sTime.hour ||
+            (eTime.hour == sTime.hour && eTime.minute < sTime.minute);
+        final endDay = crossDay ? shiftDate!.add(const Duration(days: 1)) : shiftDate!;
+        eTime = DateTime(
+          endDay.year,
+          endDay.month,
+          endDay.day,
+          eTime.hour,
+          eTime.minute,
+          eTime.second,
+        );
+      }
+    }
+
+    if (sTime != null && now.isBefore(sTime)) {
+      return false;
+    }
+    if (eTime != null && now.isAfter(eTime)) {
+      return false;
+    }
+    return true;
+  }
 }
 
 class EventModel {
@@ -253,12 +296,17 @@ class EventService {
   /// 1. Fetch all events from Spring Boot database: GET /api/events
   Future<List<EventModel>> fetchEvents({
     int? guardId,
+    int? headId,
     String? headName,
     String? company,
   }) async {
     try {
       final queryParams = <String, dynamic>{};
-      if (guardId != null && guardId > 0) queryParams['guardId'] = guardId;
+      if (headId != null && headId > 0) {
+        queryParams['headId'] = headId;
+      } else if (guardId != null && guardId > 0) {
+        queryParams['guardId'] = guardId;
+      }
       if (headName != null && headName.trim().isNotEmpty) {
         queryParams['headName'] = headName.trim();
       }
@@ -271,9 +319,24 @@ class EventService {
         queryParameters: queryParams.isNotEmpty ? queryParams : null,
       );
       if (response.statusCode == 200 && response.data is List) {
-        return (response.data as List)
+        final list = (response.data as List)
             .map((json) => EventModel.fromJson(json as Map<String, dynamic>))
             .toList();
+
+        // Sort latest first (start_date DESC, id DESC)
+        list.sort((a, b) {
+          if (a.startDate != null && b.startDate != null) {
+            final cmp = b.startDate!.compareTo(a.startDate!);
+            if (cmp != 0) return cmp;
+          } else if (a.startDate != null) {
+            return -1;
+          } else if (b.startDate != null) {
+            return 1;
+          }
+          return b.id.compareTo(a.id);
+        });
+
+        return list;
       }
     } on DioException catch (e) {
       debugPrint('[EventService] fetchEvents Dio error: ${e.message}');
@@ -290,11 +353,16 @@ class EventService {
   Future<List<ShiftTimeModel>> fetchEventShifts(
     int eventId, {
     int? guardId,
+    int? headId,
     String? headName,
   }) async {
     try {
       final queryParams = <String, dynamic>{};
-      if (guardId != null && guardId > 0) queryParams['guardId'] = guardId;
+      if (headId != null && headId > 0) {
+        queryParams['headId'] = headId;
+      } else if (guardId != null && guardId > 0) {
+        queryParams['guardId'] = guardId;
+      }
       if (headName != null && headName.trim().isNotEmpty) {
         queryParams['headName'] = headName.trim();
       }
@@ -304,11 +372,24 @@ class EventService {
         queryParameters: queryParams.isNotEmpty ? queryParams : null,
       );
       if (response.statusCode == 200 && response.data is List) {
-        return (response.data as List)
+        final list = (response.data as List)
             .map(
               (json) => ShiftTimeModel.fromJson(json as Map<String, dynamic>),
             )
             .toList();
+
+        // Sort latest first
+        list.sort((a, b) {
+          final dtA = a.shiftDate ?? a.startTime;
+          final dtB = b.shiftDate ?? b.startTime;
+          if (dtA != null && dtB != null) {
+            final cmp = dtB.compareTo(dtA);
+            if (cmp != 0) return cmp;
+          }
+          return b.shiftId.compareTo(a.shiftId);
+        });
+
+        return list;
       }
     } on DioException catch (e) {
       debugPrint('[EventService] fetchEventShifts Dio error: ${e.message}');
@@ -316,6 +397,23 @@ class EventService {
     } catch (e) {
       debugPrint('[EventService] fetchEventShifts error: $e');
       throw ApiException(message: 'ไม่สามารถดึงข้อมูลกะงานได้');
+    }
+    return [];
+  }
+
+  /// Fetch all reports for HeadGuard team: GET /api/report/headguard/{headGuardId}
+  Future<List<Map<String, dynamic>>> fetchTeamReports(int headGuardId) async {
+    try {
+      final response = await _createDio().get('/report/headguard/$headGuardId');
+      if (response.statusCode == 200 && response.data is List) {
+        return (response.data as List)
+            .map((item) => Map<String, dynamic>.from(item as Map))
+            .toList();
+      }
+    } on DioException catch (e) {
+      debugPrint('[EventService] fetchTeamReports Dio error: ${e.message}');
+    } catch (e) {
+      debugPrint('[EventService] fetchTeamReports error: $e');
     }
     return [];
   }

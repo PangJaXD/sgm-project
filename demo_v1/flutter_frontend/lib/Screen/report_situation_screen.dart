@@ -52,6 +52,17 @@ class _ReportSituationScreenState extends State<ReportSituationScreen> {
   void initState() {
     super.initState();
     _locationController.text = widget.shift.dutyLocation;
+    _updateCategoryForUrgency(_selectedUrgency);
+  }
+
+  void _updateCategoryForUrgency(String urgency) {
+    if (urgency == 'ทั่วไป') {
+      _selectedCategory = 'ตรวจความเรียบร้อยทั่วไป';
+    } else if (urgency == 'ปานกลาง') {
+      _selectedCategory = 'พบบุคคลน่าสงสัย';
+    } else if (urgency == 'ด่วนมาก') {
+      _selectedCategory = 'อุบัติเหตุ / เจ็บป่วยฉุกเฉิน';
+    }
   }
 
   @override
@@ -166,6 +177,19 @@ class _ReportSituationScreenState extends State<ReportSituationScreen> {
   }
 
   Future<void> _handleSubmit() async {
+    // Requirement 3: guard can send the report only in their shift (with correct time)
+    if (!widget.shift.isWithinShift()) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'สามารถส่งรายงานได้เฉพาะในช่วงเวลาของกะงานเท่านั้น (${widget.shift.formattedTime})',
+          ),
+          backgroundColor: const Color(0xFFEF4444),
+        ),
+      );
+      return;
+    }
+
     if (_selectedCategory == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -272,7 +296,7 @@ class _ReportSituationScreenState extends State<ReportSituationScreen> {
                   child: ElevatedButton(
                     onPressed: () {
                       Navigator.pop(context); // close dialog
-                      Navigator.pop(context); // pop report screen
+                      Navigator.pop(context, true); // pop report screen with true
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFF2563EB),
@@ -447,7 +471,8 @@ class _ReportSituationScreenState extends State<ReportSituationScreen> {
                     ),
                     const SizedBox(height: 8),
                     DropdownButtonFormField<String>(
-                      initialValue: 'ตรวจความเรียบร้อยทั่วไป',
+                      // ignore: deprecated_member_use
+                      value: _selectedCategory,
                       isExpanded: true,
                       hint: const Text(
                         '-- เลือกประเภทเหตุการณ์ --',
@@ -722,7 +747,12 @@ class _ReportSituationScreenState extends State<ReportSituationScreen> {
 
     return Expanded(
       child: GestureDetector(
-        onTap: () => setState(() => _selectedUrgency = label),
+        onTap: () {
+          setState(() {
+            _selectedUrgency = label;
+            _updateCategoryForUrgency(label);
+          });
+        },
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 200),
           padding: const EdgeInsets.symmetric(vertical: 12),

@@ -31,4 +31,15 @@ public interface ReportRepository extends JpaRepository<Report, Integer> {
 
     @Query("SELECT r FROM Report r WHERE r.guard_id = :guardId ORDER BY r.report_time DESC")
     List<Report> findByGuardId(@Param("guardId") Integer guardId);
+
+    @Query("SELECT r FROM Report r " +
+            "LEFT JOIN FETCH r.shift st " +
+            "LEFT JOIN FETCH st.event e " +
+            "WHERE (st.headGuard.users_id = :headGuardId OR e.event_id IN " +
+            "  (SELECT DISTINCT ev.event_id FROM Events ev JOIN ev.shift_times st2 WHERE st2.headGuard.users_id = :headGuardId)) " +
+            "ORDER BY r.report_time DESC")
+    List<Report> findAllReportsByHeadGuardId(@Param("headGuardId") Integer headGuardId);
+
+    @Query("SELECT r FROM Report r WHERE r.shift_id IN :shiftIds ORDER BY r.report_time DESC")
+    List<Report> findAllReportsByShiftIds(@Param("shiftIds") List<Integer> shiftIds);
 }

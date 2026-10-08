@@ -97,6 +97,9 @@ class UserModel {
     return 'ID: SEC-$year-$paddedId';
   }
 
+  bool get isHeadGuard => role.toUpperCase() == 'HEAD_GUARD';
+  bool get isGuard => role.toUpperCase() == 'GUARD';
+
   String get roleTitle {
     switch (role.toUpperCase()) {
       case 'HEAD_GUARD':

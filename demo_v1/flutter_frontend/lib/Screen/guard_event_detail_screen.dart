@@ -201,14 +201,17 @@ class GuardEventDetailScreen extends StatelessWidget {
                       width: double.infinity,
                       height: 50,
                       child: ElevatedButton(
-                        onPressed: () {
-                          Navigator.push(
+                        onPressed: () async {
+                          final res = await Navigator.push(
                             context,
                             MaterialPageRoute(
                               builder: (context) =>
                                   EventShiftListScreen(event: event),
                             ),
                           );
+                          if (res == true && context.mounted) {
+                            Navigator.pop(context, true);
+                          }
                         },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: primaryBlue,

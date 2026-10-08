@@ -16,6 +16,7 @@ class EventShiftListScreen extends StatefulWidget {
 class _EventShiftListScreenState extends State<EventShiftListScreen> {
   final EventService _eventService = EventService.instance;
   bool _isLoading = true;
+  bool _hasChanged = false;
   List<ShiftTimeModel> _shifts = [];
 
   @override
@@ -99,112 +100,137 @@ class _EventShiftListScreenState extends State<EventShiftListScreen> {
     const primaryBlue = Color(0xFF2563EB);
     const backgroundColor = Color(0xFFF8FAFC);
 
-    return Scaffold(
-      backgroundColor: backgroundColor,
-      body: Column(
-        children: [
-          // Header Section matching Figure 3.106
-          Container(
-            width: double.infinity,
-            decoration: const BoxDecoration(
-              color: primaryBlue,
-              borderRadius: BorderRadius.only(
-                bottomLeft: Radius.circular(36),
-                bottomRight: Radius.circular(36),
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) {
+        if (!didPop) {
+          Navigator.pop(context, _hasChanged);
+        }
+      },
+      child: Scaffold(
+        backgroundColor: backgroundColor,
+        body: Column(
+          children: [
+            // Header Section matching Figure 3.106
+            Container(
+              width: double.infinity,
+              decoration: const BoxDecoration(
+                color: primaryBlue,
+                borderRadius: BorderRadius.only(
+                  bottomLeft: Radius.circular(36),
+                  bottomRight: Radius.circular(36),
+                ),
               ),
-            ),
-            child: SafeArea(
-              bottom: false,
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
-                child: Stack(
-                  alignment: Alignment.center,
-                  children: [
-                    Align(
-                      alignment: Alignment.centerLeft,
-                      child: IconButton(
-                        icon: const Icon(
-                          Icons.arrow_back_ios_new_rounded,
-                          color: Colors.white,
-                          size: 22,
-                        ),
-                        onPressed: () => Navigator.pop(context),
-                      ),
-                    ),
-                    Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const Text(
-                          'กะงานที่เปิดรับ',
-                          style: TextStyle(
+              child: SafeArea(
+                bottom: false,
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
+                  child: Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      Align(
+                        alignment: Alignment.centerLeft,
+                        child: IconButton(
+                          icon: const Icon(
+                            Icons.arrow_back_ios_new_rounded,
                             color: Colors.white,
-                            fontSize: 21,
-                            fontWeight: FontWeight.bold,
-                            letterSpacing: 0.2,
+                            size: 22,
                           ),
+                          onPressed: () => Navigator.pop(context, _hasChanged),
                         ),
-                        const SizedBox(height: 4),
-                        Text(
-                          widget.event.title,
-                          style: TextStyle(
-                            color: Colors.white.withValues(alpha: 0.9),
-                            fontSize: 14,
+                      ),
+                      Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Text(
+                            'กะงานที่เปิดรับ',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 21,
+                              fontWeight: FontWeight.bold,
+                              letterSpacing: 0.2,
+                            ),
                           ),
-                        ),
-                      ],
-                    ),
-                  ],
+                          const SizedBox(height: 4),
+                          Text(
+                            widget.event.title,
+                            style: TextStyle(
+                              color: Colors.white.withValues(alpha: 0.9),
+                              fontSize: 14,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
-          ),
 
-          // List of shifts grouped by date
-          Expanded(
-            child: _isLoading
-                ? const Center(
-                    child: CircularProgressIndicator(color: primaryBlue),
-                  )
-                : _shifts.isEmpty
-                ? Center(
-                    child: Text(
-                      'ไม่มีกะงานที่เปิดรับในขณะนี้',
-                      style: TextStyle(
-                        fontSize: 16,
-                        color: Colors.grey.shade600,
-                      ),
-                    ),
-                  )
-                : ListView(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 16,
-                    ),
-                    children: _groupedShifts.entries.map((entry) {
-                      return Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+            // List of shifts grouped by date
+            Expanded(
+              child: _isLoading
+                  ? const Center(
+                      child: CircularProgressIndicator(color: primaryBlue),
+                    )
+                  : _shifts.isEmpty
+                  ? RefreshIndicator(
+                      onRefresh: _loadShifts,
+                      color: primaryBlue,
+                      child: ListView(
+                        physics: const AlwaysScrollableScrollPhysics(),
                         children: [
-                          Padding(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 4,
-                              vertical: 10,
-                            ),
-                            child: Text(
-                              entry.key,
-                              style: const TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                                color: Color(0xFF1E293B),
+                          SizedBox(
+                            height: MediaQuery.of(context).size.height * 0.4,
+                            child: Center(
+                              child: Text(
+                                'ไม่มีกะงานที่เปิดรับในขณะนี้',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  color: Colors.grey.shade600,
+                                ),
                               ),
                             ),
                           ),
-                          ...entry.value.map((shift) => _buildShiftCard(shift)),
                         ],
-                      );
-                    }).toList(),
-                  ),
-          ),
-        ],
+                      ),
+                    )
+                  : RefreshIndicator(
+                      onRefresh: _loadShifts,
+                      color: primaryBlue,
+                      child: ListView(
+                        physics: const AlwaysScrollableScrollPhysics(),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 16,
+                        ),
+                        children: _groupedShifts.entries.map((entry) {
+                          return Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 4,
+                                  vertical: 10,
+                                ),
+                                child: Text(
+                                  entry.key,
+                                  style: const TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                    color: Color(0xFF1E293B),
+                                  ),
+                                ),
+                              ),
+                              ...entry.value.map((shift) => _buildShiftCard(shift)),
+                            ],
+                          );
+                        }).toList(),
+                      ),
+                    ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -328,8 +354,8 @@ class _EventShiftListScreenState extends State<EventShiftListScreen> {
               height: 46,
               child: isRequested
                   ? OutlinedButton(
-                      onPressed: () {
-                        Navigator.push(
+                      onPressed: () async {
+                        final res = await Navigator.push(
                           context,
                           MaterialPageRoute(
                             builder: (context) => ShiftDetailScreen(
@@ -338,6 +364,12 @@ class _EventShiftListScreenState extends State<EventShiftListScreen> {
                             ),
                           ),
                         );
+                        if (res == true) {
+                          _hasChanged = true;
+                        }
+                        if (mounted) {
+                          _loadShifts();
+                        }
                       },
                       style: OutlinedButton.styleFrom(
                         side: const BorderSide(color: primaryBlue, width: 1.5),
@@ -396,8 +428,11 @@ class _EventShiftListScreenState extends State<EventShiftListScreen> {
                             ),
                           ),
                         );
-                        if (requested == true && mounted) {
-                          setState(() {});
+                        if (requested == true) {
+                          _hasChanged = true;
+                        }
+                        if (mounted) {
+                          _loadShifts();
                         }
                       },
                       style: OutlinedButton.styleFrom(

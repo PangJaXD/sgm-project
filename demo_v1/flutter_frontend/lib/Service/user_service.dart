@@ -49,27 +49,34 @@ class UserService extends ChangeNotifier {
       parsedStartDate = DateTime.tryParse(data['start_date'].toString());
     }
 
+    final userRole = data['role']?.toString() ?? _currentUser.role;
+    final fName = data['first_name'] ?? _currentUser.firstName;
+    final lName = data['last_name'] ?? _currentUser.lastName;
+    final ownHeadName = userRole.toUpperCase() == 'HEAD_GUARD'
+        ? '$fName $lName'.trim()
+        : (data['head_name'] ?? _currentUser.headName);
+
     _currentUser = UserModel(
       usersId: data['users_id'] ?? _currentUser.usersId,
       username: data['username'] ?? _currentUser.username,
-      firstName: data['first_name'] ?? _currentUser.firstName,
-      lastName: data['last_name'] ?? _currentUser.lastName,
+      firstName: fName,
+      lastName: lName,
       phone: data['phone'] ?? _currentUser.phone,
       address: data['address'] ?? _currentUser.address,
-      role: data['role'] ?? _currentUser.role,
+      role: userRole,
       status: data['status']?.toString() ?? _currentUser.status,
       startDate: parsedStartDate ?? _currentUser.startDate,
       companyName: data['company_name'] ?? _currentUser.companyName,
-      headName: data['head_name'] ?? _currentUser.headName,
+      headName: ownHeadName,
     );
     notifyListeners();
 
     if (data['users_id'] != null && data['role'] != null) {
-      await fetchUserProfile(data['users_id'] as int, data['role']?.toString());
+      await fetchUserProfile(data['users_id'] as int, userRole);
     }
   }
 
-  /// Fetch full user profile from backend: GET /api/guard/{userId}
+  /// Fetch full user profile from backend: GET /api/guard/{userId} or /api/headguard/{userId}
   Future<void> fetchUserProfile(int userId, [String? role]) async {
     try {
       final userRole = (role ?? _currentUser.role).toUpperCase();
@@ -79,9 +86,15 @@ class UserService extends ChangeNotifier {
       final response = await _createDio().get(endpoint);
 
       if (response.statusCode == 200 && response.data is Map<String, dynamic>) {
-        _currentUser = UserModel.fromJson(
-          response.data as Map<String, dynamic>,
-        );
+        final profileData = Map<String, dynamic>.from(response.data as Map);
+        if (profileData['role'] == null || profileData['role'].toString().isEmpty) {
+          profileData['role'] = userRole;
+        }
+        if (userRole == 'HEAD_GUARD') {
+          profileData['head_name'] =
+              '${profileData['first_name'] ?? _currentUser.firstName} ${profileData['last_name'] ?? _currentUser.lastName}'.trim();
+        }
+        _currentUser = UserModel.fromJson(profileData);
         notifyListeners();
       }
     } on DioException catch (e) {

@@ -42,9 +42,26 @@ public class EventService {
         this.guardRepository = guardRepository;
     }
 
+    private List<Events> sortEventsLatestFirst(List<Events> events) {
+        if (events == null) return java.util.Collections.emptyList();
+        return events.stream().sorted((e1, e2) -> {
+            if (e1.getStart_date() != null && e2.getStart_date() != null) {
+                int cmp = e2.getStart_date().compareTo(e1.getStart_date());
+                if (cmp != 0) return cmp;
+            } else if (e1.getStart_date() != null) {
+                return -1;
+            } else if (e2.getStart_date() != null) {
+                return 1;
+            }
+            int id1 = e1.getEvent_id() != null ? e1.getEvent_id() : 0;
+            int id2 = e2.getEvent_id() != null ? e2.getEvent_id() : 0;
+            return Integer.compare(id2, id1);
+        }).collect(Collectors.toList());
+    }
+
     @Transactional(readOnly = true)
     public List<Events> getAllEvents() {
-        return eventRepository.findAll();
+        return sortEventsLatestFirst(eventRepository.findAll());
     }
 
     @Transactional(readOnly = true)
@@ -54,7 +71,7 @@ public class EventService {
                     .filter(Events::isHeadguard_visible)
                     .collect(Collectors.toList());
             if (!evts.isEmpty())
-                return evts;
+                return sortEventsLatestFirst(evts);
         }
 
         if (guardId != null) {
@@ -62,7 +79,7 @@ public class EventService {
                     .filter(Events::isGuard_visible)
                     .collect(Collectors.toList());
             if (guardEvents != null && !guardEvents.isEmpty()) {
-                return guardEvents;
+                return sortEventsLatestFirst(guardEvents);
             }
             Optional<Guards> gOpt = guardRepository.findById(guardId);
             if (gOpt.isPresent()) {
@@ -72,12 +89,12 @@ public class EventService {
                             .filter(Events::isGuard_visible)
                             .collect(Collectors.toList());
                     if (!byHead.isEmpty())
-                        return byHead;
+                        return sortEventsLatestFirst(byHead);
                 }
                 if (g.getCompany_name() != null && !g.getCompany_name().trim().isEmpty()) {
-                    return getEventsByCompanyIdentifier(g.getCompany_name().trim()).stream()
+                    return sortEventsLatestFirst(getEventsByCompanyIdentifier(g.getCompany_name().trim()).stream()
                             .filter(Events::isGuard_visible)
-                            .collect(Collectors.toList());
+                            .collect(Collectors.toList()));
                 }
             }
         }
@@ -87,11 +104,11 @@ public class EventService {
                     .filter(Events::isHeadguard_visible)
                     .collect(Collectors.toList());
             if (!byHead.isEmpty())
-                return byHead;
+                return sortEventsLatestFirst(byHead);
         }
 
         if (company != null && !company.trim().isEmpty()) {
-            return getEventsByCompanyIdentifier(company.trim());
+            return sortEventsLatestFirst(getEventsByCompanyIdentifier(company.trim()));
         }
 
         return getAllEvents();
@@ -107,27 +124,27 @@ public class EventService {
     @Transactional(readOnly = true)
     public List<Events> getEventsByCompany(Integer companyId) {
         if (companyId != null) {
-            return eventRepository.findByCompanyId(companyId);
+            return sortEventsLatestFirst(eventRepository.findByCompanyId(companyId));
         }
-        return eventRepository.findAll();
+        return getAllEvents();
     }
 
     @Transactional(readOnly = true)
     public List<Events> getEventsByCompanyIdentifier(String companyIdentifier) {
         if (companyIdentifier == null || companyIdentifier.trim().isEmpty()) {
-            return eventRepository.findAll();
+            return getAllEvents();
         }
         try {
             int cId = Integer.parseInt(companyIdentifier.trim());
-            return eventRepository.findByCompanyId(cId);
+            return sortEventsLatestFirst(eventRepository.findByCompanyId(cId));
         } catch (NumberFormatException ignored) {
         }
-        return companyRepository.findAll().stream()
+        return sortEventsLatestFirst(companyRepository.findAll().stream()
                 .filter(c -> companyIdentifier.equalsIgnoreCase(c.getUsername())
                         || companyIdentifier.equalsIgnoreCase(c.getCompany_name()))
                 .findFirst()
                 .map(company -> eventRepository.findByCompanyId(company.getUsers_id()))
-                .orElseGet(() -> eventRepository.findEventsByCompanyName(companyIdentifier.trim()));
+                .orElseGet(() -> eventRepository.findEventsByCompanyName(companyIdentifier.trim())));
     }
 
     @Transactional(readOnly = true)

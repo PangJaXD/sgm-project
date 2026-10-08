@@ -102,8 +102,8 @@ public class AssignmentController {
         Assignments active = list.stream()
                 .filter(a -> !"WITHDRAWN".equalsIgnoreCase(a.getAssignment_status()))
                 .sorted((a1, a2) -> {
-                    boolean a1Assigned = "ASSIGNED".equalsIgnoreCase(a1.getAssignment_status());
-                    boolean a2Assigned = "ASSIGNED".equalsIgnoreCase(a2.getAssignment_status());
+                    boolean a1Assigned = "ASSIGNED".equalsIgnoreCase(a1.getAssignment_status()) || "ACTUAL".equalsIgnoreCase(a1.getAssignment_status());
+                    boolean a2Assigned = "ASSIGNED".equalsIgnoreCase(a2.getAssignment_status()) || "ACTUAL".equalsIgnoreCase(a2.getAssignment_status());
                     if (a1Assigned && !a2Assigned)
                         return -1;
                     if (!a1Assigned && a2Assigned)

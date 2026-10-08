@@ -9,6 +9,9 @@ class AssignmentModel {
   final double latitude;
   final double longitude;
   final DateTime? requestDate;
+  final DateTime? startTime;
+  final DateTime? endTime;
+  final DateTime? shiftDate;
   final String eventName;
   final String dutyLocation;
   final String shiftName;
@@ -30,6 +33,9 @@ class AssignmentModel {
     this.latitude = 0.0,
     this.longitude = 0.0,
     this.requestDate,
+    this.startTime,
+    this.endTime,
+    this.shiftDate,
     this.eventName = '',
     this.dutyLocation = '',
     this.shiftName = '',
@@ -45,20 +51,26 @@ class AssignmentModel {
   bool get hasValidCoordinates => latitude != 0.0 && longitude != 0.0;
 
   factory AssignmentModel.fromJson(Map<String, dynamic> json) {
+    final parsedStartTime = json['start_time'] != null
+        ? DateTime.tryParse(json['start_time'].toString())
+        : null;
+    final parsedEndTime = json['end_time'] != null
+        ? DateTime.tryParse(json['end_time'].toString())
+        : null;
+    final parsedShiftDate = json['shift_date'] != null
+        ? DateTime.tryParse(json['shift_date'].toString())
+        : null;
+
     String formattedShiftTime = '';
     if (json['shift_time'] != null &&
         json['shift_time'].toString().isNotEmpty) {
       formattedShiftTime = json['shift_time'].toString();
-    } else if (json['start_time'] != null && json['end_time'] != null) {
-      final s = DateTime.tryParse(json['start_time'].toString());
-      final e = DateTime.tryParse(json['end_time'].toString());
-      if (s != null && e != null) {
-        final sH = s.hour.toString().padLeft(2, '0');
-        final sM = s.minute.toString().padLeft(2, '0');
-        final eH = e.hour.toString().padLeft(2, '0');
-        final eM = e.minute.toString().padLeft(2, '0');
-        formattedShiftTime = '$sH:$sM - $eH:$eM น.';
-      }
+    } else if (parsedStartTime != null && parsedEndTime != null) {
+      final sH = parsedStartTime.hour.toString().padLeft(2, '0');
+      final sM = parsedStartTime.minute.toString().padLeft(2, '0');
+      final eH = parsedEndTime.hour.toString().padLeft(2, '0');
+      final eM = parsedEndTime.minute.toString().padLeft(2, '0');
+      formattedShiftTime = '$sH:$sM - $eH:$eM น.';
     }
 
     final shiftIdVal = json['shift_id'] ?? json['shiftId'] ?? 0;
@@ -156,6 +168,9 @@ class AssignmentModel {
       requestDate: json['request_date'] != null
           ? DateTime.tryParse(json['request_date'].toString())
           : null,
+      startTime: parsedStartTime,
+      endTime: parsedEndTime,
+      shiftDate: parsedShiftDate,
       eventName: evName,
       dutyLocation: dutyLoc,
       shiftName: shiftTitle,
@@ -169,17 +184,71 @@ class AssignmentModel {
     );
   }
 
+  bool get isActualMember =>
+      assignmentStatus.toUpperCase() == 'ACTUAL' ||
+      assignmentStatus.toUpperCase() == 'ASSIGNED';
+
+  bool get isReserve =>
+      assignmentStatus.toUpperCase() == 'RESERVE';
+
+  bool get isWithdrawn =>
+      assignmentStatus.toUpperCase() == 'WITHDRAWN';
+
   String get statusDisplay {
     switch (assignmentStatus.toUpperCase()) {
+      case 'ACTUAL':
       case 'ASSIGNED':
-        return 'กำลังปฏิบัติงาน (ตัวจริง)';
+        return 'ตัวจริง (Starter)';
       case 'RESERVE':
-        return 'รอปฏิบัติหน้าที่ (ตัวสำรอง)';
+        return 'ตัวสำรอง (Reserve)';
       case 'WITHDRAWN':
         return 'ถอนตัวแล้ว';
       default:
         return assignmentStatus;
     }
+  }
+
+  /// Check whether the current time is within this assignment's shift hours
+  bool isWithinShift([DateTime? testNow]) {
+    final now = testNow ?? DateTime.now();
+    DateTime? sTime = startTime;
+    DateTime? eTime = endTime;
+
+    if (sTime == null && eTime == null) {
+      return true; // No time constraints defined
+    }
+
+    if (shiftDate != null && sTime != null) {
+      sTime = DateTime(
+        shiftDate!.year,
+        shiftDate!.month,
+        shiftDate!.day,
+        sTime.hour,
+        sTime.minute,
+        sTime.second,
+      );
+      if (eTime != null) {
+        final crossDay = eTime.hour < sTime.hour ||
+            (eTime.hour == sTime.hour && eTime.minute < sTime.minute);
+        final endDay = crossDay ? shiftDate!.add(const Duration(days: 1)) : shiftDate!;
+        eTime = DateTime(
+          endDay.year,
+          endDay.month,
+          endDay.day,
+          eTime.hour,
+          eTime.minute,
+          eTime.second,
+        );
+      }
+    }
+
+    if (sTime != null && now.isBefore(sTime)) {
+      return false;
+    }
+    if (eTime != null && now.isAfter(eTime)) {
+      return false;
+    }
+    return true;
   }
 
   AssignmentModel copyWith({
@@ -192,6 +261,9 @@ class AssignmentModel {
     double? latitude,
     double? longitude,
     DateTime? requestDate,
+    DateTime? startTime,
+    DateTime? endTime,
+    DateTime? shiftDate,
     String? eventName,
     String? dutyLocation,
     String? shiftName,
@@ -213,6 +285,9 @@ class AssignmentModel {
       latitude: latitude ?? this.latitude,
       longitude: longitude ?? this.longitude,
       requestDate: requestDate ?? this.requestDate,
+      startTime: startTime ?? this.startTime,
+      endTime: endTime ?? this.endTime,
+      shiftDate: shiftDate ?? this.shiftDate,
       eventName: eventName ?? this.eventName,
       dutyLocation: dutyLocation ?? this.dutyLocation,
       shiftName: shiftName ?? this.shiftName,
@@ -236,6 +311,9 @@ class AssignmentModel {
     'latitude': latitude.toString(),
     'longitude': longitude.toString(),
     'request_date': requestDate?.toIso8601String(),
+    'start_time': startTime?.toIso8601String(),
+    'end_time': endTime?.toIso8601String(),
+    'shift_date': shiftDate?.toIso8601String(),
     'event_name': eventName,
     'duty_location': dutyLocation,
     'shift_name': shiftName,

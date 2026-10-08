@@ -60,6 +60,7 @@ class _HomeScreenState extends State<HomeScreen> {
       final eventsFuture = _eventService.fetchEvents(
         guardId: user.usersId,
         headName: user.headName,
+        headId: user.isHeadGuard ? user.usersId : null,
         company: user.companyName,
       );
       final assignmentFuture = _eventService.fetchActiveAssignment(
@@ -438,22 +439,38 @@ class _HomeScreenState extends State<HomeScreen> {
                                 vertical: 4,
                               ),
                               decoration: BoxDecoration(
-                                color: const Color(0xFFDCFCE7),
+                                color: _activeAssignment!.isReserve
+                                    ? const Color(0xFFFEF3C7)
+                                    : _activeAssignment!.isWithinShift()
+                                        ? const Color(0xFFDCFCE7)
+                                        : const Color(0xFFDBEAFE),
                                 borderRadius: BorderRadius.circular(12),
                               ),
                               child: Row(
                                 children: [
-                                  const Icon(
+                                  Icon(
                                     Icons.fiber_manual_record,
                                     size: 8,
-                                    color: Color(0xFF16A34A),
+                                    color: _activeAssignment!.isReserve
+                                        ? const Color(0xFFD97706)
+                                        : _activeAssignment!.isWithinShift()
+                                            ? const Color(0xFF16A34A)
+                                            : const Color(0xFF2563EB),
                                   ),
                                   const SizedBox(width: 5),
                                   Text(
-                                    _activeAssignment!.statusDisplay,
-                                    style: const TextStyle(
+                                    _activeAssignment!.isReserve
+                                        ? 'ตัวสำรอง (Reserve)'
+                                        : _activeAssignment!.isWithinShift()
+                                            ? 'กำลังปฏิบัติหน้าที่ (Active)'
+                                            : 'ตัวจริง (Starter)',
+                                    style: TextStyle(
                                       fontSize: 12,
-                                      color: Color(0xFF16A34A),
+                                      color: _activeAssignment!.isReserve
+                                        ? const Color(0xFFD97706)
+                                        : _activeAssignment!.isWithinShift()
+                                            ? const Color(0xFF16A34A)
+                                            : const Color(0xFF2563EB),
                                       fontWeight: FontWeight.bold,
                                     ),
                                   ),
@@ -471,6 +488,32 @@ class _HomeScreenState extends State<HomeScreen> {
                             ),
                           ],
                         ),
+                        if (_activeAssignment!.isReserve) ...[
+                          const SizedBox(height: 10),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 10,
+                              vertical: 6,
+                            ),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFFFFBEB),
+                              borderRadius: BorderRadius.circular(10),
+                              border: Border.all(color: const Color(0xFFFDE68A)),
+                            ),
+                            child: const Row(
+                              children: [
+                                Icon(Icons.info_outline, size: 15, color: Color(0xFFD97706)),
+                                SizedBox(width: 6),
+                                Expanded(
+                                  child: Text(
+                                    'คุณเป็นตัวสำรอง รอหัวหน้าชุดอนุมัติเป็นตัวจริงเพื่อเริ่มปฏิบัติงาน',
+                                    style: TextStyle(fontSize: 11.5, color: Color(0xFFB45309)),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
                         const SizedBox(height: 12),
                         Text(
                           _activeAssignment!.eventName,
@@ -506,14 +549,14 @@ class _HomeScreenState extends State<HomeScreen> {
                           children: [
                             Expanded(
                               child: ElevatedButton.icon(
-                                onPressed: () {
+                                onPressed: () async {
                                   final activeEvent = _getEventForAssignment(
                                     _activeAssignment!,
                                   );
                                   final activeShift = _getShiftForAssignment(
                                     _activeAssignment!,
                                   );
-                                  Navigator.push(
+                                  final res = await Navigator.push(
                                     context,
                                     MaterialPageRoute(
                                       builder: (context) => ShiftDetailScreen(
@@ -522,6 +565,9 @@ class _HomeScreenState extends State<HomeScreen> {
                                       ),
                                     ),
                                   );
+                                  if (res == true && mounted) {
+                                    _loadEvents();
+                                  }
                                 },
                                 icon: const Icon(
                                   Icons.visibility_rounded,
@@ -547,14 +593,14 @@ class _HomeScreenState extends State<HomeScreen> {
                             const SizedBox(width: 10),
                             Expanded(
                               child: OutlinedButton.icon(
-                                onPressed: () {
+                                onPressed: () async {
                                   final activeEvent = _getEventForAssignment(
                                     _activeAssignment!,
                                   );
                                   final activeShift = _getShiftForAssignment(
                                     _activeAssignment!,
                                   );
-                                  Navigator.push(
+                                  final res = await Navigator.push(
                                     context,
                                     MaterialPageRoute(
                                       builder: (context) =>
@@ -565,6 +611,9 @@ class _HomeScreenState extends State<HomeScreen> {
                                           ),
                                     ),
                                   );
+                                  if (res == true && mounted) {
+                                    _loadEvents();
+                                  }
                                 },
                                 icon: const Icon(
                                   Icons.pin_drop_rounded,
@@ -686,7 +735,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         color: const Color(0xFF2563EB),
                         bgColor: const Color(0xFFDBEAFE),
                         title: 'หน้าที่รับผิดชอบ',
-                        onTap: () {
+                        onTap: () async {
                           if (_activeAssignment != null) {
                             final activeEvent = _getEventForAssignment(
                               _activeAssignment!,
@@ -694,7 +743,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             final activeShift = _getShiftForAssignment(
                               _activeAssignment!,
                             );
-                            Navigator.push(
+                            final res = await Navigator.push(
                               context,
                               MaterialPageRoute(
                                 builder: (context) => AssignmentDetailScreen(
@@ -704,6 +753,9 @@ class _HomeScreenState extends State<HomeScreen> {
                                 ),
                               ),
                             );
+                            if (res == true && mounted) {
+                              _loadEvents();
+                            }
                           } else {
                             ScaffoldMessenger.of(context).showSnackBar(
                               const SnackBar(
@@ -723,7 +775,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         color: const Color(0xFFEA580C),
                         bgColor: const Color(0xFFFFEDD5),
                         title: 'รายงานเหตุการณ์',
-                        onTap: () {
+                        onTap: () async {
                           if (user.isNotStartedYet) {
                             ScaffoldMessenger.of(context).showSnackBar(
                               const SnackBar(
@@ -733,23 +785,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             );
                             return;
                           }
-                          if (_activeAssignment != null) {
-                            final activeEvent = _getEventForAssignment(
-                              _activeAssignment!,
-                            );
-                            final activeShift = _getShiftForAssignment(
-                              _activeAssignment!,
-                            );
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => ReportSituationScreen(
-                                  event: activeEvent,
-                                  shift: activeShift,
-                                ),
-                              ),
-                            );
-                          } else {
+                          if (_activeAssignment == null) {
                             ScaffoldMessenger.of(context).showSnackBar(
                               const SnackBar(
                                 content: Text(
@@ -757,6 +793,48 @@ class _HomeScreenState extends State<HomeScreen> {
                                 ),
                               ),
                             );
+                            return;
+                          }
+                          // Requirement: guard can send report only if actual member and within shift
+                          if (!_activeAssignment!.isActualMember) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text(
+                                  'คุณมีสถานะเป็นตัวสำรองในกะนี้ ไม่สามารถส่งรายงานเหตุการณ์ได้',
+                                ),
+                                backgroundColor: Color(0xFFEF4444),
+                              ),
+                            );
+                            return;
+                          }
+                          if (!_activeAssignment!.isWithinShift()) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(
+                                  'สามารถส่งรายงานได้เฉพาะช่วงเวลาที่เข้าเวรปฏิบัติหน้าที่เท่านั้น (${_activeAssignment!.shiftTime})',
+                                ),
+                                backgroundColor: const Color(0xFFEF4444),
+                              ),
+                            );
+                            return;
+                          }
+                          final activeEvent = _getEventForAssignment(
+                            _activeAssignment!,
+                          );
+                          final activeShift = _getShiftForAssignment(
+                            _activeAssignment!,
+                          );
+                          final res = await Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => ReportSituationScreen(
+                                event: activeEvent,
+                                shift: activeShift,
+                              ),
+                            ),
+                          );
+                          if (res == true && mounted) {
+                            _loadEvents();
                           }
                         },
                       ),
@@ -773,14 +851,17 @@ class _HomeScreenState extends State<HomeScreen> {
                         color: const Color(0xFF0D9488),
                         bgColor: const Color(0xFFCCFBF1),
                         title: 'ประวัติการทำงาน',
-                        onTap: () {
-                          Navigator.push(
+                        onTap: () async {
+                          await Navigator.push(
                             context,
                             MaterialPageRoute(
                               builder: (context) =>
                                   const WorkingHistoryScreen(),
                             ),
                           );
+                          if (mounted) {
+                            _loadEvents();
+                          }
                         },
                       ),
                     ),
@@ -1074,14 +1155,17 @@ class _HomeScreenState extends State<HomeScreen> {
             Material(
               color: Colors.transparent,
               child: InkWell(
-                onTap: () {
-                  Navigator.push(
+                onTap: () async {
+                  final res = await Navigator.push(
                     context,
                     MaterialPageRoute(
                       builder: (context) =>
                           GuardEventDetailScreen(event: event),
                     ),
                   );
+                  if (res == true && mounted) {
+                    _loadEvents();
+                  }
                 },
                 child: Padding(
                   padding: const EdgeInsets.fromLTRB(20, 20, 20, 20),
@@ -1148,14 +1232,17 @@ class _HomeScreenState extends State<HomeScreen> {
                         width: double.infinity,
                         height: 46,
                         child: ElevatedButton(
-                          onPressed: () {
-                            Navigator.push(
+                          onPressed: () async {
+                            final res = await Navigator.push(
                               context,
                               MaterialPageRoute(
                                 builder: (context) =>
                                     GuardEventDetailScreen(event: event),
                               ),
                             );
+                            if (res == true && mounted) {
+                              _loadEvents();
+                            }
                           },
                           style: ElevatedButton.styleFrom(
                             backgroundColor: const Color(0xFF2563EB),

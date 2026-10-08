@@ -98,10 +98,9 @@ class _SendRequestScreenState extends State<SendRequestScreen> {
                   width: double.infinity,
                   height: 46,
                   child: ElevatedButton(
-                    onPressed: () {
+                    onPressed: () async {
                       Navigator.pop(context); // close dialog
-                      // Navigate directly to Shift detail screen
-                      Navigator.pushReplacement(
+                      await Navigator.push(
                         context,
                         MaterialPageRoute(
                           builder: (context) => ShiftDetailScreen(
@@ -110,6 +109,9 @@ class _SendRequestScreenState extends State<SendRequestScreen> {
                           ),
                         ),
                       );
+                      if (context.mounted) {
+                        Navigator.pop(context, true);
+                      }
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFF2563EB),
@@ -122,6 +124,30 @@ class _SendRequestScreenState extends State<SendRequestScreen> {
                       'ไปที่รายละเอียดกะงาน',
                       style: TextStyle(
                         color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 10),
+                SizedBox(
+                  width: double.infinity,
+                  height: 44,
+                  child: OutlinedButton(
+                    onPressed: () {
+                      Navigator.pop(context); // close dialog
+                      Navigator.pop(context, true); // return to shift list with true
+                    },
+                    style: OutlinedButton.styleFrom(
+                      side: const BorderSide(color: Color(0xFF2563EB)),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                    ),
+                    child: const Text(
+                      'กลับสู่รายการกะงาน',
+                      style: TextStyle(
+                        color: Color(0xFF2563EB),
                         fontWeight: FontWeight.bold,
                       ),
                     ),

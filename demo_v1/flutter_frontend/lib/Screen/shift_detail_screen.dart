@@ -389,7 +389,7 @@ class _ShiftDetailScreenState extends State<ShiftDetailScreen> {
                           iconBgColor: const Color(0xFFFFEDD5),
                           title: 'รายงานสถานการณ์',
                           subtitle: '',
-                          onTap: () {
+                          onTap: () async {
                             if (UserService().isNotStartedYet) {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 const SnackBar(
@@ -401,7 +401,18 @@ class _ShiftDetailScreenState extends State<ShiftDetailScreen> {
                               );
                               return;
                             }
-                            Navigator.push(
+                            if (!widget.shift.isWithinShift()) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(
+                                    'สามารถส่งรายงานได้เฉพาะช่วงเวลาที่เข้าเวรปฏิบัติหน้าที่เท่านั้น (${widget.shift.formattedTime})',
+                                  ),
+                                  backgroundColor: const Color(0xFFEF4444),
+                                ),
+                              );
+                              return;
+                            }
+                            await Navigator.push(
                               context,
                               MaterialPageRoute(
                                 builder: (context) => ReportSituationScreen(
@@ -435,7 +446,7 @@ class _ShiftDetailScreenState extends State<ShiftDetailScreen> {
                     child: Material(
                       color: Colors.transparent,
                       child: InkWell(
-                        onTap: () {
+                        onTap: () async {
                           if (UserService().isNotStartedYet) {
                             ScaffoldMessenger.of(context).showSnackBar(
                               const SnackBar(
@@ -447,7 +458,7 @@ class _ShiftDetailScreenState extends State<ShiftDetailScreen> {
                             );
                             return;
                           }
-                          Navigator.push(
+                          final res = await Navigator.push(
                             context,
                             MaterialPageRoute(
                               builder: (context) => WithdrawEventScreen(
@@ -456,6 +467,9 @@ class _ShiftDetailScreenState extends State<ShiftDetailScreen> {
                               ),
                             ),
                           );
+                          if (context.mounted && res == true) {
+                            Navigator.pop(context, true);
+                          }
                         },
                         borderRadius: BorderRadius.circular(20),
                         child: Padding(

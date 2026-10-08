@@ -724,6 +724,28 @@ class _AssignmentDetailScreenState extends State<AssignmentDetailScreen> {
                                 );
                                 return;
                               }
+                              if (!_assignment.isActualMember) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text(
+                                      'คุณมีสถานะเป็นตัวสำรองในกะนี้ ไม่สามารถส่งรายงานสถานการณ์ได้',
+                                    ),
+                                    backgroundColor: Color(0xFFEF4444),
+                                  ),
+                                );
+                                return;
+                              }
+                              if (!_assignment.isWithinShift()) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text(
+                                      'สามารถส่งรายงานได้เฉพาะช่วงเวลาที่เข้าเวรปฏิบัติหน้าที่เท่านั้น (${_assignment.shiftTime})',
+                                    ),
+                                    backgroundColor: const Color(0xFFEF4444),
+                                  ),
+                                );
+                                return;
+                              }
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
