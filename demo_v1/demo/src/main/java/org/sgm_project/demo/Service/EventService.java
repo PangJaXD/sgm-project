@@ -236,6 +236,7 @@ public class EventService {
                     duration = 8;
                 }
                 st.setDuration(duration);
+                st.setEnd_time(st.getStart_time().plusHours(duration));
 
                 // 🌟 5. ดึง Object HeadGuard จาก DB เพื่อมาผูกกับ ShiftTime
                 // find the head id
@@ -365,6 +366,7 @@ public class EventService {
                     duration = 8;
                 }
                 st.setDuration(duration);
+                st.setEnd_time(st.getStart_time().plusHours(duration));
 
                 // 🌟 7. ผูก HeadGuard
                 if (dto.getHeadGuard() != null && !dto.getHeadGuard().isEmpty()) {

@@ -24,11 +24,38 @@ public class ShiftTime {
     private LocalDateTime start_time;
     @Column(nullable = false)
     private Integer duration;
+    @Column(name = "end_time")
+    private LocalDateTime end_time;
     @Column(nullable = false)
     private Integer maximum_guards;
 
+    @PrePersist
+    @PreUpdate
+    public void syncEndTime() {
+        if (start_time != null && duration != null) {
+            this.end_time = start_time.plusHours(duration);
+        }
+    }
+
+    public void setDuration(Integer duration) {
+        this.duration = duration;
+        if (this.start_time != null && duration != null) {
+            this.end_time = this.start_time.plusHours(duration);
+        }
+    }
+
+    public void setStart_time(LocalDateTime startTime) {
+        this.start_time = startTime;
+        if (startTime != null && this.duration != null) {
+            this.end_time = startTime.plusHours(this.duration);
+        }
+    }
+
     @com.fasterxml.jackson.annotation.JsonProperty("end_time")
     public LocalDateTime getEnd_time() {
+        if (end_time != null) {
+            return end_time;
+        }
         if (start_time != null && duration != null) {
             return start_time.plusHours(duration);
         }
@@ -36,8 +63,9 @@ public class ShiftTime {
     }
 
     public void setEnd_time(LocalDateTime endTime) {
-        if (endTime != null && start_time != null) {
-            this.duration = (int) java.time.Duration.between(start_time, endTime).toHours();
+        this.end_time = endTime;
+        if (endTime != null && this.start_time != null) {
+            this.duration = (int) java.time.Duration.between(this.start_time, endTime).toHours();
         }
     }
     @OneToMany
