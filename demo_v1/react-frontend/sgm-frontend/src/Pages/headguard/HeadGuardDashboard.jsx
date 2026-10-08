@@ -7,6 +7,7 @@ import {
   formatTitleAndName,
   formatThaiDate,
   formatThaiTimeRange,
+  formatShiftDurationRange,
 } from "../../utils/formatters";
 import {
   Users,
@@ -297,9 +298,11 @@ function HeadGuardDashboard() {
 
         const formattedList = response.data.map((a) => {
           let displayTime = a.time_range;
-          if (!displayTime && a.start_time && a.end_time) {
-            displayTime = formatThaiTimeRange(
-              `${a.start_time} - ${a.end_time}`,
+          if (!displayTime && a.start_time && (a.duration || a.end_time)) {
+            displayTime = formatShiftDurationRange(
+              a.start_time,
+              a.duration,
+              a.end_time
             );
           } else if (displayTime) {
             displayTime = formatThaiTimeRange(displayTime);

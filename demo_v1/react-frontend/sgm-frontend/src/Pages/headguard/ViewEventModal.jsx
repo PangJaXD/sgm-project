@@ -10,6 +10,7 @@ import {
   formatThaiDate,
   format24HourTime,
   formatThaiTime,
+  formatShiftDurationRange,
 } from "../../utils/formatters";
 
 export default function ViewEventModal({
@@ -95,8 +96,7 @@ export default function ViewEventModal({
                         <div className="flex items-center gap-1.5">
                           <Clock size={14} className="text-gray-400" />
                           <span>
-                            {format24HourTime(shift.start_time)} -{" "}
-                            {format24HourTime(shift.end_time)} น.
+                            {formatShiftDurationRange(shift.start_time, shift.duration, shift.end_time)}
                           </span>
                         </div>
                         <div className="flex items-center gap-1.5">

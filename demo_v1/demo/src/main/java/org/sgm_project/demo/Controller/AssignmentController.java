@@ -55,6 +55,7 @@ public class AssignmentController {
             map.put("shift_id", shift.getShift_id());
             map.put("shift_date", shift.getShift_date() != null ? shift.getShift_date().toString() : null);
             map.put("start_time", shift.getStart_time() != null ? shift.getStart_time().toString() : null);
+            map.put("duration", shift.getDuration());
             map.put("end_time", shift.getEnd_time() != null ? shift.getEnd_time().toString() : null);
             map.put("maximum_guards", shift.getMaximum_guards());
 

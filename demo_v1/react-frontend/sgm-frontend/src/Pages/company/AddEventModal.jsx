@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import Flatpickr from "react-flatpickr";
-import { toISODate } from "../../utils/formatters";
+import { toISODate, calculateEndTimeFromDuration } from "../../utils/formatters";
 import {
   X,
   MapPin,
@@ -86,7 +86,7 @@ export default function AddEventModal({
   const [providedTools, setProvidedTools] = useState(["", "", ""]);
 
   const [shifts, setShifts] = useState([
-    { guards: "", shiftDate: "", startTime: "", endTime: "", headGuard: "" },
+    { guards: "", shiftDate: "", startTime: "", duration: 8, headGuard: "" },
   ]);
 
   const [eventImg, setEventImg] = useState("");
@@ -242,7 +242,7 @@ export default function AddEventModal({
           guards: "",
           shiftDate: "",
           startTime: "",
-          endTime: "",
+          duration: 8,
           headGuard: "",
         },
       ]);
@@ -276,7 +276,7 @@ export default function AddEventModal({
         guards: "",
         shiftDate: startDate || "",
         startTime: "",
-        endTime: "",
+        duration: 8,
         headGuard: "",
       },
     ]);
@@ -344,6 +344,7 @@ export default function AddEventModal({
       shift_times: shifts.map((st) => ({
         ...st,
         shiftDate: toISODate(st.shiftDate),
+        duration: parseInt(st.duration, 10) || 8,
       })),
       required_guards: totalRequiredGuards,
       start_date: toISODate(startDate),
@@ -372,7 +373,7 @@ export default function AddEventModal({
     setRequiredTools(["", "", ""]);
     setProvidedTools(["", "", ""]);
     setShifts([
-      { guards: "", shiftDate: "", startTime: "", endTime: "", headGuard: "" },
+      { guards: "", shiftDate: "", startTime: "", duration: 8, headGuard: "" },
     ]);
     setEventImg("");
     setImagePreview("");
@@ -424,10 +425,6 @@ export default function AddEventModal({
                     onChange={(e) => setLocationName(e.target.value)}
                     placeholder="ระบุสถานที่จัดงาน"
                     className="w-full h-[32px] border border-gray-300 rounded-lg pl-3 pr-8 bg-white outline-none focus:border-blue-500"
-                  />
-                  <MapPin
-                    size={16}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400"
                   />
                 </div>
               </div>
@@ -793,23 +790,27 @@ export default function AddEventModal({
 
                 <div className="grid grid-cols-[140px_1fr] items-center gap-2">
                   <label className="font-semibold">
-                    เวลาสิ้นสุดปฏิบัติงาน:
+                    ระยะเวลาปฏิบัติงาน (ชม.):
                   </label>
-                  <Flatpickr
-                    value={shift.endTime || ""}
-                    onChange={([date], dateStr) =>
-                      updateShift(idx, "endTime", dateStr)
-                    }
-                    options={{
-                      enableTime: true,
-                      noCalendar: true,
-                      dateFormat: "H:i",
-                      time_24hr: true,
-                      allowInput: true,
-                    }}
-                    placeholder="--:--"
-                    className="w-full h-[32px] border border-gray-300 rounded-lg px-3 outline-none focus:border-blue-500 text-gray-700 bg-white text-xs"
-                  />
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="number"
+                      min="1"
+                      max="24"
+                      value={shift.duration !== undefined ? shift.duration : ""}
+                      onChange={(e) => {
+                        const val = e.target.value === "" ? "" : parseInt(e.target.value, 10);
+                        updateShift(idx, "duration", isNaN(val) ? "" : val);
+                      }}
+                      placeholder="เช่น 8"
+                      className="w-full h-[32px] border border-gray-300 rounded-lg px-3 outline-none focus:border-blue-500 text-gray-700 bg-white text-xs"
+                    />
+                    {shift.startTime && shift.duration && (
+                      <span className="text-[11px] text-blue-600 font-medium whitespace-nowrap bg-blue-50 px-2 py-1 rounded-md border border-blue-200">
+                        สิ้นสุด: {calculateEndTimeFromDuration(shift.startTime, shift.duration).displayText}
+                      </span>
+                    )}
+                  </div>
                 </div>
 
                 <div className="grid grid-cols-[140px_1fr] items-center gap-2">

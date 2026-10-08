@@ -117,6 +117,7 @@ public class EventController {
                 map.put("event_name", event.getEvent_name());
                 map.put("shift_date", st.getShift_date() != null ? st.getShift_date().toString() : null);
                 map.put("start_time", st.getStart_time() != null ? st.getStart_time().toString() : null);
+                map.put("duration", st.getDuration());
                 map.put("end_time", st.getEnd_time() != null ? st.getEnd_time().toString() : null);
                 map.put("maximum_guards", st.getMaximum_guards());
 
@@ -147,6 +148,7 @@ public class EventController {
                     map.put("event_name", event.getEvent_name());
                     map.put("shift_date", st.getShift_date() != null ? st.getShift_date().toString() : null);
                     map.put("start_time", st.getStart_time() != null ? st.getStart_time().toString() : null);
+                    map.put("duration", st.getDuration());
                     map.put("end_time", st.getEnd_time() != null ? st.getEnd_time().toString() : null);
                     map.put("maximum_guards", st.getMaximum_guards());
 

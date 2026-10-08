@@ -15,7 +15,7 @@ import {
   Loader2,
 } from "lucide-react";
 import Flatpickr from "react-flatpickr";
-import { toISODate } from "../../utils/formatters";
+import { toISODate, calculateEndTimeFromDuration } from "../../utils/formatters";
 import {
   MapContainer,
   TileLayer,
@@ -87,7 +87,7 @@ export default function EditEventModal({
   const [providedTools, setProvidedTools] = useState(["", "", ""]);
 
   const [shifts, setShifts] = useState([
-    { guards: "", shiftDate: "", startTime: "", endTime: "", headGuard: "" },
+    { guards: "", shiftDate: "", startTime: "", duration: 8, headGuard: "" },
   ]);
 
   const [eventImg, setEventImg] = useState("");
@@ -219,22 +219,31 @@ export default function EditEventModal({
         (a, b) => new Date(a.start_time) - new Date(b.start_time),
       );
 
-      const mappedShifts = sortedShifts.map((st) => ({
-        guards: st.maximum_guards?.toString() || "",
-        shiftDate: st.shift_date
-          ? st.shift_date.split("T")[0]
-          : st.start_time
-            ? st.start_time.split("T")[0]
+      const mappedShifts = sortedShifts.map((st) => {
+        let dur = st.duration !== undefined && st.duration !== null ? parseInt(st.duration, 10) : null;
+        if ((dur === null || isNaN(dur)) && st.start_time && st.end_time) {
+          const s = new Date(st.start_time);
+          const e = new Date(st.end_time);
+          const diffHours = Math.round((e - s) / (1000 * 60 * 60));
+          dur = diffHours > 0 ? diffHours : 8;
+        }
+        return {
+          guards: st.maximum_guards?.toString() || "",
+          shiftDate: st.shift_date
+            ? st.shift_date.split("T")[0]
+            : st.start_time
+              ? st.start_time.split("T")[0]
+              : "",
+          startTime: st.start_time
+            ? st.start_time.split("T")[1]?.substring(0, 5)
             : "",
-        startTime: st.start_time
-          ? st.start_time.split("T")[1]?.substring(0, 5)
-          : "",
-        endTime: st.end_time ? st.end_time.split("T")[1]?.substring(0, 5) : "",
-        headGuard:
-          st.headGuard?.users_id?.toString() ||
-          st.head_guard_id?.toString() ||
-          "",
-      }));
+          duration: dur !== null && !isNaN(dur) ? dur : 8,
+          headGuard:
+            st.headGuard?.users_id?.toString() ||
+            st.head_guard_id?.toString() ||
+            "",
+        };
+      });
       setShifts(mappedShifts);
     } else {
       setShifts([
@@ -242,7 +251,7 @@ export default function EditEventModal({
           guards: "",
           shiftDate: "",
           startTime: "",
-          endTime: "",
+          duration: 8,
           headGuard: "",
         },
       ]);
@@ -328,7 +337,7 @@ export default function EditEventModal({
         guards: "",
         shiftDate: startDate || "",
         startTime: "",
-        endTime: "",
+        duration: 8,
         headGuard: "",
       },
     ]);
@@ -390,6 +399,7 @@ export default function EditEventModal({
       shift_times: shifts.map((st) => ({
         ...st,
         shiftDate: toISODate(st.shiftDate),
+        duration: parseInt(st.duration, 10) || 8,
       })),
       required_guards: totalRequiredGuards,
       start_date: toISODate(startDate),
@@ -447,10 +457,6 @@ export default function EditEventModal({
                     value={locationName}
                     onChange={(e) => setLocationName(e.target.value)}
                     className="w-full h-[32px] border border-gray-300 rounded-lg pl-3 pr-8 bg-white outline-none focus:border-blue-500"
-                  />
-                  <MapPin
-                    size={16}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400"
                   />
                 </div>
               </div>
@@ -774,23 +780,27 @@ export default function EditEventModal({
                 </div>
                 <div className="grid grid-cols-[140px_1fr] items-center gap-2">
                   <label className="font-semibold">
-                    เวลาสิ้นสุดปฏิบัติงาน:
+                    ระยะเวลาปฏิบัติงาน (ชม.):
                   </label>
-                  <Flatpickr
-                    value={shift.endTime || ""}
-                    onChange={([date], dateStr) =>
-                      updateShift(idx, "endTime", dateStr)
-                    }
-                    options={{
-                      enableTime: true,
-                      noCalendar: true,
-                      dateFormat: "H:i",
-                      time_24hr: true,
-                      allowInput: true,
-                    }}
-                    placeholder="--:--"
-                    className="w-full h-[32px] border border-gray-300 rounded-lg px-3 outline-none focus:border-blue-500 text-gray-700 bg-white text-xs"
-                  />
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="number"
+                      min="1"
+                      max="24"
+                      value={shift.duration !== undefined ? shift.duration : ""}
+                      onChange={(e) => {
+                        const val = e.target.value === "" ? "" : parseInt(e.target.value, 10);
+                        updateShift(idx, "duration", isNaN(val) ? "" : val);
+                      }}
+                      placeholder="เช่น 8"
+                      className="w-full h-[32px] border border-gray-300 rounded-lg px-3 outline-none focus:border-blue-500 text-gray-700 bg-white text-xs"
+                    />
+                    {shift.startTime && shift.duration && (
+                      <span className="text-[11px] text-blue-600 font-medium whitespace-nowrap bg-blue-50 px-2 py-1 rounded-md border border-blue-200">
+                        สิ้นสุด: {calculateEndTimeFromDuration(shift.startTime, shift.duration).displayText}
+                      </span>
+                    )}
+                  </div>
                 </div>
                 <div className="grid grid-cols-[140px_1fr] items-center gap-2">
                   <label className="font-semibold text-[#2864e8] flex items-center gap-1">

@@ -211,3 +211,62 @@ export const toISODate = (dateStr) => {
   }
   return trimmed.split("T")[0];
 };
+
+/**
+ * Calculates end time from startTime ("HH:mm" or ISO datetime) and duration (hours, integer).
+ * Handles cross-day shifts (e.g. 22:00 + 5h = 03:00 next day).
+ */
+export const calculateEndTimeFromDuration = (startTime, duration) => {
+  if (!startTime || duration === undefined || duration === null || duration === "") {
+    return { endTime: "", isNextDay: false, displayText: "" };
+  }
+  const cleanTime = format24HourTime(startTime);
+  if (!cleanTime) return { endTime: "", isNextDay: false, displayText: "" };
+
+  const parts = cleanTime.split(":");
+  const h = parseInt(parts[0], 10);
+  const m = parseInt(parts[1] || "0", 10);
+  const durHours = parseInt(duration, 10);
+
+  if (isNaN(durHours) || durHours <= 0) {
+    return { endTime: cleanTime, isNextDay: false, displayText: `${cleanTime} น.` };
+  }
+
+  const totalHours = h + durHours;
+  const endH = totalHours % 24;
+  const isNextDay = totalHours >= 24;
+  const formattedEndH = String(endH).padStart(2, "0");
+  const formattedEndM = String(m).padStart(2, "0");
+  const endTime = `${formattedEndH}:${formattedEndM}`;
+
+  return {
+    endTime,
+    isNextDay,
+    displayText: `${endTime} น.${isNextDay ? " (วันถัดไป)" : ""}`,
+  };
+};
+
+/**
+ * Formats a shift's time range based on startTime and duration (hours).
+ * Falls back to legacy fallbackEndTime if duration is not available.
+ * e.g. "22:00 - 03:00 น."
+ */
+export const formatShiftDurationRange = (startTime, duration, fallbackEndTime = null) => {
+  if (!startTime) return "ไม่ระบุเวลา";
+  const start = format24HourTime(startTime);
+  if (!start) return "ไม่ระบุเวลา";
+
+  if (duration !== undefined && duration !== null && duration !== "") {
+    const { endTime } = calculateEndTimeFromDuration(start, duration);
+    if (endTime) {
+      return `${start} - ${endTime} น.`;
+    }
+  }
+
+  if (fallbackEndTime) {
+    const end = format24HourTime(fallbackEndTime);
+    if (end) return `${start} - ${end} น.`;
+  }
+
+  return `${start} น.`;
+};

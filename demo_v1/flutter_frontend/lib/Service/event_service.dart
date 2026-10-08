@@ -11,6 +11,7 @@ class ShiftTimeModel {
   final String title;
   final DateTime? startTime;
   final DateTime? endTime;
+  final int? duration;
   final DateTime? shiftDate;
   final int maximumGuards;
   final int currentGuards;
@@ -23,6 +24,7 @@ class ShiftTimeModel {
     this.title = 'กะการทำงาน',
     this.startTime,
     this.endTime,
+    this.duration,
     this.shiftDate,
     this.maximumGuards = 10,
     this.currentGuards = 0,
@@ -32,16 +34,23 @@ class ShiftTimeModel {
 
   factory ShiftTimeModel.fromJson(Map<String, dynamic> json) {
     final shiftIdVal = json['shift_id'] ?? json['id'] ?? 0;
+    final dur = json['duration'] != null ? int.tryParse(json['duration'].toString()) : null;
+    final sTime = json['start_time'] != null
+        ? DateTime.tryParse(json['start_time'].toString())
+        : null;
+    DateTime? eTime = json['end_time'] != null
+        ? DateTime.tryParse(json['end_time'].toString())
+        : null;
+    if (eTime == null && sTime != null && dur != null) {
+      eTime = sTime.add(Duration(hours: dur));
+    }
     return ShiftTimeModel(
       shiftId: shiftIdVal,
       eventId: json['event_id'] ?? 0,
       title: json['title'] ?? json['event_name'] ?? 'กะงานที่ $shiftIdVal',
-      startTime: json['start_time'] != null
-          ? DateTime.tryParse(json['start_time'].toString())
-          : null,
-      endTime: json['end_time'] != null
-          ? DateTime.tryParse(json['end_time'].toString())
-          : null,
+      startTime: sTime,
+      endTime: eTime,
+      duration: dur,
       shiftDate: json['shift_date'] != null
           ? DateTime.tryParse(json['shift_date'].toString())
           : null,
@@ -56,11 +65,13 @@ class ShiftTimeModel {
   bool get isFull => availableSlots <= 0 || status.toUpperCase() == 'FULL';
 
   String get formattedTime {
-    if (startTime == null || endTime == null) return '08:00 - 16:00 น.';
+    if (startTime == null) return '08:00 - 16:00 น.';
+    final effectiveEndTime = endTime ?? (duration != null ? startTime!.add(Duration(hours: duration!)) : null);
+    if (effectiveEndTime == null) return '08:00 - 16:00 น.';
     final startHour = startTime!.hour.toString().padLeft(2, '0');
     final startMin = startTime!.minute.toString().padLeft(2, '0');
-    final endHour = endTime!.hour.toString().padLeft(2, '0');
-    final endMin = endTime!.minute.toString().padLeft(2, '0');
+    final endHour = effectiveEndTime.hour.toString().padLeft(2, '0');
+    final endMin = effectiveEndTime.minute.toString().padLeft(2, '0');
     return '$startHour:$startMin - $endHour:$endMin น.';
   }
 

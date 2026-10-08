@@ -23,9 +23,23 @@ public class ShiftTime {
     @Column(nullable = false)
     private LocalDateTime start_time;
     @Column(nullable = false)
-    private LocalDateTime end_time;
+    private Integer duration;
     @Column(nullable = false)
     private Integer maximum_guards;
+
+    @com.fasterxml.jackson.annotation.JsonProperty("end_time")
+    public LocalDateTime getEnd_time() {
+        if (start_time != null && duration != null) {
+            return start_time.plusHours(duration);
+        }
+        return null;
+    }
+
+    public void setEnd_time(LocalDateTime endTime) {
+        if (endTime != null && start_time != null) {
+            this.duration = (int) java.time.Duration.between(start_time, endTime).toHours();
+        }
+    }
     @OneToMany
     @JoinColumn(name = "shift_id")
     private List<Report> reports;

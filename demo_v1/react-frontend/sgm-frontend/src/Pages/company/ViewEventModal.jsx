@@ -5,7 +5,7 @@ import {
   Shield,
   Image as ImageIcon,
 } from "lucide-react";
-import { formatThaiDate, formatThaiTimeRange } from "../../utils/formatters";
+import { formatThaiDate, formatThaiTimeRange, formatShiftDurationRange } from "../../utils/formatters";
 import { MapContainer, TileLayer, Marker } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
@@ -265,12 +265,11 @@ export default function ViewEventModal({ isOpen, onClose, eventData }) {
             </h3>
             <div className="flex flex-col gap-4 w-full max-w-[600px] mx-auto">
               {sortedShifts.map((shift, idx) => {
-                const startTimeStr = shift.start_time
-                  ? shift.start_time.split("T")[1].substring(0, 5)
-                  : "-";
-                const endTimeStr = shift.end_time
-                  ? shift.end_time.split("T")[1].substring(0, 5)
-                  : "-";
+                const timeRangeDisplay = formatShiftDurationRange(
+                  shift.start_time,
+                  shift.duration,
+                  shift.end_time
+                );
 
                 return (
                   <div
@@ -309,9 +308,7 @@ export default function ViewEventModal({ isOpen, onClose, eventData }) {
                           เวลาทำงาน:
                         </span>
                         <span className="font-semibold">
-                          {formatThaiTimeRange(
-                            `${startTimeStr} - ${endTimeStr}`,
-                          )}
+                          {timeRangeDisplay}
                         </span>
                       </div>
                     </div>

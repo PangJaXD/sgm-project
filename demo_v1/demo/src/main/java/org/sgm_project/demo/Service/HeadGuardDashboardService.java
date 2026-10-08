@@ -6,6 +6,7 @@ import org.sgm_project.demo.Repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -185,12 +186,14 @@ public class HeadGuardDashboardService {
                     DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
                     DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("HH:mm");
 
-                    // Format เวลาทำงาน (Start - End)
-                    String workTimeFormatted = (shift.getStart_time() != null && shift.getEnd_time() != null)
-                            ? shift.getStart_time().format(timeFormatter) + " - "
-                                    + shift.getEnd_time().format(timeFormatter)
-                                    + " น."
-                            : "ไม่ระบุเวลา";
+                    // Format เวลาทำงาน (Start - End) คำนวณตาม duration
+                    String workTimeFormatted = "ไม่ระบุเวลา";
+                    if (shift.getStart_time() != null) {
+                        int dur = shift.getDuration() != null ? shift.getDuration() : 8;
+                        LocalDateTime endCalc = shift.getStart_time().plusHours(dur);
+                        workTimeFormatted = shift.getStart_time().format(timeFormatter) + " - "
+                                + endCalc.format(timeFormatter) + " น.";
+                    }
 
                     // นับจำนวน รปภ. ในกะนี้
                     int assignedGuardsCount = assignmentsRepository.countByShiftId(shift.getShift_id());

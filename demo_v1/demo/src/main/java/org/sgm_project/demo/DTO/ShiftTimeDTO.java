@@ -15,6 +15,7 @@ public class ShiftTimeDTO {
     @JsonAlias({"shift_date"})
     private String shiftDate;  // รับมาเป็นวันที่ "2026-09-20"
     private String startTime;  // รับมาเป็นเวลา "08:00"
-    private String endTime;    // รับมาเป็นเวลา "18:00"
+    private Integer duration;  // รับมาเป็นชั่วโมง เช่น 8, 5
+    private String endTime;    // รับมาเป็นเวลา "18:00" (เผื่อ fallback)
     private String headGuard;
 }
