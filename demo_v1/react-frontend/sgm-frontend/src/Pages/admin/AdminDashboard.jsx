@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import axios from "axios";
 import Flatpickr from "react-flatpickr";
 import { formatThaiDate, toISODate } from "../../utils/formatters";
@@ -17,6 +17,8 @@ import {
   AlertCircle,
 } from "lucide-react";
 
+const PHONE_REGEX = /^0[689]\d{8}$/;
+
 function AdminDashboard() {
   const [search, setSearch] = useState("");
   const [companies, setCompanies] = useState([]);
@@ -33,6 +35,15 @@ function AdminDashboard() {
   const [editingDisplayId, setEditingDisplayId] = useState("");
 
   const [formError, setFormError] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+
+  // Delete checking states
+  const [isCheckingDelete, setIsCheckingDelete] = useState(false);
+  const [deleteBlockReason, setDeleteBlockReason] = useState(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  // Keep track of newly added companies in current session (resets on page refresh)
+  const newlyAddedCompanyIdsRef = useRef([]);
 
   const [formData, setFormData] = useState({
     companyName: "",
@@ -64,76 +75,107 @@ function AdminDashboard() {
   // Password: English or numbers + special characters [ !#_. ], length 8-16, no spaces, not empty
   const PASSWORD_REGEX = /^[a-zA-Z0-9!#_.]{8,16}$/;
 
-  const fetchCompanies = useCallback(async () => {
-    try {
-      setIsLoading(true);
-      const params = {};
-      if (adminName && adminName !== "Admin Master") {
-        params.adminName = adminName;
-      } else if (currentUser?.first_name) {
-        params.adminName = currentUser.first_name;
-      }
-      if (currentUser?.username) {
-        params.adminUsername = currentUser.username;
+  const fetchCompanies = useCallback(
+    async (newlyCreatedId = null) => {
+      if (
+        newlyCreatedId &&
+        !newlyAddedCompanyIdsRef.current.includes(newlyCreatedId)
+      ) {
+        newlyAddedCompanyIdsRef.current = [
+          newlyCreatedId,
+          ...newlyAddedCompanyIdsRef.current,
+        ];
       }
 
-      const res = await axios.get("http://localhost:8081/api/company", {
-        params,
-      });
-      if (Array.isArray(res.data)) {
-        const adminIdentifiers = [
-          adminName,
-          currentUser?.username,
-          currentUser?.first_name,
-          currentUser?.first_name && currentUser?.last_name
-            ? `${currentUser.first_name} ${currentUser.last_name}`.trim()
-            : null,
-        ]
-          .filter(Boolean)
-          .map((n) => n.toLowerCase().trim());
+      try {
+        setIsLoading(true);
+        const params = {};
+        if (adminName && adminName !== "Admin Master") {
+          params.adminName = adminName;
+        } else if (currentUser?.first_name) {
+          params.adminName = currentUser.first_name;
+        }
+        if (currentUser?.username) {
+          params.adminUsername = currentUser.username;
+        }
 
-        const filteredByAdmin = res.data.filter((c) => {
-          if (!adminIdentifiers.length) return true;
-          const compAdmin = (c.admin_name || "").toLowerCase().trim();
-          if (!compAdmin) return false;
-          return adminIdentifiers.some(
-            (id) =>
-              compAdmin === id ||
-              compAdmin.includes(id) ||
-              id.includes(compAdmin),
+        const res = await axios.get("http://localhost:8081/api/company", {
+          params,
+        });
+        if (Array.isArray(res.data)) {
+          const adminIdentifiers = [
+            adminName,
+            currentUser?.username,
+            currentUser?.first_name,
+            currentUser?.first_name && currentUser?.last_name
+              ? `${currentUser.first_name} ${currentUser.last_name}`.trim()
+              : null,
+          ]
+            .filter(Boolean)
+            .map((n) => n.toLowerCase().trim());
+
+          const filteredByAdmin = res.data.filter((c) => {
+            if (!adminIdentifiers.length) return true;
+            const compAdmin = (c.admin_name || "").toLowerCase().trim();
+            if (!compAdmin) return false;
+            return adminIdentifiers.some(
+              (id) =>
+                compAdmin === id ||
+                compAdmin.includes(id) ||
+                id.includes(compAdmin),
+            );
+          });
+
+          const sorted = [...filteredByAdmin].sort(
+            (a, b) => (Number(a.users_id) || 0) - (Number(b.users_id) || 0),
           );
-        });
 
-        const sorted = [...filteredByAdmin].sort(
-          (a, b) => (Number(a.users_id) || 0) - (Number(b.users_id) || 0),
-        );
-        const formatted = sorted.map((c, index) => {
-          const isActive = c.quit_date === null;
-          const ordinalNumber = (index + 1).toString();
-          return {
-            id: `${ordinalNumber}`,
-            rawId: c.users_id,
-            companyName: c.company_name || c.username || "-",
-            username: c.username,
-            phone: c.phone || "-",
-            address: c.address || "-",
-            startDate: c.start_date ? c.start_date.split("T")[0] : "-",
-            status: isActive ? "ปฏิบัติงาน" : "พ้นสภาพ",
-            active: isActive,
-            raw: c,
-          };
-        });
-        setCompanies(formatted);
-      } else {
+          const newIds = newlyAddedCompanyIdsRef.current;
+          const newItems = [];
+          const regularItems = [];
+
+          sorted.forEach((c) => {
+            if (newIds.includes(c.users_id)) {
+              newItems.push(c);
+            } else {
+              regularItems.push(c);
+            }
+          });
+
+          newItems.sort(
+            (a, b) => newIds.indexOf(a.users_id) - newIds.indexOf(b.users_id),
+          );
+          const finalOrderedList = [...newItems, ...regularItems];
+
+          const formatted = finalOrderedList.map((c, index) => {
+            const isActive = c.quit_date === null;
+            const ordinalNumber = (index + 1).toString();
+            return {
+              id: `${ordinalNumber}`,
+              rawId: c.users_id,
+              companyName: c.company_name || c.username || "-",
+              username: c.username,
+              phone: c.phone || "-",
+              address: c.address || "-",
+              startDate: c.start_date ? c.start_date.split("T")[0] : "-",
+              status: isActive ? "ปฏิบัติงาน" : "พ้นสภาพ",
+              active: isActive,
+              raw: c,
+            };
+          });
+          setCompanies(formatted);
+        } else {
+          setCompanies([]);
+        }
+      } catch (err) {
+        console.error("Error fetching companies:", err);
         setCompanies([]);
+      } finally {
+        setIsLoading(false);
       }
-    } catch (err) {
-      console.error("Error fetching companies:", err);
-      setCompanies([]);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [adminName, currentUser]);
+    },
+    [adminName, currentUser],
+  );
 
   useEffect(() => {
     fetchCompanies();
@@ -157,6 +199,7 @@ function AdminDashboard() {
       startDate: new Date().toISOString().split("T")[0],
       status: "ปฏิบัติงาน",
     });
+    setConfirmPassword("");
     setFormError("");
   };
 
@@ -208,8 +251,25 @@ function AdminDashboard() {
       return;
     }
 
+    if (!confirmPassword) {
+      setFormError("กรุณากรอกยืนยันรหัสผ่าน");
+      return;
+    }
+
+    if (formData.password !== confirmPassword) {
+      setFormError("รหัสผ่านและยืนยันรหัสผ่านไม่ตรงกัน กรุณาตรวจสอบอีกครั้ง");
+      return;
+    }
+
     if (!formData.companyName.trim()) {
       setFormError("กรุณากรอกชื่อบริษัท");
+      return;
+    }
+
+    if (!formData.phone || !PHONE_REGEX.test(formData.phone.trim())) {
+      setFormError(
+        "กรุณากรอกเบอร์โทรศัพท์ให้ถูกต้อง (ต้องขึ้นต้นด้วย 06, 08 หรือ 09 และมีความยาว 10 หลัก)",
+      );
       return;
     }
 
@@ -217,7 +277,7 @@ function AdminDashboard() {
       company_name: formData.companyName.trim(),
       first_name: formData.companyName.trim(),
       last_name: "-",
-      phone: formData.phone || "064-XXXXXXX",
+      phone: formData.phone.trim(),
       address: formData.address || "-",
       start_date: formData.startDate
         ? `${toISODate(formData.startDate)}T00:00:00`
@@ -235,7 +295,9 @@ function AdminDashboard() {
       );
       if (res.status === 201 || res.status === 200) {
         setIsAddModalOpen(false);
-        fetchCompanies();
+        clearForm();
+        const createdId = res.data?.users_id ?? res.data?.id;
+        fetchCompanies(createdId);
       }
     } catch (err) {
       console.error("Save company error:", err);
@@ -267,6 +329,7 @@ function AdminDashboard() {
   const handleOpenEditModal = () => {
     setIsViewModalOpen(false);
     setFormData((prev) => ({ ...prev, password: "" }));
+    setConfirmPassword("");
     setFormError("");
     setIsEditModalOpen(true);
   };
@@ -282,8 +345,26 @@ function AdminDashboard() {
       return;
     }
 
+    if (formData.password && formData.password.trim().length > 0) {
+      if (!confirmPassword) {
+        setFormError("กรุณากรอกยืนยันรหัสผ่าน");
+        return;
+      }
+      if (formData.password !== confirmPassword) {
+        setFormError("รหัสผ่านและยืนยันรหัสผ่านไม่ตรงกัน กรุณาตรวจสอบอีกครั้ง");
+        return;
+      }
+    }
+
     if (!formData.companyName.trim()) {
       setFormError("กรุณากรอกชื่อบริษัท");
+      return;
+    }
+
+    if (!formData.phone || !PHONE_REGEX.test(formData.phone.trim())) {
+      setFormError(
+        "กรุณากรอกเบอร์โทรศัพท์ให้ถูกต้อง (ต้องขึ้นต้นด้วย 06, 08 หรือ 09 และมีความยาว 10 หลัก)",
+      );
       return;
     }
 
@@ -291,7 +372,7 @@ function AdminDashboard() {
       company_name: formData.companyName.trim(),
       first_name: formData.companyName.trim(),
       last_name: "-",
-      phone: formData.phone,
+      phone: formData.phone.trim(),
       address: formData.address,
       start_date: formData.startDate
         ? `${toISODate(formData.startDate)}T00:00:00`
@@ -311,6 +392,7 @@ function AdminDashboard() {
       );
       if (res.status === 200) {
         setIsEditModalOpen(false);
+        setConfirmPassword("");
         fetchCompanies();
       }
     } catch (err) {
@@ -321,10 +403,102 @@ function AdminDashboard() {
     }
   };
 
+  const handleOpenDeleteModal = async (comp) => {
+    setSelectedCompany(comp);
+    setEditingId(comp.rawId);
+    setEditingDisplayId(comp.id);
+    setIsDeleteModalOpen(true);
+    setIsCheckingDelete(true);
+    setDeleteBlockReason(null);
+
+    try {
+      const compName = (comp.companyName || "").trim();
+      const compUser = (comp.username || "").trim();
+      const compId = comp.rawId;
+
+      const [hgRes, gRes, evRes] = await Promise.all([
+        axios.get("http://localhost:8081/api/headguard").catch(() => ({ data: [] })),
+        axios.get("http://localhost:8081/api/guard").catch(() => ({ data: [] })),
+        axios.get("http://localhost:8081/api/events").catch(() => ({ data: [] })),
+      ]);
+
+      const hgList = Array.isArray(hgRes.data) ? hgRes.data : [];
+      const gList = Array.isArray(gRes.data) ? gRes.data : [];
+      const evList = Array.isArray(evRes.data) ? evRes.data : [];
+
+      const companyHeadGuards = hgList.filter((h) => {
+        const hComp = (h.company_name || "").trim();
+        return (
+          hComp === compName ||
+          hComp === compUser ||
+          (h.company_id && Number(h.company_id) === Number(compId))
+        );
+      });
+
+      const companyGuards = gList.filter((g) => {
+        const gComp = (g.company_name || "").trim();
+        return (
+          gComp === compName ||
+          gComp === compUser ||
+          (g.company_id && Number(g.company_id) === Number(compId))
+        );
+      });
+
+      const companyEvents = evList.filter((e) => {
+        const eComp = (e.company_name || e.company || "").trim();
+        return (
+          (e.company_id && Number(e.company_id) === Number(compId)) ||
+          eComp === compName ||
+          eComp === compUser
+        );
+      });
+
+      // Active employee check: quit_date is null AND status is not "พ้นสภาพ"
+      const activeHeadGuards = companyHeadGuards.filter(
+        (h) => h.quit_date === null && h.status !== "พ้นสภาพ",
+      );
+      const activeGuards = companyGuards.filter(
+        (g) => g.quit_date === null && g.status !== "พ้นสภาพ",
+      );
+      // Active events check: status is NOT "COMPLETED" and NOT "CANCELLED"
+      const activeEvents = companyEvents.filter((e) => {
+        const s = (e.status || "").toUpperCase();
+        return s !== "COMPLETED" && s !== "CANCELLED";
+      });
+
+      const totalActiveEmployees = activeHeadGuards.length + activeGuards.length;
+      const totalActiveEvents = activeEvents.length;
+
+      if (totalActiveEmployees > 0 || totalActiveEvents > 0) {
+        setDeleteBlockReason({
+          activeEmployees: totalActiveEmployees,
+          activeHeadGuards: activeHeadGuards.length,
+          activeGuards: activeGuards.length,
+          activeEvents: totalActiveEvents,
+        });
+      } else {
+        setDeleteBlockReason(null);
+      }
+    } catch (err) {
+      console.error("Error checking deletability:", err);
+      setDeleteBlockReason({
+        error: "ไม่สามารถตรวจสอบข้อมูลพนักงานและงานอีเว้นท์ได้ โปรดลองอีกครั้ง",
+      });
+    } finally {
+      setIsCheckingDelete(false);
+    }
+  };
+
   const handleConfirmDelete = async () => {
     if (!editingId) return;
     try {
+      setIsDeleting(true);
       await axios.delete(`http://localhost:8081/api/company/${editingId}`);
+      if (newlyAddedCompanyIdsRef.current) {
+        newlyAddedCompanyIdsRef.current = newlyAddedCompanyIdsRef.current.filter(
+          (id) => Number(id) !== Number(editingId),
+        );
+      }
       setIsDeleteModalOpen(false);
       setIsViewModalOpen(false);
       fetchCompanies();
@@ -333,6 +507,8 @@ function AdminDashboard() {
       console.error("Delete company error:", err);
       const msg = err.response?.data?.message || "เกิดข้อผิดพลาดในการลบบริษัท";
       alert(msg);
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -431,7 +607,7 @@ function AdminDashboard() {
 
             {/* Table (Matching Fig 3.127) */}
             <div className="w-full border border-gray-400 rounded-xl overflow-hidden bg-white/90 shadow-sm">
-              <div className="grid grid-cols-[100px_2fr_1.5fr_1.2fr_1.2fr_50px] h-[44px] bg-blue-500 text-white items-center text-[13px] font-semibold px-5">
+              <div className="grid grid-cols-[100px_2fr_1.5fr_1.2fr_1.2fr_80px] h-[44px] bg-blue-500 text-white items-center text-[13px] font-semibold px-5">
                 <div className="text-center">ลำดับที่</div>
                 <div>บริษัทรักษาความปลอดภัย</div>
                 <div>เบอร์โทรศัพท์</div>
@@ -453,7 +629,7 @@ function AdminDashboard() {
                 filteredCompanies.map((comp) => (
                   <div
                     key={comp.id}
-                    className="grid grid-cols-[100px_2fr_1.5fr_1.2fr_1.2fr_50px] min-h-[48px] items-center border-t border-gray-300 text-[13px] px-5 hover:bg-blue-50/40 transition"
+                    className="grid grid-cols-[100px_2fr_1.5fr_1.2fr_1.2fr_80px] min-h-[48px] items-center border-t border-gray-300 text-[13px] px-5 hover:bg-blue-50/40 transition"
                   >
                     <div className="text-center font-medium text-gray-700 bg-gray-200/60 py-1 px-2.5 rounded-lg w-16 mx-auto">
                       {comp.id}
@@ -473,14 +649,22 @@ function AdminDashboard() {
                       />
                       <span className="text-xs font-medium">{comp.status}</span>
                     </div>
-                    <div className="flex justify-center items-center">
+                    <div className="flex justify-center items-center gap-1">
                       <button
                         type="button"
                         onClick={() => handleOpenViewModal(comp)}
-                        className="text-gray-500 hover:text-blue-600 p-2 rounded-lg hover:bg-gray-100 transition cursor-pointer"
+                        className="text-gray-500 hover:text-blue-600 p-1.5 rounded-lg hover:bg-gray-100 transition cursor-pointer"
                         title="ดูรายละเอียด"
                       >
                         <Eye size={18} />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleOpenDeleteModal(comp)}
+                        className="text-gray-500 hover:text-red-600 p-1.5 rounded-lg hover:bg-red-50 transition cursor-pointer"
+                        title="ลบบริษัทรักษาความปลอดภัย"
+                      >
+                        <Trash2 size={18} />
                       </button>
                     </div>
                   </div>
@@ -550,6 +734,37 @@ function AdminDashboard() {
                     />
                   </div>
 
+                  <div>
+                    <div className="flex items-center">
+                      <label className="w-[130px] font-semibold text-gray-700">
+                        ยืนยันรหัสผ่าน <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="password"
+                        name="confirmPassword"
+                        value={confirmPassword}
+                        onChange={(e) => {
+                          setConfirmPassword(e.target.value);
+                          setFormError("");
+                        }}
+                        placeholder="กรอกรหัสผ่านอีกครั้ง"
+                        className={`flex-1 h-[30px] border rounded-full px-3 outline-none text-xs ${
+                          confirmPassword && formData.password !== confirmPassword
+                            ? "border-red-500 focus:border-red-500"
+                            : "border-gray-400 focus:border-blue-500"
+                        }`}
+                      />
+                    </div>
+                    {confirmPassword && formData.password !== confirmPassword && (
+                      <div className="flex items-center mt-1">
+                        <span className="w-[130px]"></span>
+                        <span className="text-red-500 text-[11px] font-medium">
+                          รหัสผ่านไม่ตรงกัน
+                        </span>
+                      </div>
+                    )}
+                  </div>
+
                   <div className="flex items-center">
                     <label className="w-[130px] font-semibold text-gray-700">
                       ชื่อบริษัท <span className="text-red-500">*</span>
@@ -566,14 +781,19 @@ function AdminDashboard() {
 
                   <div className="flex items-center">
                     <label className="w-[130px] font-semibold text-gray-700">
-                      เบอร์โทรศัพท์
+                      เบอร์โทรศัพท์ <span className="text-red-500">*</span>
                     </label>
                     <input
                       type="text"
                       name="phone"
                       value={formData.phone}
-                      onChange={handleInputChange}
-                      placeholder="064-XXXXXXX"
+                      onChange={(e) => {
+                        const val = e.target.value.replace(/\D/g, "");
+                        setFormData((prev) => ({ ...prev, phone: val }));
+                        setFormError("");
+                      }}
+                      maxLength="10"
+                      placeholder="เช่น 0812345678"
                       className="flex-1 h-[30px] border border-gray-400 rounded-full px-3 outline-none focus:border-blue-500 text-xs"
                     />
                   </div>
@@ -776,7 +996,10 @@ function AdminDashboard() {
               <div className="flex items-center justify-between mt-6 pt-4 border-t border-gray-200">
                 <button
                   type="button"
-                  onClick={() => setIsDeleteModalOpen(true)}
+                  onClick={() => {
+                    setIsViewModalOpen(false);
+                    handleOpenDeleteModal(selectedCompany);
+                  }}
                   className="w-10 h-10 rounded-xl bg-red-100 hover:bg-red-200 text-red-600 flex items-center justify-center transition cursor-pointer"
                   title="ลบบริษัทรักษาความปลอดภัย"
                 >
@@ -865,6 +1088,37 @@ function AdminDashboard() {
                     />
                   </div>
 
+                  <div>
+                    <div className="flex items-center">
+                      <label className="w-[130px] font-semibold text-gray-700">
+                        ยืนยันรหัสผ่าน
+                      </label>
+                      <input
+                        type="password"
+                        name="confirmPassword"
+                        value={confirmPassword}
+                        onChange={(e) => {
+                          setConfirmPassword(e.target.value);
+                          setFormError("");
+                        }}
+                        placeholder="เว้นว่างหากไม่ต้องการเปลี่ยน"
+                        className={`flex-1 h-[30px] border rounded-full px-3 outline-none text-xs ${
+                          confirmPassword && formData.password !== confirmPassword
+                            ? "border-red-500 focus:border-red-500"
+                            : "border-gray-400 focus:border-blue-500"
+                        }`}
+                      />
+                    </div>
+                    {confirmPassword && formData.password !== confirmPassword && (
+                      <div className="flex items-center mt-1">
+                        <span className="w-[130px]"></span>
+                        <span className="text-red-500 text-[11px] font-medium">
+                          รหัสผ่านไม่ตรงกัน
+                        </span>
+                      </div>
+                    )}
+                  </div>
+
                   <div className="flex items-center">
                     <label className="w-[130px] font-semibold text-gray-700">
                       ชื่อบริษัท <span className="text-red-500">*</span>
@@ -880,13 +1134,19 @@ function AdminDashboard() {
 
                   <div className="flex items-center">
                     <label className="w-[130px] font-semibold text-gray-700">
-                      เบอร์โทรศัพท์
+                      เบอร์โทรศัพท์ <span className="text-red-500">*</span>
                     </label>
                     <input
                       type="text"
                       name="phone"
                       value={formData.phone}
-                      onChange={handleInputChange}
+                      onChange={(e) => {
+                        const val = e.target.value.replace(/\D/g, "");
+                        setFormData((prev) => ({ ...prev, phone: val }));
+                        setFormError("");
+                      }}
+                      maxLength="10"
+                      placeholder="เช่น 0812345678"
                       className="flex-1 h-[30px] border border-gray-400 rounded-full px-3 outline-none focus:border-blue-500 text-xs"
                     />
                   </div>
@@ -982,38 +1242,105 @@ function AdminDashboard() {
       {/* ================= MODAL: ยืนยันการลบบริษัท (DELETE - Fig 3.136) ================= */}
       {isDeleteModalOpen && (
         <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50">
-          <div className="bg-white rounded-2xl w-[440px] overflow-hidden shadow-2xl p-6 border border-red-300">
-            <div className="flex items-center gap-3 text-red-600 mb-4">
-              <AlertCircle size={28} />
-              <h3 className="text-lg font-bold text-gray-900">
-                ยืนยันการลบบริษัท
-              </h3>
-            </div>
+          <div className="bg-white rounded-2xl w-[480px] overflow-hidden shadow-2xl p-6 border border-red-300">
+            {isCheckingDelete ? (
+              <div className="py-8 flex flex-col items-center justify-center gap-3">
+                <div className="w-8 h-8 border-3 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+                <p className="text-sm text-gray-600 font-medium">
+                  กำลังตรวจสอบสถานะพนักงานและงานอีเว้นท์ของบริษัท...
+                </p>
+              </div>
+            ) : deleteBlockReason ? (
+              <div>
+                <div className="flex items-center gap-3 text-red-600 mb-4">
+                  <AlertCircle size={28} />
+                  <h3 className="text-lg font-bold text-gray-900">
+                    ไม่สามารถลบบริษัทได้
+                  </h3>
+                </div>
 
-            <p className="text-sm text-gray-600 mb-6">
-              คุณต้องการลบข้อมูลบริษัท{" "}
-              <span className="font-bold text-gray-900">
-                {selectedCompany?.companyName}
-              </span>{" "}
-              (ลำดับที่ {editingDisplayId}) ออกจากฐานข้อมูลใช่หรือไม่?
-            </p>
+                <div className="text-sm text-gray-700 mb-6 bg-red-50 p-4 rounded-xl border border-red-200">
+                  <p className="font-semibold text-red-700 mb-2">
+                    บริษัท "{selectedCompany?.companyName}" ยังมีรายการที่กำลังปฏิบัติงานหรือเปิดใช้งานอยู่ (Active):
+                  </p>
+                  <ul className="list-disc list-inside space-y-1.5 text-xs text-gray-700">
+                    {deleteBlockReason.activeEmployees > 0 && (
+                      <li>
+                        พนักงานที่ยังปฏิบัติงาน:{" "}
+                        <span className="font-semibold text-red-600">
+                          {deleteBlockReason.activeEmployees} คน
+                        </span>{" "}
+                        (หัวหน้าชุด {deleteBlockReason.activeHeadGuards} คน, รปภ. {deleteBlockReason.activeGuards} คน)
+                      </li>
+                    )}
+                    {deleteBlockReason.activeEvents > 0 && (
+                      <li>
+                        งานอีเว้นท์ที่กำลังดำเนินการ:{" "}
+                        <span className="font-semibold text-red-600">
+                          {deleteBlockReason.activeEvents} งาน
+                        </span>
+                      </li>
+                    )}
+                    {deleteBlockReason.error && (
+                      <li className="text-red-600">{deleteBlockReason.error}</li>
+                    )}
+                  </ul>
+                  <p className="mt-3 text-[11px] text-gray-500">
+                    * ระบบอนุญาตให้ลบได้เฉพาะบริษัทที่ไม่มีพนักงานและไม่มีงานอีเว้นท์ที่ยัง Active อยู่เท่านั้น
+                  </p>
+                </div>
 
-            <div className="flex items-center justify-end gap-3">
-              <button
-                type="button"
-                onClick={() => setIsDeleteModalOpen(false)}
-                className="h-[36px] px-5 rounded-xl border border-gray-300 text-gray-700 text-xs font-semibold hover:bg-gray-100 transition cursor-pointer"
-              >
-                ยกเลิก
-              </button>
-              <button
-                type="button"
-                onClick={handleConfirmDelete}
-                className="h-[36px] px-6 rounded-xl bg-red-600 text-white text-xs font-semibold hover:bg-red-700 transition shadow cursor-pointer"
-              >
-                ยืนยันการลบ
-              </button>
-            </div>
+                <div className="flex justify-end">
+                  <button
+                    type="button"
+                    onClick={() => setIsDeleteModalOpen(false)}
+                    className="h-[36px] px-6 rounded-xl bg-gray-200 hover:bg-gray-300 text-gray-700 text-xs font-semibold transition cursor-pointer"
+                  >
+                    ปิด
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div>
+                <div className="flex items-center gap-3 text-red-600 mb-4">
+                  <AlertCircle size={28} />
+                  <h3 className="text-lg font-bold text-gray-900">
+                    ยืนยันการลบบริษัท
+                  </h3>
+                </div>
+
+                <p className="text-sm text-gray-600 mb-3">
+                  คุณต้องการลบข้อมูลบริษัท{" "}
+                  <span className="font-bold text-gray-900">
+                    {selectedCompany?.companyName}
+                  </span>{" "}
+                  (ลำดับที่ {editingDisplayId}) ออกจากฐานข้อมูลใช่หรือไม่?
+                </p>
+
+                <div className="mb-6 p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-xs text-emerald-800">
+                  ✓ บริษัทนี้ไม่มีพนักงานและไม่มีงานอีเว้นท์ที่ยัง Active อยู่ สามารถลบได้
+                </div>
+
+                <div className="flex items-center justify-end gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setIsDeleteModalOpen(false)}
+                    disabled={isDeleting}
+                    className="h-[36px] px-5 rounded-xl border border-gray-300 text-gray-700 text-xs font-semibold hover:bg-gray-100 transition cursor-pointer"
+                  >
+                    ยกเลิก
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleConfirmDelete}
+                    disabled={isDeleting}
+                    className="h-[36px] px-6 rounded-xl bg-red-600 text-white text-xs font-semibold hover:bg-red-700 transition shadow cursor-pointer disabled:opacity-50 flex items-center gap-2"
+                  >
+                    {isDeleting ? "กำลังลบ..." : "ยืนยันการลบ"}
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}
