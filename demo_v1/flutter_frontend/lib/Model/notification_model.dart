@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 enum NotificationType {
   sos,
   urgent,
+  teamReport,
   approval,
   announcement,
   info;
@@ -16,6 +17,11 @@ enum NotificationType {
       case 'warning':
       case 'alert':
         return NotificationType.urgent;
+      case 'team':
+      case 'team_report':
+      case 'teamreport':
+      case 'report':
+        return NotificationType.teamReport;
       case 'approval':
       case 'approved':
       case 'success':
@@ -50,9 +56,65 @@ class NotificationItem {
   });
 
   bool get isHighPriority =>
-      type == NotificationType.sos || type == NotificationType.urgent;
+      type == NotificationType.sos ||
+      type == NotificationType.urgent ||
+      (isTeamReport && urgency == 'ด่วนมาก');
 
   bool get isUrgent => isHighPriority;
+
+  bool get isTeamReport =>
+      type == NotificationType.teamReport ||
+      data['type'] == 'team_report' ||
+      data['type'] == 'team' ||
+      data.containsKey('report_type');
+
+  String? get reportType =>
+      data['report_type']?.toString() ??
+      (isTeamReport ? 'รายงานทั่วไป' : null);
+
+  String? get urgency => data['urgency']?.toString();
+
+  String? get location => data['location']?.toString();
+
+  String? get reportDescription =>
+      data['description']?.toString() ??
+      data['report_desc']?.toString() ??
+      (isTeamReport ? body : null);
+
+  String? get guardName => data['guard_name']?.toString();
+
+  String? get guardPhone => data['guard_phone']?.toString();
+
+  String? get eventName => data['event_name']?.toString();
+
+  List<String> get images {
+    final List<String> list = [];
+    if (data['images'] is List) {
+      for (final item in data['images'] as List) {
+        if (item != null && item.toString().isNotEmpty) {
+          list.add(item.toString());
+        }
+      }
+    } else if (data['images'] is String && data['images'].toString().isNotEmpty) {
+      list.add(data['images'].toString());
+    }
+
+    if (data['local_images'] is List) {
+      for (final item in data['local_images'] as List) {
+        if (item != null && item.toString().isNotEmpty && !list.contains(item.toString())) {
+          list.add(item.toString());
+        }
+      }
+    }
+
+    if (data['report_img'] != null &&
+        data['report_img'].toString().isNotEmpty &&
+        !list.contains(data['report_img'].toString()) &&
+        data['report_img'] != 'default_report.jpg') {
+      list.add(data['report_img'].toString());
+    }
+    return list;
+  }
 
   NotificationItem copyWith({
     String? id,
@@ -81,6 +143,8 @@ class NotificationItem {
         return Icons.emergency_rounded;
       case NotificationType.urgent:
         return Icons.warning_rounded;
+      case NotificationType.teamReport:
+        return Icons.shield_outlined;
       case NotificationType.approval:
         return Icons.done_all_rounded;
       case NotificationType.announcement:
@@ -96,6 +160,13 @@ class NotificationItem {
         return const Color(0xFFDC2626); // Strong Red
       case NotificationType.urgent:
         return const Color(0xFFEF4444); // Red
+      case NotificationType.teamReport:
+        if (urgency == 'ด่วนมาก') {
+          return const Color(0xFFDC2626);
+        } else if (urgency == 'ปานกลาง') {
+          return const Color(0xFFF97316);
+        }
+        return const Color(0xFF2563EB); // Team Blue / Amber
       case NotificationType.approval:
         return const Color(0xFF16A34A); // Green
       case NotificationType.announcement:
@@ -111,6 +182,13 @@ class NotificationItem {
         return const Color(0xFFFFE4E6); // Light Rose Red
       case NotificationType.urgent:
         return const Color(0xFFFEE2E2); // Light Red / Pink
+      case NotificationType.teamReport:
+        if (urgency == 'ด่วนมาก') {
+          return const Color(0xFFFEE2E2);
+        } else if (urgency == 'ปานกลาง') {
+          return const Color(0xFFFFEDD5);
+        }
+        return const Color(0xFFDBEAFE); // Light Team Blue
       case NotificationType.approval:
         return const Color(0xFFDCFCE7); // Light Green
       case NotificationType.announcement:

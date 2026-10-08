@@ -2,7 +2,6 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import '../Model/notification_model.dart';
 import '../Service/api_exception.dart';
 import '../Service/event_service.dart';
 
@@ -230,19 +229,24 @@ class _ReportSituationScreenState extends State<ReportSituationScreen> {
         imageFiles: _attachedImages,
       );
 
-      // Create confirmation notification in NotificationService
-      NotificationService.instance.addNotification(
-        NotificationItem(
-          id: 'rep-${DateTime.now().millisecondsSinceEpoch}',
-          title: 'รายงานสถานการณ์สำเร็จ',
-          body:
-              'ศูนย์ควบคุมได้รับรายงาน "$_selectedCategory" บริเวณ ${_locationController.text.trim()} แล้ว',
-          timestamp: DateTime.now(),
-          type: _selectedUrgency == 'ด่วนมาก'
-              ? NotificationType.urgent
-              : NotificationType.info,
-          isRead: false,
-        ),
+      final imageNames = _attachedImages.map((e) => e.name).toList();
+      final localImagePaths = _attachedImages.map((e) => e.path).toList();
+
+      // Send Team Report notification with full rich details (report type, images, description, location)
+      await NotificationService.instance.addTeamReportNotification(
+        reportType: _selectedCategory!,
+        urgency: _selectedUrgency,
+        location: _locationController.text.trim(),
+        description: _descriptionController.text.trim(),
+        guardName: user.fullName.isNotEmpty
+            ? user.fullName
+            : (user.username.isNotEmpty ? user.username : 'เจ้าหน้าที่ รปภ.'),
+        guardPhone: user.phone,
+        eventName: widget.event.title,
+        images: imageNames,
+        localImages: localImagePaths,
+        shiftId: widget.shift.shiftId,
+        isNormal: isNormal,
       );
 
       if (mounted) {

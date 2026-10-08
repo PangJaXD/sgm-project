@@ -58,11 +58,34 @@ class NotificationService extends ChangeNotifier {
     final now = DateTime.now();
     _notifications.addAll([
       NotificationItem(
+        id: 'mock-team-1',
+        title: '📋 รายงานจากทีม: พบบุคคลน่าสงสัย',
+        body:
+            'เจ้าหน้าที่ สมชาย ใจดี รายงานสถานการณ์ "พบบุคคลน่าสงสัย" บริเวณ ประตูทางเข้าหลัก (Gate 1)',
+        timestamp: now.subtract(const Duration(minutes: 5)),
+        type: NotificationType.teamReport,
+        isRead: false,
+        data: {
+          'type': 'team_report',
+          'report_type': 'พบบุคคลน่าสงสัย',
+          'urgency': 'ปานกลาง',
+          'location': 'ประตูทางเข้าหลัก (Gate 1)',
+          'description':
+              'พบบุคคลต้องสงสัยไม่มีบัตรประจำตัวพยายามเข้าพื้นที่หวงห้าม เจ้าหน้าที่ได้เข้าตรวจสอบและเชิญออกนอกพื้นที่เรียบร้อยแล้ว อยู่ระหว่างเฝ้าระวังต่อเนื่อง',
+          'guard_name': 'สมชาย ใจดี',
+          'guard_phone': '089-123-4567',
+          'event_name': 'งานดนตรีและอาหารประจำปี',
+          'images': ['reports/sample_guard_patrol.jpg'],
+          'is_normal': false,
+          'report_time': '10:45 น.',
+        },
+      ),
+      NotificationItem(
         id: 'mock-1',
         title: 'อัปเดตจุดตรวจด่วน!',
         body:
             'มีการเปลี่ยนแปลงจุดเดินตรวจบริเวณประตูหลัก กรุณาตรวจสอบ View Assignment ในระบบ',
-        timestamp: now.subtract(const Duration(minutes: 10)),
+        timestamp: now.subtract(const Duration(minutes: 15)),
         type: NotificationType.urgent,
         isRead: false,
       ),
@@ -322,6 +345,70 @@ class NotificationService extends ChangeNotifier {
     );
   }
 
+  /// Trigger a Team Report notification sent from a guard
+  Future<void> addTeamReportNotification({
+    required String reportType,
+    required String urgency,
+    required String location,
+    required String description,
+    required String guardName,
+    String? guardPhone,
+    String? eventName,
+    List<String> images = const [],
+    List<String> localImages = const [],
+    int? shiftId,
+    int? reportId,
+    bool isNormal = true,
+  }) async {
+    final now = DateTime.now();
+    final notifId = 'team-rep-${now.millisecondsSinceEpoch}';
+    final isCritical = urgency == 'ด่วนมาก' || !isNormal;
+    final title = isCritical
+        ? '🚨 รายงานจากทีม (ด่วนมาก): $reportType'
+        : '📋 รายงานจากทีม: $reportType';
+    final body =
+        'เจ้าหน้าที่ $guardName รายงานเหตุการณ์ "$reportType" ณ $location';
+
+    final item = NotificationItem(
+      id: notifId,
+      title: title,
+      body: body,
+      timestamp: now,
+      type: NotificationType.teamReport,
+      isRead: false,
+      data: {
+        'type': 'team_report',
+        'report_id': reportId ?? 0,
+        'report_type': reportType,
+        'urgency': urgency,
+        'location': location,
+        'description': description,
+        'guard_name': guardName,
+        'guard_phone': guardPhone ?? '',
+        'event_name': eventName ?? '',
+        'shift_id': shiftId ?? 0,
+        'images': images,
+        'local_images': localImages,
+        'is_normal': isNormal,
+        'report_time':
+            '${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')} น.',
+      },
+    );
+
+    addNotification(item);
+
+    // If critical/urgent, trigger heads-up high priority notification with sound & vibration
+    if (isCritical) {
+      await showHighPriorityNotification(
+        id: (now.millisecondsSinceEpoch ~/ 1000) & 0x7FFFFFFF,
+        title: title,
+        body: body,
+        type: NotificationType.urgent,
+        payload: notifId,
+      );
+    }
+  }
+
   // State manipulation methods
   void addNotification(NotificationItem item) {
     _notifications.insert(0, item);
@@ -374,6 +461,29 @@ class NotificationService extends ChangeNotifier {
         type: type,
         isRead: false,
       ),
+    );
+  }
+
+  /// Simulate a Team Report notification for instant testing
+  void simulateTestTeamReportNotification({
+    String reportType = 'พบบุคคลน่าสงสัย',
+    String urgency = 'ปานกลาง',
+    String location = 'ประตูทางเข้าหลัก ทิศตะวันออก (Gate 1)',
+    String description =
+        'พบบุคคลแต่งกายมิดชิดไม่มีป้ายแสดงตน พยายามเดินเข้าพื้นที่หวงห้ามหลังเวที ได้เข้าตักเตือนและเชิญออกนอกพื้นที่เรียบร้อยแล้ว',
+    String guardName = 'สมชาย ใจดี (รปภ.)',
+    List<String> images = const ['reports/sample_guard_patrol.jpg'],
+  }) {
+    addTeamReportNotification(
+      reportType: reportType,
+      urgency: urgency,
+      location: location,
+      description: description,
+      guardName: guardName,
+      guardPhone: '089-123-4567',
+      eventName: 'งานคอนเสิร์ต & เทศกาลอาหาร',
+      images: images,
+      isNormal: false,
     );
   }
 }

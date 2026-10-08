@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import '../Model/auth_api_screen.dart';
 import '../Model/notification_model.dart';
@@ -69,8 +70,372 @@ class _NotificationScreenState extends State<NotificationScreen> {
     }
   }
 
+  void _showTeamReportNotificationDetail(NotificationItem item) {
+    _service.markAsRead(item.id);
+
+    final isCritical = item.isHighPriority || item.urgency == 'ด่วนมาก';
+    final isMedium = item.urgency == 'ปานกลาง';
+    final urgencyColor = isCritical
+        ? const Color(0xFFEF4444)
+        : (isMedium ? const Color(0xFFF97316) : const Color(0xFF2563EB));
+    final urgencyBg = isCritical
+        ? const Color(0xFFFEE2E2)
+        : (isMedium ? const Color(0xFFFFEDD5) : const Color(0xFFDBEAFE));
+    final user = UserService().currentUser;
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (sheetCtx) => DraggableScrollableSheet(
+        initialChildSize: 0.85,
+        minChildSize: 0.5,
+        maxChildSize: 0.95,
+        builder: (_, scrollController) => Container(
+          padding: const EdgeInsets.fromLTRB(22, 16, 22, 32),
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+          ),
+          child: ListView(
+            controller: scrollController,
+            children: [
+              Center(
+                child: Container(
+                  width: 44,
+                  height: 5,
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade300,
+                    borderRadius: BorderRadius.circular(3),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 18),
+
+              // Header: Icon + Category + Team Badge + Urgency
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: urgencyBg,
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(
+                      isCritical
+                          ? Icons.warning_rounded
+                          : (isMedium
+                              ? Icons.error_outline_rounded
+                              : Icons.shield_outlined),
+                      color: urgencyColor,
+                      size: 28,
+                    ),
+                  ),
+                  const SizedBox(width: 14),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 3,
+                              ),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFEFF6FF),
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(
+                                  color: const Color(0xFFBFDBFE),
+                                ),
+                              ),
+                              child: const Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    Icons.shield_outlined,
+                                    size: 13,
+                                    color: Color(0xFF2563EB),
+                                  ),
+                                  SizedBox(width: 4),
+                                  Text(
+                                    'รายงานจากทีม',
+                                    style: TextStyle(
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.bold,
+                                      color: Color(0xFF2563EB),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            if (item.urgency != null &&
+                                item.urgency!.isNotEmpty)
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 8,
+                                  vertical: 3,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: urgencyBg,
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Text(
+                                  item.urgency!,
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.bold,
+                                    color: urgencyColor,
+                                  ),
+                                ),
+                              ),
+                          ],
+                        ),
+                        const SizedBox(height: 6),
+                        Text(
+                          item.reportType ?? item.title,
+                          style: const TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF1E293B),
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          item.timeAgo,
+                          style: const TextStyle(
+                            fontSize: 12.5,
+                            color: Color(0xFF64748B),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 18),
+              const Divider(),
+              const SizedBox(height: 14),
+
+              // Reporter & Location Info Box
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF8FAFC),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: const Color(0xFFE2E8F0)),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'ข้อมูลผู้รายงานและพื้นที่',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF334155),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    _buildDetailRow(
+                      icon: Icons.category_rounded,
+                      label: 'ประเภทรายงาน:',
+                      value: item.reportType ?? 'ตรวจความเรียบร้อยทั่วไป',
+                    ),
+                    const SizedBox(height: 8),
+                    _buildDetailRow(
+                      icon: Icons.person_rounded,
+                      label: 'เจ้าหน้าที่:',
+                      value: item.guardName ?? 'เจ้าหน้าที่ รปภ.',
+                    ),
+                    if (item.guardPhone != null &&
+                        item.guardPhone!.isNotEmpty) ...[
+                      const SizedBox(height: 8),
+                      _buildDetailRow(
+                        icon: Icons.phone_rounded,
+                        label: 'เบอร์ติดต่อ:',
+                        value: item.guardPhone!,
+                      ),
+                    ],
+                    if (item.eventName != null &&
+                        item.eventName!.isNotEmpty) ...[
+                      const SizedBox(height: 8),
+                      _buildDetailRow(
+                        icon: Icons.event_rounded,
+                        label: 'งาน/อีเวนต์:',
+                        value: item.eventName!,
+                      ),
+                    ],
+                    if (item.location != null &&
+                        item.location!.isNotEmpty) ...[
+                      const SizedBox(height: 8),
+                      _buildDetailRow(
+                        icon: Icons.location_on_rounded,
+                        label: 'จุดเกิดเหตุ:',
+                        value: item.location!,
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+
+              const SizedBox(height: 18),
+
+              // Description Box
+              const Text(
+                'รายละเอียดสถานการณ์',
+                style: TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF1E293B),
+                ),
+              ),
+              const SizedBox(height: 8),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF8FAFC),
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(color: const Color(0xFFE2E8F0)),
+                ),
+                child: Text(
+                  (item.reportDescription != null &&
+                          item.reportDescription!.isNotEmpty)
+                      ? item.reportDescription!
+                      : item.body,
+                  style: const TextStyle(
+                    fontSize: 14.5,
+                    color: Color(0xFF334155),
+                    height: 1.5,
+                  ),
+                ),
+              ),
+
+              // Image Gallery
+              if (item.images.isNotEmpty) ...[
+                const SizedBox(height: 20),
+                Row(
+                  children: [
+                    const Icon(
+                      Icons.photo_library_rounded,
+                      size: 18,
+                      color: Color(0xFF2563EB),
+                    ),
+                    const SizedBox(width: 6),
+                    Text(
+                      'รูปภาพหลักฐาน (${item.images.length} รูป)',
+                      style: const TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF1E293B),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 10),
+                SizedBox(
+                  height: 130,
+                  child: ListView.separated(
+                    scrollDirection: Axis.horizontal,
+                    itemCount: item.images.length,
+                    separatorBuilder: (ctx, idx) =>
+                        const SizedBox(width: 12),
+                    itemBuilder: (ctx, i) {
+                      final raw = item.images[i];
+                      return GestureDetector(
+                        onTap: () => _showFullImagePreview(raw),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(14),
+                          child: Container(
+                            width: 130,
+                            height: 130,
+                            color: const Color(0xFFF1F5F9),
+                            child: _buildEvidenceImageThumbnail(raw, size: 130),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ],
+
+              const SizedBox(height: 28),
+
+              // Actions
+              if (user.isHeadGuard) ...[
+                SizedBox(
+                  width: double.infinity,
+                  height: 48,
+                  child: ElevatedButton.icon(
+                    onPressed: () {
+                      Navigator.pop(sheetCtx);
+                      setState(() => _headGuardTab = 0);
+                      _loadTeamReports();
+                    },
+                    icon: const Icon(
+                      Icons.shield_outlined,
+                      color: Colors.white,
+                      size: 20,
+                    ),
+                    label: const Text(
+                      'เปิดดูแท็บรายงานจากทีมทั้งหมด',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 15.5,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF2563EB),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 10),
+              ],
+
+              SizedBox(
+                width: double.infinity,
+                height: 48,
+                child: OutlinedButton(
+                  onPressed: () => Navigator.pop(sheetCtx),
+                  style: OutlinedButton.styleFrom(
+                    side: const BorderSide(color: Color(0xFFCBD5E1)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                  ),
+                  child: const Text(
+                    'รับทราบรายงาน / ปิด',
+                    style: TextStyle(
+                      color: Color(0xFF475569),
+                      fontSize: 15.5,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   void _showNotificationDetail(NotificationItem item) {
     _service.markAsRead(item.id);
+
+    // If this is a team report notification, show the rich team report sheet
+    if (item.isTeamReport) {
+      _showTeamReportNotificationDetail(item);
+      return;
+    }
 
     showModalBottomSheet(
       context: context,
@@ -153,17 +518,57 @@ class _NotificationScreenState extends State<NotificationScreen> {
             if (item.data.isNotEmpty) ...[
               const SizedBox(height: 16),
               Container(
-                padding: const EdgeInsets.all(12),
+                padding: const EdgeInsets.all(14),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFF1F5F9),
-                  borderRadius: BorderRadius.circular(12),
+                  color: const Color(0xFFF8FAFC),
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(color: const Color(0xFFE2E8F0)),
                 ),
-                child: Text(
-                  'ข้อมูลเพิ่มเติม: ${item.data}',
-                  style: const TextStyle(
-                    fontSize: 12,
-                    color: Color(0xFF64748B),
-                  ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'ข้อมูลเพิ่มเติม',
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF475569),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    ...item.data.entries
+                        .where((e) =>
+                            e.key != 'type' &&
+                            e.key != 'images' &&
+                            e.key != 'local_images' &&
+                            e.value != null &&
+                            e.value.toString().isNotEmpty)
+                        .map((e) => Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 2),
+                              child: Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    '${e.key}: ',
+                                    style: const TextStyle(
+                                      fontSize: 12.5,
+                                      fontWeight: FontWeight.w600,
+                                      color: Color(0xFF64748B),
+                                    ),
+                                  ),
+                                  Expanded(
+                                    child: Text(
+                                      e.value.toString(),
+                                      style: const TextStyle(
+                                        fontSize: 12.5,
+                                        color: Color(0xFF1E293B),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            )),
+                  ],
                 ),
               ),
             ],
@@ -424,6 +829,8 @@ class _NotificationScreenState extends State<NotificationScreen> {
                             _service.clearAll();
                           } else if (value == 'refresh_team') {
                             _loadTeamReports();
+                          } else if (value == 'test_team_report') {
+                            _service.simulateTestTeamReportNotification();
                           } else if (value == 'test_fcm') {
                             _service.simulateTestNotification(
                               title: 'อัปเดตงานด่วน!',
@@ -468,6 +875,20 @@ class _NotificationScreenState extends State<NotificationScreen> {
                                 ),
                                 SizedBox(width: 10),
                                 Text('อ่านทั้งหมด'),
+                              ],
+                            ),
+                          ),
+                          const PopupMenuItem(
+                            value: 'test_team_report',
+                            child: Row(
+                              children: [
+                                Icon(
+                                  Icons.shield_outlined,
+                                  size: 20,
+                                  color: Color(0xFFD97706),
+                                ),
+                                SizedBox(width: 10),
+                                Text('จำลองรายงานจากทีม (Team Report)'),
                               ],
                             ),
                           ),
@@ -783,17 +1204,25 @@ class _NotificationScreenState extends State<NotificationScreen> {
           borderRadius: BorderRadius.circular(18),
           child: Stack(
             children: [
-              // Left blue accent indicator for unread notifications (matching mockup)
-              if (!item.isRead)
+              // Left border indicator for unread or urgent notifications
+              if (!item.isRead || item.isHighPriority)
                 Positioned(
                   left: 0,
                   top: 0,
                   bottom: 0,
                   child: Container(
                     width: 4.5,
-                    decoration: const BoxDecoration(
-                      color: Color(0xFF2563EB),
-                      borderRadius: BorderRadius.horizontal(
+                    decoration: BoxDecoration(
+                      color: item.isTeamReport
+                          ? (item.urgency == 'ด่วนมาก'
+                              ? const Color(0xFFDC2626)
+                              : (item.urgency == 'ปานกลาง'
+                                  ? const Color(0xFFF97316)
+                                  : const Color(0xFF2563EB)))
+                          : (item.isUrgent
+                              ? const Color(0xFFDC2626)
+                              : const Color(0xFF2563EB)),
+                      borderRadius: const BorderRadius.horizontal(
                         right: Radius.circular(3),
                       ),
                     ),
@@ -809,23 +1238,36 @@ class _NotificationScreenState extends State<NotificationScreen> {
                     child: Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // Left Icon Circle Badge
-                        Container(
-                          width: 48,
-                          height: 48,
-                          decoration: BoxDecoration(
-                            color: item.iconBgColor,
-                            shape: BoxShape.circle,
+                        // Left Avatar / Image / Icon Circle
+                        if (item.isTeamReport && item.images.isNotEmpty)
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(12),
+                            child: SizedBox(
+                              width: 48,
+                              height: 48,
+                              child: _buildEvidenceImageThumbnail(
+                                item.images.first,
+                                size: 48,
+                              ),
+                            ),
+                          )
+                        else
+                          Container(
+                            width: 48,
+                            height: 48,
+                            decoration: BoxDecoration(
+                              color: item.iconBgColor,
+                              shape: BoxShape.circle,
+                            ),
+                            child: Icon(
+                              item.icon,
+                              color: item.iconColor,
+                              size: 24,
+                            ),
                           ),
-                          child: Icon(
-                            item.icon,
-                            color: item.iconColor,
-                            size: 24,
-                          ),
-                        ),
                         const SizedBox(width: 14),
 
-                        // Title, Timestamp, and Body
+                        // Title, Badges, Reporter Info, Description
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -836,7 +1278,9 @@ class _NotificationScreenState extends State<NotificationScreen> {
                                 children: [
                                   Expanded(
                                     child: Text(
-                                      item.title,
+                                      item.isTeamReport
+                                          ? (item.reportType ?? item.title)
+                                          : item.title,
                                       style: TextStyle(
                                         fontSize: 15.5,
                                         fontWeight: item.isRead
@@ -847,6 +1291,37 @@ class _NotificationScreenState extends State<NotificationScreen> {
                                     ),
                                   ),
                                   const SizedBox(width: 8),
+                                  if (item.isTeamReport &&
+                                      item.urgency != null &&
+                                      item.urgency!.isNotEmpty) ...[
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 7,
+                                        vertical: 2,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: item.urgency == 'ด่วนมาก'
+                                            ? const Color(0xFFFEE2E2)
+                                            : (item.urgency == 'ปานกลาง'
+                                                ? const Color(0xFFFFEDD5)
+                                                : const Color(0xFFDBEAFE)),
+                                        borderRadius: BorderRadius.circular(6),
+                                      ),
+                                      child: Text(
+                                        item.urgency!,
+                                        style: TextStyle(
+                                          fontSize: 10.5,
+                                          fontWeight: FontWeight.bold,
+                                          color: item.urgency == 'ด่วนมาก'
+                                              ? const Color(0xFFDC2626)
+                                              : (item.urgency == 'ปานกลาง'
+                                                  ? const Color(0xFFF97316)
+                                                  : const Color(0xFF2563EB)),
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 6),
+                                  ],
                                   Text(
                                     item.timeAgo,
                                     style: TextStyle(
@@ -861,17 +1336,102 @@ class _NotificationScreenState extends State<NotificationScreen> {
                                   ),
                                 ],
                               ),
+
+                              // Team notification badge row
+                              if (item.isTeamReport) ...[
+                                const SizedBox(height: 4),
+                                Row(
+                                  children: [
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 6,
+                                        vertical: 2,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: const Color(0xFFEFF6FF),
+                                        borderRadius: BorderRadius.circular(6),
+                                        border: Border.all(
+                                          color: const Color(0xFFBFDBFE),
+                                        ),
+                                      ),
+                                      child: const Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Icon(
+                                            Icons.shield_outlined,
+                                            size: 11,
+                                            color: Color(0xFF2563EB),
+                                          ),
+                                          SizedBox(width: 3),
+                                          Text(
+                                            'รายงานจากทีม',
+                                            style: TextStyle(
+                                              fontSize: 10,
+                                              fontWeight: FontWeight.bold,
+                                              color: Color(0xFF2563EB),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                    if (item.guardName != null &&
+                                        item.guardName!.isNotEmpty) ...[
+                                      const SizedBox(width: 6),
+                                      Expanded(
+                                        child: Text(
+                                          'ผู้รายงาน: ${item.guardName} • ${item.location ?? ""}',
+                                          style: const TextStyle(
+                                            fontSize: 11.5,
+                                            color: Color(0xFF64748B),
+                                          ),
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                      ),
+                                    ],
+                                  ],
+                                ),
+                              ],
+
                               const SizedBox(height: 6),
 
                               // Body Description
                               Text(
-                                item.body,
+                                (item.reportDescription != null &&
+                                        item.reportDescription!.isNotEmpty)
+                                    ? item.reportDescription!
+                                    : item.body,
                                 style: const TextStyle(
                                   fontSize: 13.5,
                                   color: Color(0xFF64748B),
                                   height: 1.45,
                                 ),
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
                               ),
+
+                              // Image count badge if images exist
+                              if (item.images.isNotEmpty) ...[
+                                const SizedBox(height: 6),
+                                Row(
+                                  children: [
+                                    const Icon(
+                                      Icons.photo_camera,
+                                      size: 13,
+                                      color: Color(0xFF64748B),
+                                    ),
+                                    const SizedBox(width: 4),
+                                    Text(
+                                      '${item.images.length} รูปภาพแนบ',
+                                      style: const TextStyle(
+                                        fontSize: 11.5,
+                                        color: Color(0xFF64748B),
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
                             ],
                           ),
                         ),
@@ -887,6 +1447,17 @@ class _NotificationScreenState extends State<NotificationScreen> {
     );
   }
 
+  bool _isLocalFile(String path) {
+    if (path.isEmpty) return false;
+    if (path.startsWith('http://') || path.startsWith('https://')) return false;
+    try {
+      final f = File(path);
+      return f.existsSync();
+    } catch (_) {
+      return false;
+    }
+  }
+
   String _formatImageUrl(String raw) {
     if (raw.isEmpty || raw == 'default_report.jpg') return '';
     if (raw.startsWith('http://') || raw.startsWith('https://')) return raw;
@@ -896,7 +1467,56 @@ class _NotificationScreenState extends State<NotificationScreen> {
     return '$root/uploads/$raw';
   }
 
-  void _showFullImagePreview(String imageUrl) {
+  Widget _buildImagePlaceholder() {
+    return const Center(
+      child: Icon(
+        Icons.image_outlined,
+        color: Colors.grey,
+        size: 28,
+      ),
+    );
+  }
+
+  Widget _buildErrorImageContainer() {
+    return Container(
+      color: Colors.black87,
+      padding: const EdgeInsets.all(32),
+      child: const Center(
+        child: Text(
+          'ไม่สามารถแสดงรูปภาพได้',
+          style: TextStyle(color: Colors.white),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildEvidenceImageThumbnail(String path, {double size = 120}) {
+    if (_isLocalFile(path)) {
+      return Image.file(
+        File(path),
+        width: size,
+        height: size,
+        fit: BoxFit.cover,
+        errorBuilder: (context, error, stackTrace) => _buildImagePlaceholder(),
+      );
+    }
+    final fullUrl = _formatImageUrl(path);
+    if (fullUrl.isNotEmpty) {
+      return Image.network(
+        fullUrl,
+        width: size,
+        height: size,
+        fit: BoxFit.cover,
+        errorBuilder: (context, error, stackTrace) => _buildImagePlaceholder(),
+      );
+    }
+    return _buildImagePlaceholder();
+  }
+
+  void _showFullImagePreview(String imagePathOrUrl) {
+    final isLocal = _isLocalFile(imagePathOrUrl);
+    final fullUrl = isLocal ? '' : _formatImageUrl(imagePathOrUrl);
+
     showDialog(
       context: context,
       builder: (dialogCtx) => Dialog(
@@ -910,20 +1530,19 @@ class _NotificationScreenState extends State<NotificationScreen> {
               child: InteractiveViewer(
                 minScale: 0.5,
                 maxScale: 4.0,
-                child: Image.network(
-                  imageUrl,
-                  fit: BoxFit.contain,
-                  errorBuilder: (ctx, err, stack) => Container(
-                    color: Colors.black87,
-                    padding: const EdgeInsets.all(32),
-                    child: const Center(
-                      child: Text(
-                        'ไม่สามารถแสดงรูปภาพได้',
-                        style: TextStyle(color: Colors.white),
+                child: isLocal
+                    ? Image.file(
+                        File(imagePathOrUrl),
+                        fit: BoxFit.contain,
+                        errorBuilder: (ctx, err, stack) =>
+                            _buildErrorImageContainer(),
+                      )
+                    : Image.network(
+                        fullUrl,
+                        fit: BoxFit.contain,
+                        errorBuilder: (ctx, err, stack) =>
+                            _buildErrorImageContainer(),
                       ),
-                    ),
-                  ),
-                ),
               ),
             ),
             IconButton(
