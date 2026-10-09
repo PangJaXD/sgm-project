@@ -66,10 +66,14 @@ class _HomeScreenState extends State<HomeScreen> {
       final assignmentFuture = _eventService.fetchActiveAssignment(
         user.usersId,
       );
+      final syncShiftsFuture = user.isGuard && user.usersId > 0
+          ? _eventService.syncGuardAppliedShifts(user.usersId)
+          : Future.value(<int>{});
 
       final results = await Future.wait([
         eventsFuture.catchError((_) => <EventModel>[]),
         assignmentFuture.catchError((_) => null),
+        syncShiftsFuture.catchError((_) => <int>{}),
       ]);
 
       if (mounted) {

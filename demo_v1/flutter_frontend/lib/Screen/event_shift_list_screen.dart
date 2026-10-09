@@ -29,6 +29,9 @@ class _EventShiftListScreenState extends State<EventShiftListScreen> {
     setState(() => _isLoading = true);
     try {
       final user = UserService().currentUser;
+      if (user.usersId > 0 && user.isGuard) {
+        await _eventService.syncGuardAppliedShifts(user.usersId);
+      }
       final shifts = await _eventService.fetchEventShifts(
         widget.event.id,
         guardId: user.usersId,
@@ -237,7 +240,7 @@ class _EventShiftListScreenState extends State<EventShiftListScreen> {
 
   Widget _buildShiftCard(ShiftTimeModel shift) {
     const primaryBlue = Color(0xFF2563EB);
-    final isRequested = _eventService.requestedShiftIds.contains(shift.shiftId);
+    final isRequested = _eventService.requestedShiftIds.contains(shift.shiftId) || shift.isApplied;
     final isFull = shift.isFull && !isRequested;
 
     return Container(

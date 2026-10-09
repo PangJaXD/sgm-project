@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import '../Model/auth_api_screen.dart';
 import '../Model/user_model.dart';
 import './api_exception.dart';
+import './event_service.dart';
 
 class UserService extends ChangeNotifier {
   static final UserService _instance = UserService._internal();
@@ -73,6 +74,13 @@ class UserService extends ChangeNotifier {
 
     if (data['users_id'] != null && data['role'] != null) {
       await fetchUserProfile(data['users_id'] as int, userRole);
+    }
+
+    final currentId = data['users_id'] is int
+        ? data['users_id'] as int
+        : (int.tryParse(data['users_id']?.toString() ?? '') ?? _currentUser.usersId);
+    if (currentId > 0 && userRole.toUpperCase() == 'GUARD') {
+      await EventService.instance.syncGuardAppliedShifts(currentId);
     }
   }
 
@@ -162,6 +170,7 @@ class UserService extends ChangeNotifier {
       address: '-',
       role: 'GUARD',
     );
+    EventService.instance.clearRequestedShifts();
     notifyListeners();
   }
 }

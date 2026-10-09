@@ -17,6 +17,7 @@ class ShiftTimeModel {
   final int currentGuards;
   final String dutyLocation;
   final String status; // OPEN, FULL, CLOSED
+  final bool isApplied;
 
   ShiftTimeModel({
     required this.shiftId,
@@ -30,6 +31,7 @@ class ShiftTimeModel {
     this.currentGuards = 0,
     this.dutyLocation = 'จุดตรวจหลัก',
     this.status = 'OPEN',
+    this.isApplied = false,
   });
 
   factory ShiftTimeModel.fromJson(Map<String, dynamic> json) {
@@ -44,6 +46,9 @@ class ShiftTimeModel {
     if (eTime == null && sTime != null && dur != null) {
       eTime = sTime.add(Duration(hours: dur));
     }
+    final isAppliedVal = json['is_applied'] == true ||
+        json['isApplied'] == true ||
+        json['applied'] == true;
     return ShiftTimeModel(
       shiftId: shiftIdVal,
       eventId: json['event_id'] ?? 0,
@@ -58,6 +63,7 @@ class ShiftTimeModel {
       currentGuards: json['current_guards'] ?? 0,
       dutyLocation: json['duty_location'] ?? json['location'] ?? 'จุดตรวจหลัก',
       status: json['status'] ?? 'OPEN',
+      isApplied: isAppliedVal,
     );
   }
 
@@ -293,6 +299,39 @@ class EventService {
   // Set of requested shift IDs by guard in current session
   final Set<int> requestedShiftIds = {};
 
+  void clearRequestedShifts() {
+    requestedShiftIds.clear();
+  }
+
+  /// Sync all applied shift IDs for a guard: GET /api/assignment/guard/{guardId}
+  Future<Set<int>> syncGuardAppliedShifts(int guardId) async {
+    if (guardId <= 0) return requestedShiftIds;
+    try {
+      final response = await _createDio().get('/assignment/guard/$guardId');
+      if (response.statusCode == 200 && response.data is List) {
+        final list = response.data as List;
+        requestedShiftIds.clear();
+        for (var item in list) {
+          if (item is Map) {
+            final status = item['assignment_status']?.toString().toUpperCase();
+            final shiftId = item['shift_id'] ?? item['shiftId'];
+            if (shiftId != null && status != 'WITHDRAWN') {
+              final parsedId = int.tryParse(shiftId.toString());
+              if (parsedId != null && parsedId > 0) {
+                requestedShiftIds.add(parsedId);
+              }
+            }
+          }
+        }
+      }
+    } on DioException catch (e) {
+      debugPrint('[EventService] syncGuardAppliedShifts Dio error: ${e.message}');
+    } catch (e) {
+      debugPrint('[EventService] syncGuardAppliedShifts error: $e');
+    }
+    return requestedShiftIds;
+  }
+
   /// 1. Fetch all events from Spring Boot database: GET /api/events
   Future<List<EventModel>> fetchEvents({
     int? guardId,
@@ -374,7 +413,15 @@ class EventService {
       if (response.statusCode == 200 && response.data is List) {
         final list = (response.data as List)
             .map(
-              (json) => ShiftTimeModel.fromJson(json as Map<String, dynamic>),
+              (json) {
+                final shift = ShiftTimeModel.fromJson(
+                  json as Map<String, dynamic>,
+                );
+                if (shift.isApplied) {
+                  requestedShiftIds.add(shift.shiftId);
+                }
+                return shift;
+              },
             )
             .toList();
 

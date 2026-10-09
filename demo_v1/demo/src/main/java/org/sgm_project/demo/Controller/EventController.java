@@ -5,6 +5,7 @@ import org.sgm_project.demo.Model.Events;
 import org.sgm_project.demo.Service.EventService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -79,6 +80,7 @@ public class EventController {
 
     // 6. ดึงกะงานทั้งหมดของอีเวนต์นี้ (GET /api/events/{id}/shifts)
     @GetMapping("/{id}/shifts")
+    @Transactional(readOnly = true)
     public ResponseEntity<List<java.util.Map<String, Object>>> getEventShifts(
             @PathVariable Integer id,
             @RequestParam(required = false) Integer guardId,
@@ -122,14 +124,22 @@ public class EventController {
                 map.put("maximum_guards", st.getMaximum_guards());
 
                 int currentCount = 0;
+                boolean isApplied = false;
                 if (st.getAssignment() != null) {
                     currentCount = (int) st.getAssignment().stream()
                             .filter(a -> !"WITHDRAWN".equalsIgnoreCase(a.getAssignment_status()))
                             .count();
+                    if (guardId != null) {
+                        isApplied = st.getAssignment().stream()
+                                .anyMatch(a -> a.getGuard() != null
+                                        && guardId.equals(a.getGuard().getUsers_id())
+                                        && !"WITHDRAWN".equalsIgnoreCase(a.getAssignment_status()));
+                    }
                 }
                 map.put("current_guards", currentCount);
                 map.put("available_slots", Math.max(0, st.getMaximum_guards() - currentCount));
                 map.put("status", currentCount >= st.getMaximum_guards() ? "FULL" : "OPEN");
+                map.put("is_applied", isApplied);
 
                 String dutyLoc = event.getLocation();
                 map.put("duty_location", dutyLoc != null ? dutyLoc : "จุดตรวจหลัก");
@@ -153,14 +163,22 @@ public class EventController {
                     map.put("maximum_guards", st.getMaximum_guards());
 
                     int currentCount = 0;
+                    boolean isApplied = false;
                     if (st.getAssignment() != null) {
                         currentCount = (int) st.getAssignment().stream()
                                 .filter(a -> !"WITHDRAWN".equalsIgnoreCase(a.getAssignment_status()))
                                 .count();
+                        if (guardId != null) {
+                            isApplied = st.getAssignment().stream()
+                                    .anyMatch(a -> a.getGuard() != null
+                                            && guardId.equals(a.getGuard().getUsers_id())
+                                            && !"WITHDRAWN".equalsIgnoreCase(a.getAssignment_status()));
+                        }
                     }
                     map.put("current_guards", currentCount);
                     map.put("available_slots", Math.max(0, st.getMaximum_guards() - currentCount));
                     map.put("status", currentCount >= st.getMaximum_guards() ? "FULL" : "OPEN");
+                    map.put("is_applied", isApplied);
 
                     String dutyLoc = event.getLocation();
                     map.put("duty_location", dutyLoc != null ? dutyLoc : "จุดตรวจหลัก");
