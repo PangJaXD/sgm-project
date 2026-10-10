@@ -22,6 +22,38 @@ function LoginPage() {
   const USERNAME_REGEX = /^[a-zA-Z0-9!#_.-]{4,30}$/;
   const PASSWORD_REGEX = /^[a-zA-Z0-9!#_.]{8,16}$/;
 
+  const ROLE_THEMES = {
+    company: {
+      bgClass: "bg-[#2864e8]",
+      hoverBgClass: "hover:bg-[#1d55cf]",
+      textClass: "text-[#2864e8]",
+      focusBorderClass: "focus-within:border-[#2864e8]",
+      focusRingClass: "focus-within:ring-blue-100",
+      title: "บริษัท รักษาความปลอดภัย",
+      backendRole: "COMPANY",
+    },
+    headguard: {
+      bgClass: "bg-green-600",
+      hoverBgClass: "hover:bg-green-700",
+      textClass: "text-green-600",
+      focusBorderClass: "focus-within:border-green-600",
+      focusRingClass: "focus-within:ring-green-100",
+      title: "หัวหน้าชุด รปภ. (Security Head)",
+      backendRole: "HEAD_GUARD",
+    },
+    admin: {
+      bgClass: "bg-red-600",
+      hoverBgClass: "hover:bg-red-700",
+      textClass: "text-red-600",
+      focusBorderClass: "focus-within:border-red-600",
+      focusRingClass: "focus-within:ring-red-100",
+      title: "ผู้ดูแลระบบ EventGuard System (EGS)",
+      backendRole: "ADMIN",
+    },
+  };
+
+  const currentTheme = ROLE_THEMES[role] || ROLE_THEMES.company;
+
   const handleLogin = async (e) => {
     e.preventDefault();
     setError("");
@@ -72,10 +104,30 @@ function LoginPage() {
       const response = await axios.post(`${API_URL}/api/auth/login`, {
         username: username.trim(),
         password: password,
+        role: currentTheme.backendRole,
       });
 
       const data = response.data;
       console.log("Login success:", data);
+
+      // ตรวจสอบว่าบทบาทที่ได้จากระบบ ตรงกับประเภทผู้ใช้ที่เลือกไว้หรือไม่
+      if (data.role !== currentTheme.backendRole) {
+        const actualRoleName =
+          data.role === "HEAD_GUARD"
+            ? "หัวหน้าชุด รปภ. (Security Head)"
+            : data.role === "COMPANY"
+              ? "บริษัท รักษาความปลอดภัย"
+              : data.role === "ADMIN"
+                ? "ผู้ดูแลระบบ (Admin)"
+                : data.role === "GUARD"
+                  ? "เจ้าหน้าที่ รปภ. (Guard)"
+                  : "ไม่สามารถระบุได้";
+
+        setError(
+          `บัญชีผู้ใช้นี้ไม่มีสิทธิ์เข้าสู่ระบบในฐานะ "${currentTheme.title}" (ประเภทบัญชีของคุณคือ: ${actualRoleName}) กรุณาเลือกประเภทผู้ใช้ให้ตรงกับบัญชี`,
+        );
+        return;
+      }
 
       localStorage.setItem("user", JSON.stringify(data));
 
@@ -142,7 +194,9 @@ function LoginPage() {
         {/* LEFT SIDE */}
         {/* ================================================= */}
 
-        <div className="w-full md:w-[38%] bg-[#2864e8] text-white flex flex-col justify-between p-8">
+        <div
+          className={`w-full md:w-[38%] ${currentTheme.bgClass} text-white flex flex-col justify-between p-8 transition-colors duration-300`}
+        >
           {/* Logo */}
           <div className="flex items-start gap-3">
             <div className="w-11 h-11 rounded-xl border-2 border-white/30 flex items-center justify-center">
@@ -185,7 +239,7 @@ function LoginPage() {
                   cursor-pointer
                   ${
                     role === "company"
-                      ? "bg-white text-[#2864e8]"
+                      ? `bg-white ${currentTheme.textClass} font-semibold shadow-md`
                       : "bg-white/15 text-white hover:bg-white/25"
                   }
                 `}
@@ -215,7 +269,7 @@ function LoginPage() {
                   cursor-pointer
                   ${
                     role === "headguard"
-                      ? "bg-white text-[#2864e8]"
+                      ? `bg-white ${currentTheme.textClass} font-semibold shadow-md`
                       : "bg-white/15 text-white hover:bg-white/25"
                   }
                 `}
@@ -233,9 +287,9 @@ function LoginPage() {
                 setRole(role === "admin" ? "company" : "admin");
                 setError("");
               }}
-              className={`block w-full mt-4 py-1.5 px-3 rounded-lg text-center text-xs transition ${
+              className={`block w-full mt-4 py-1.5 px-3 rounded-lg text-center text-xs transition cursor-pointer ${
                 role === "admin"
-                  ? "bg-white text-[#2864e8] font-bold shadow"
+                  ? `bg-white ${currentTheme.textClass} font-bold shadow-md`
                   : "text-white/90 underline underline-offset-2 hover:text-white"
               }`}
             >
@@ -256,14 +310,10 @@ function LoginPage() {
 
               <p className="mt-3 text-sm leading-6 text-gray-600">
                 กรุณากรอกข้อมูลเพื่อเข้าใช้งานในฐานะ{" "}
-                <span className="text-[#2864e8] font-medium">
-                  {role === "company"
-                    ? "บริษัท รักษาความปลอดภัย"
-                    : role === "admin"
-                      ? "ผู้ดูแลระบบ EventGuard System (EGS)"
-                      : "ผู้ดูแล Security Head"}
+                <span className={`${currentTheme.textClass} font-semibold`}>
+                  {currentTheme.title}
                 </span>
-                {role !== "admin" && (
+                {role !== "admin" ? (
                   <>
                     <br />
                     หรือ{" "}
@@ -273,9 +323,24 @@ function LoginPage() {
                         setRole("admin");
                         setError("");
                       }}
-                      className="text-[#2864e8] hover:underline inline"
+                      className={`${currentTheme.textClass} hover:underline inline cursor-pointer font-medium`}
                     >
                       ดูแลระบบ EventGuard System (EGS)
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <br />
+                    หรือ{" "}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setRole("company");
+                        setError("");
+                      }}
+                      className={`${currentTheme.textClass} hover:underline inline cursor-pointer font-medium`}
+                    >
+                      เข้าสู่ระบบในฐานะ บริษัท หรือ Security Head
                     </button>
                   </>
                 )}
@@ -293,7 +358,9 @@ function LoginPage() {
                   บัญชีผู้ใช้งาน
                 </label>
 
-                <div className="h-12 flex items-center gap-3 px-4 rounded-lg border border-gray-400 bg-gray-50 focus-within:border-[#2864e8] focus-within:ring-2 focus-within:ring-blue-100 transition">
+                <div
+                  className={`h-12 flex items-center gap-3 px-4 rounded-lg border border-gray-400 bg-gray-50 ${currentTheme.focusBorderClass} focus-within:ring-2 ${currentTheme.focusRingClass} transition`}
+                >
                   <UserRound size={20} className="text-gray-500 shrink-0" />
 
                   <input
@@ -318,7 +385,9 @@ function LoginPage() {
                   </label>
                 </div>
 
-                <div className="h-12 flex items-center gap-3 px-4 rounded-lg border border-gray-400 bg-gray-50 focus-within:border-[#2864e8] focus-within:ring-2 focus-within:ring-blue-100 transition">
+                <div
+                  className={`h-12 flex items-center gap-3 px-4 rounded-lg border border-gray-400 bg-gray-50 ${currentTheme.focusBorderClass} focus-within:ring-2 ${currentTheme.focusRingClass} transition`}
+                >
                   <LockKeyhole size={20} className="text-gray-500 shrink-0" />
 
                   <input
@@ -350,7 +419,7 @@ function LoginPage() {
               {/* Login */}
               <button
                 type="submit"
-                className="block mx-auto w-32 h-12 rounded-lg bg-[#2864e8] text-white text-sm font-semibold hover:bg-[#1d55cf] active:scale-95 transition cursor-pointer"
+                className={`block mx-auto w-32 h-12 rounded-lg ${currentTheme.bgClass} text-white text-sm font-semibold ${currentTheme.hoverBgClass} active:scale-95 transition cursor-pointer shadow-md`}
               >
                 เข้าสู่ระบบ
               </button>
