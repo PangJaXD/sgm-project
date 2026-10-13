@@ -1,7 +1,11 @@
 import { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import Flatpickr from "react-flatpickr";
-import { toISODate, calculateEndTimeFromDuration } from "../../utils/formatters";
+import {
+  toISODate,
+  calculateEndTimeFromDuration,
+  addDaysToDateStr,
+} from "../../utils/formatters";
 import {
   X,
   MapPin,
@@ -270,14 +274,44 @@ export default function AddEventModal({
   };
 
   const handleAddShift = () => {
+    let nextStartTime = "";
+    let nextShiftDate = startDate || "";
+    let isAutoTime = false;
+
+    if (shifts.length > 0) {
+      const lastShift = shifts[shifts.length - 1];
+      if (lastShift.shiftDate) {
+        nextShiftDate = lastShift.shiftDate;
+      }
+      if (
+        lastShift.startTime &&
+        lastShift.duration !== undefined &&
+        lastShift.duration !== null &&
+        lastShift.duration !== ""
+      ) {
+        const { endTime, isNextDay } = calculateEndTimeFromDuration(
+          lastShift.startTime,
+          lastShift.duration,
+        );
+        if (endTime) {
+          nextStartTime = endTime;
+          isAutoTime = true;
+        }
+        if (isNextDay && nextShiftDate) {
+          nextShiftDate = addDaysToDateStr(nextShiftDate, 1);
+        }
+      }
+    }
+
     setShifts([
       ...shifts,
       {
         guards: "",
-        shiftDate: startDate || "",
-        startTime: "",
+        shiftDate: nextShiftDate,
+        startTime: nextStartTime,
         duration: 8,
         headGuard: "",
+        isAutoTime: isAutoTime,
       },
     ]);
   };
@@ -303,6 +337,44 @@ export default function AddEventModal({
   const updateShift = (index, field, value) => {
     const newShifts = [...shifts];
     newShifts[index][field] = value;
+
+    if (field === "startTime") {
+      newShifts[index].isAutoTime = false;
+    }
+
+    // Auto-update subsequent shifts if their time was auto-generated or empty
+    if (field === "startTime" || field === "duration") {
+      let currentShift = newShifts[index];
+      for (let i = index + 1; i < newShifts.length; i++) {
+        const nextShift = newShifts[i];
+        if (nextShift.isAutoTime || !nextShift.startTime) {
+          if (
+            currentShift.startTime &&
+            currentShift.duration !== undefined &&
+            currentShift.duration !== null &&
+            currentShift.duration !== ""
+          ) {
+            const { endTime, isNextDay } = calculateEndTimeFromDuration(
+              currentShift.startTime,
+              currentShift.duration,
+            );
+            if (endTime) {
+              nextShift.startTime = endTime;
+              nextShift.isAutoTime = true;
+              if (currentShift.shiftDate) {
+                nextShift.shiftDate = isNextDay
+                  ? addDaysToDateStr(currentShift.shiftDate, 1)
+                  : currentShift.shiftDate;
+              }
+            }
+          }
+          currentShift = nextShift;
+        } else {
+          break;
+        }
+      }
+    }
+
     setShifts(newShifts);
   };
 
@@ -341,7 +413,7 @@ export default function AddEventModal({
       event_detail: eventDetail,
       required_tools: requiredTools.filter((t) => t.trim() !== ""),
       provided_tools: providedTools.filter((t) => t.trim() !== ""),
-      shift_times: shifts.map((st) => ({
+      shift_times: shifts.map(({ isAutoTime, ...st }) => ({
         ...st,
         shiftDate: toISODate(st.shiftDate),
         duration: parseInt(st.duration, 10) || 8,

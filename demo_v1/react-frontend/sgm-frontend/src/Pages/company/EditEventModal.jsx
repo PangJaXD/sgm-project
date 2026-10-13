@@ -15,7 +15,11 @@ import {
   Loader2,
 } from "lucide-react";
 import Flatpickr from "react-flatpickr";
-import { toISODate, calculateEndTimeFromDuration } from "../../utils/formatters";
+import {
+  toISODate,
+  calculateEndTimeFromDuration,
+  addDaysToDateStr,
+} from "../../utils/formatters";
 import {
   MapContainer,
   TileLayer,
@@ -331,16 +335,52 @@ export default function EditEventModal({
   };
 
   const handleAddShift = () => {
+    let nextStartTime = "";
+    let nextShiftDate = startDate || "";
+    let isAutoTime = false;
+
+    if (shifts.length > 0) {
+      const lastShift = shifts[shifts.length - 1];
+      if (lastShift.shiftDate) {
+        nextShiftDate = lastShift.shiftDate;
+      }
+      if (
+        lastShift.startTime &&
+        lastShift.duration !== undefined &&
+        lastShift.duration !== null &&
+        lastShift.duration !== ""
+      ) {
+        const { endTime, isNextDay } = calculateEndTimeFromDuration(
+          lastShift.startTime,
+          lastShift.duration,
+        );
+        if (endTime) {
+          nextStartTime = endTime;
+          isAutoTime = true;
+        }
+        if (isNextDay && nextShiftDate) {
+          nextShiftDate = addDaysToDateStr(nextShiftDate, 1);
+        }
+      }
+    }
+
     setShifts([
       ...shifts,
       {
         guards: "",
-        shiftDate: startDate || "",
-        startTime: "",
+        shiftDate: nextShiftDate,
+        startTime: nextStartTime,
         duration: 8,
         headGuard: "",
+        isAutoTime: isAutoTime,
       },
     ]);
+  };
+
+  const handleRemoveShift = (index) => {
+    if (shifts.length > 1) {
+      setShifts(shifts.filter((_, idx) => idx !== index));
+    }
   };
 
   const updateTool = (type, index, value) => {
@@ -358,6 +398,44 @@ export default function EditEventModal({
   const updateShift = (index, field, value) => {
     const newShifts = [...shifts];
     newShifts[index][field] = value;
+
+    if (field === "startTime") {
+      newShifts[index].isAutoTime = false;
+    }
+
+    // Auto-update subsequent shifts if their time was auto-generated or empty
+    if (field === "startTime" || field === "duration") {
+      let currentShift = newShifts[index];
+      for (let i = index + 1; i < newShifts.length; i++) {
+        const nextShift = newShifts[i];
+        if (nextShift.isAutoTime || !nextShift.startTime) {
+          if (
+            currentShift.startTime &&
+            currentShift.duration !== undefined &&
+            currentShift.duration !== null &&
+            currentShift.duration !== ""
+          ) {
+            const { endTime, isNextDay } = calculateEndTimeFromDuration(
+              currentShift.startTime,
+              currentShift.duration,
+            );
+            if (endTime) {
+              nextShift.startTime = endTime;
+              nextShift.isAutoTime = true;
+              if (currentShift.shiftDate) {
+                nextShift.shiftDate = isNextDay
+                  ? addDaysToDateStr(currentShift.shiftDate, 1)
+                  : currentShift.shiftDate;
+              }
+            }
+          }
+          currentShift = nextShift;
+        } else {
+          break;
+        }
+      }
+    }
+
     setShifts(newShifts);
   };
 
@@ -396,7 +474,7 @@ export default function EditEventModal({
       event_detail: eventDetail,
       required_tools: requiredTools.filter((t) => t.trim() !== ""),
       provided_tools: providedTools.filter((t) => t.trim() !== ""),
-      shift_times: shifts.map((st) => ({
+      shift_times: shifts.map(({ isAutoTime, ...st }) => ({
         ...st,
         shiftDate: toISODate(st.shiftDate),
         duration: parseInt(st.duration, 10) || 8,
@@ -722,9 +800,21 @@ export default function EditEventModal({
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 w-full mx-auto">
             {shifts.map((shift, idx) => (
               <div key={idx} className="flex flex-col gap-3 bg-white p-2">
-                <p className="text-[#2864e8] font-semibold">
-                  ช่วงเวลาปฏิบัติงานกะที่ {idx + 1}:
-                </p>
+                <div className="flex items-center justify-between">
+                  <p className="text-[#2864e8] font-semibold">
+                    ช่วงเวลาปฏิบัติงานกะที่ {idx + 1}:
+                  </p>
+                  {shifts.length > 1 && (
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveShift(idx)}
+                      className="text-gray-400 hover:text-red-500 text-xs flex items-center gap-1 cursor-pointer"
+                      title="ลบกะนี้"
+                    >
+                      <Trash size={14} /> ลบกะ
+                    </button>
+                  )}
+                </div>
 
                 <div className="grid grid-cols-[140px_1fr] items-center gap-2">
                   <label className="font-semibold">

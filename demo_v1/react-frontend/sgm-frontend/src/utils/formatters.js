@@ -270,3 +270,44 @@ export const formatShiftDurationRange = (startTime, duration, fallbackEndTime = 
 
   return `${start} น.`;
 };
+
+/**
+ * Adds or subtracts days from a date string (supports "DD/MM/YYYY" or "YYYY-MM-DD").
+ * Preserves the input format and calendar year (CE or Buddhist era).
+ */
+export const addDaysToDateStr = (dateStr, days = 1) => {
+  if (!dateStr) return "";
+  const trimmed = dateStr.toString().trim();
+  const dmyMatch = trimmed.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+  if (dmyMatch) {
+    let year = parseInt(dmyMatch[3], 10);
+    const isBuddhist = year >= 2400;
+    const ceYear = isBuddhist ? year - 543 : year;
+    const month = parseInt(dmyMatch[2], 10) - 1;
+    const day = parseInt(dmyMatch[1], 10);
+    const d = new Date(ceYear, month, day);
+    d.setDate(d.getDate() + days);
+    const nextD = String(d.getDate()).padStart(2, "0");
+    const nextM = String(d.getMonth() + 1).padStart(2, "0");
+    const finalYear = isBuddhist ? d.getFullYear() + 543 : d.getFullYear();
+    return `${nextD}/${nextM}/${finalYear}`;
+  }
+
+  const ymdMatch = trimmed.match(/^(\d{4})[-/](\d{1,2})[-/](\d{1,2})/);
+  if (ymdMatch) {
+    let year = parseInt(ymdMatch[1], 10);
+    const isBuddhist = year >= 2400;
+    const ceYear = isBuddhist ? year - 543 : year;
+    const month = parseInt(ymdMatch[2], 10) - 1;
+    const day = parseInt(ymdMatch[3], 10);
+    const d = new Date(ceYear, month, day);
+    d.setDate(d.getDate() + days);
+    const nextD = String(d.getDate()).padStart(2, "0");
+    const nextM = String(d.getMonth() + 1).padStart(2, "0");
+    const finalYear = isBuddhist ? d.getFullYear() + 543 : d.getFullYear();
+    return `${nextD}/${nextM}/${finalYear}`;
+  }
+
+  return trimmed;
+};
+
