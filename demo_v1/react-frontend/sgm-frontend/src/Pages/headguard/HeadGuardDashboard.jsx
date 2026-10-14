@@ -443,6 +443,37 @@ function HeadGuardDashboard() {
     setIsConfirmStatusModalOpen(true);
   };
 
+  // ยกเลิก / ปลดเจ้าหน้าที่ออกจากกะงาน (Kick out guard)
+  const handleCancelGuardAssignment = async (assignment) => {
+    if (isNotStartedYet) {
+      alert("ยังไม่ถึงเวลาเริ่มงาน ไม่สามารถดำเนินการได้");
+      return;
+    }
+
+    const guardDisplayName = assignment.guardName || "เจ้าหน้าที่ท่านนี้";
+    const isConfirmed = window.confirm(
+      `คุณแน่ใจหรือไม่ว่าต้องการยกเลิก ${guardDisplayName} ออกจากกะงานนี้?`,
+    );
+    if (!isConfirmed) return;
+
+    try {
+      await axios.put(
+        `http://localhost:8081/api/headguard-dashboard/assignments/${assignment.id}/status`,
+        { status: "WITHDRAWN" },
+      );
+      alert(`ยกเลิก ${guardDisplayName} ออกจากกะงานเรียบร้อยแล้ว`);
+      if (selectedShiftDetail?.shiftId) {
+        fetchAssignments(selectedShiftDetail.shiftId, selectedShiftDetail);
+      }
+      fetchShifts();
+    } catch (error) {
+      console.error("Error cancelling guard assignment:", error);
+      const msg =
+        error.response?.data?.message || "เกิดข้อผิดพลาดในการยกเลิกเจ้าหน้าที่";
+      alert(msg);
+    }
+  };
+
   // เปิด Modal ยืนยันสลับตัวจริง -> ตัวสำรอง (Reserve)
   const handleOpenSwitchToReserve = (assignment) => {
     if (isNotStartedYet) {
@@ -1017,20 +1048,20 @@ function HeadGuardDashboard() {
                         </div>
                         <div className="flex justify-center">
                           <button
-                            onClick={() => handleOpenSwitchToReserve(item)}
+                            onClick={() => handleCancelGuardAssignment(item)}
                             disabled={isNotStartedYet}
                             title={
                               isNotStartedYet
-                                ? "ยังไม่ถึงเวลาเริ่มงาน ไม่สามารถสลับไปตัวสำรองได้"
-                                : "สลับเป็นเจ้าหน้าที่ตัวสำรอง"
+                                ? "ยังไม่ถึงเวลาเริ่มงาน ไม่สามารถยกเลิกเจ้าหน้าที่ได้"
+                                : "ยกเลิกเจ้าหน้าที่ออกจากกะงาน"
                             }
                             className={`${
                               isNotStartedYet
                                 ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                                : "bg-amber-500 hover:bg-amber-600 text-white cursor-pointer"
-                            } px-2.5 py-1 rounded-full text-[10px] font-semibold transition border border-amber-600 flex items-center justify-center gap-1`}
+                                : "bg-red-500 hover:bg-red-600 text-white cursor-pointer"
+                            } px-3 py-1 rounded-full text-[10px] font-semibold transition border border-red-600 flex items-center justify-center gap-1`}
                           >
-                            สลับเป็นตัวสำรอง
+                            ยกเลิก
                           </button>
                         </div>
                       </div>
