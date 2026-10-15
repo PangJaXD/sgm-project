@@ -1,5 +1,14 @@
 import { useState, useEffect } from "react";
-import { X, MapPin, PenSquare, Search, Loader2, Locate } from "lucide-react";
+import {
+  X,
+  MapPin,
+  PenSquare,
+  Search,
+  Loader2,
+  Locate,
+  Clock,
+  CheckSquare,
+} from "lucide-react";
 import { formatTitleAndName } from "../../utils/formatters";
 import {
   MapContainer,
@@ -64,6 +73,103 @@ export default function AssignTaskModal({
 
   // ตั้งค่าจุดกึ่งกลางเริ่มต้นสำรอง (มหาวิทยาลัยแม่โจ้)
   const defaultCenter = [18.895116, 99.012072];
+
+  // ข้อมูลการมอบหมายงานเดิมของเจ้าหน้าที่ในอีเวนต์เดียวกัน
+  const [previousAssignment, setPreviousAssignment] = useState(null);
+  const [usePreviousAssignment, setUsePreviousAssignment] = useState(false);
+  const [isLoadingPrevious, setIsLoadingPrevious] = useState(false);
+
+  // ดึงประวัติการมอบหมายงานเดิมของเจ้าหน้าที่ในอีเวนต์เดียวกันจากกะอื่น
+  useEffect(() => {
+    if (!isOpen || !assignmentData?.guardId) {
+      setPreviousAssignment(null);
+      setUsePreviousAssignment(false);
+      return;
+    }
+
+    let isMounted = true;
+    const fetchPreviousAssignment = async () => {
+      try {
+        setIsLoadingPrevious(true);
+        const guardId = assignmentData.guardId;
+        const currentEventId = assignmentData.eventId;
+        const currentShiftId = assignmentData.shiftId;
+
+        const res = await fetch(
+          `http://localhost:8081/api/assignment/guard/${guardId}`,
+        );
+        if (!res.ok) return;
+        const list = await res.json();
+        if (!Array.isArray(list)) return;
+
+        // คัดกรองงานที่:
+        // 1. อยู่ในอีเวนต์เดียวกัน (ถ้ามี currentEventId)
+        // 2. ไม่ใช่กะปัจจุบัน
+        // 3. มีพิกัด latitude/longitude ที่ถูกต้อง
+        // 4. ไม่ถูกยกเลิก (WITHDRAWN)
+        const matched = list.filter((a) => {
+          if (a.assignment_status === "WITHDRAWN") return false;
+          const aLat = parseFloat(a.latitude);
+          const aLng = parseFloat(a.longitude);
+          if (isNaN(aLat) || isNaN(aLng) || (aLat === 0 && aLng === 0))
+            return false;
+
+          const isSameEvent =
+            currentEventId &&
+            a.event_id &&
+            Number(a.event_id) === Number(currentEventId);
+          const isDifferentShift =
+            !currentShiftId || Number(a.shift_id) !== Number(currentShiftId);
+
+          return isSameEvent && isDifferentShift;
+        });
+
+        // จัดเรียงหากะล่าสุด (shift_id หรือ assignment_id มากที่สุด)
+        matched.sort((a, b) => {
+          const shiftDiff =
+            (Number(b.shift_id) || 0) - (Number(a.shift_id) || 0);
+          if (shiftDiff !== 0) return shiftDiff;
+          return (
+            (Number(b.assignment_id) || 0) - (Number(a.assignment_id) || 0)
+          );
+        });
+
+        if (isMounted && matched.length > 0) {
+          setPreviousAssignment(matched[0]);
+        } else if (isMounted) {
+          setPreviousAssignment(null);
+        }
+      } catch (err) {
+        console.warn("Unable to fetch guard previous assignment:", err);
+      } finally {
+        if (isMounted) {
+          setIsLoadingPrevious(false);
+        }
+      }
+    };
+
+    fetchPreviousAssignment();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [isOpen, assignmentData]);
+
+  // สลับการใช้งานมอบหมายงานเดิม
+  const handleTogglePreviousAssignment = (checked) => {
+    setUsePreviousAssignment(checked);
+    if (checked && previousAssignment) {
+      const pLat = parseFloat(previousAssignment.latitude);
+      const pLng = parseFloat(previousAssignment.longitude);
+      if (!isNaN(pLat) && !isNaN(pLng)) {
+        setPosition([pLat, pLng]);
+        setMapCenter([pLat, pLng]);
+      }
+      if (previousAssignment.description) {
+        setDescription(previousAssignment.description);
+      }
+    }
+  };
 
   // ฟังก์ชันดึงตำแหน่งปัจจุบันของผู้ใช้
   const handleGetCurrentLocation = () => {
@@ -145,6 +251,7 @@ export default function AssignTaskModal({
       setSearchQuery("");
       setSearchResults([]);
       setSearchError("");
+      setUsePreviousAssignment(false);
 
       const prevLat = parseFloat(assignmentData?.latitude);
       const prevLng = parseFloat(assignmentData?.longitude);
@@ -245,6 +352,47 @@ export default function AssignTaskModal({
               </span>
             </div>
           </div>
+
+          {/* กล่องเลือกใช้การมอบหมายงานเดิมจากกะก่อนหน้าในอีเวนต์เดียวกัน */}
+          {isLoadingPrevious ? (
+            <div className="flex items-center gap-2 text-xs text-gray-400 bg-gray-50 border border-gray-200 rounded-xl p-2.5">
+              <Loader2 size={14} className="animate-spin text-emerald-600" />
+              <span>กำลังตรวจสอบประวัติการมอบหมายงานในงานนี้...</span>
+            </div>
+          ) : previousAssignment ? (
+            <div
+              className={`p-3 rounded-xl border transition-all ${
+                usePreviousAssignment
+                  ? "bg-emerald-50/80 border-emerald-300 ring-1 ring-emerald-400"
+                  : "bg-blue-50/50 border-blue-200 hover:bg-blue-50"
+              }`}
+            >
+              <label className="flex items-start gap-2.5 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={usePreviousAssignment}
+                  onChange={(e) =>
+                    handleTogglePreviousAssignment(e.target.checked)
+                  }
+                  className="mt-0.5 w-4 h-4 text-emerald-600 rounded border-gray-300 focus:ring-emerald-500 cursor-pointer accent-emerald-600"
+                />
+                <div className="flex-1 text-xs">
+                  <div className="font-bold text-gray-800 flex items-center gap-1.5">
+                    <Clock size={13} className="text-emerald-600" />
+                    <span>ใช้จุดปฏิบัติงานและรายละเอียดเดิมจากกะก่อนหน้า</span>
+                  </div>
+                  <p className="text-gray-500 mt-0.5">
+                    พบจุดปฏิบัติงานเดิมในอีเวนต์นี้{" "}
+                    {previousAssignment.description && (
+                      <span className="font-medium text-gray-700">
+                        (&quot;{previousAssignment.description}&quot;)
+                      </span>
+                    )}
+                  </p>
+                </div>
+              </label>
+            </div>
+          ) : null}
 
           {/* แผนที่ (MapContainer & Search) */}
           <div className="space-y-2">

@@ -1323,6 +1323,13 @@ function HeadGuardDashboard() {
           selectedAssignment
             ? {
                 ...selectedAssignment,
+                eventId:
+                  selectedShiftDetail?.eventId ||
+                  selectedShiftDetail?.event_id ||
+                  selectedShiftDetail?.eventData?.event_id,
+                shiftId:
+                  selectedShiftDetail?.shiftId ||
+                  selectedShiftDetail?.shift_id,
                 eventLatitude:
                   selectedShiftDetail?.eventData?.latitude ||
                   selectedShiftDetail?.latitude,
