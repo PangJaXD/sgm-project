@@ -62,6 +62,29 @@ class NotificationItem {
 
   bool get isUrgent => isHighPriority;
 
+  int get urgencyWeight {
+    if (type == NotificationType.sos) return 4;
+    final urg = urgency?.trim().toLowerCase();
+    if (urg == 'ฉุกเฉิน' ||
+        urg == 'ด่วนที่สุด' ||
+        urg == 'sos' ||
+        urg == 'emergency' ||
+        urg == 'critical') {
+      return 4;
+    }
+    if (type == NotificationType.urgent ||
+        isHighPriority ||
+        urgency == 'ด่วนมาก' ||
+        urg == 'high' ||
+        urg == 'urgent') {
+      return 3;
+    }
+    if (urgency == 'ปานกลาง' || urg == 'medium' || urg == 'moderate') {
+      return 2;
+    }
+    return 1;
+  }
+
   bool get isTeamReport =>
       type == NotificationType.teamReport ||
       data['type'] == 'team_report' ||

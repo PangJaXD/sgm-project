@@ -35,6 +35,27 @@ class SituationReportItem {
     this.eventName,
   });
 
+  int get urgencyWeight {
+    final urg = urgency.trim().toLowerCase();
+    if (urg == 'ฉุกเฉิน' ||
+        urg == 'ด่วนที่สุด' ||
+        urg == 'sos' ||
+        urg == 'emergency' ||
+        urg == 'critical') {
+      return 4;
+    }
+    if (urgency == 'ด่วนมาก' ||
+        !isNormal ||
+        urg == 'high' ||
+        urg == 'urgent') {
+      return 3;
+    }
+    if (urgency == 'ปานกลาง' || urg == 'medium' || urg == 'moderate') {
+      return 2;
+    }
+    return 1;
+  }
+
   factory SituationReportItem.fromJson(Map<String, dynamic> json) {
     return SituationReportItem(
       reportId: json['report_id'] ?? json['id'] ?? 0,

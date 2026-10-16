@@ -51,7 +51,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
       final reports = await ReportService().fetchTeamReports(user.usersId);
       if (mounted) {
         setState(() {
-          _teamReports = reports;
+          _teamReports = _getSortedTeamReports(reports);
           _isLoadingTeamReports = false;
         });
       }
@@ -60,6 +60,30 @@ class _NotificationScreenState extends State<NotificationScreen> {
         setState(() => _isLoadingTeamReports = false);
       }
     }
+  }
+
+  List<NotificationItem> _getSortedNotifications() {
+    final list = List<NotificationItem>.from(_service.notifications);
+    list.sort((a, b) {
+      // 1. Sort by urgency level descending (SOS/Emergency -> Urgent/Critical -> Medium -> Normal/Info)
+      final urgencyComparison = b.urgencyWeight.compareTo(a.urgencyWeight);
+      if (urgencyComparison != 0) return urgencyComparison;
+      // 2. Sort by timestamp descending (newest first)
+      return b.timestamp.compareTo(a.timestamp);
+    });
+    return list;
+  }
+
+  List<SituationReportItem> _getSortedTeamReports([List<SituationReportItem>? source]) {
+    final list = List<SituationReportItem>.from(source ?? _teamReports);
+    list.sort((a, b) {
+      // 1. Sort by urgency level descending (ด่วนมาก -> ปานกลาง -> ทั่วไป)
+      final urgencyComparison = b.urgencyWeight.compareTo(a.urgencyWeight);
+      if (urgencyComparison != 0) return urgencyComparison;
+      // 2. Sort by reportId descending (newest first)
+      return b.reportId.compareTo(a.reportId);
+    });
+    return list;
   }
 
   void _handleBack() {
@@ -1046,7 +1070,9 @@ class _NotificationScreenState extends State<NotificationScreen> {
       );
     }
 
-    if (_teamReports.isEmpty) {
+    final sortedReports = _getSortedTeamReports();
+
+    if (sortedReports.isEmpty) {
       return RefreshIndicator(
         onRefresh: _loadTeamReports,
         color: primaryBlue,
@@ -1094,9 +1120,9 @@ class _NotificationScreenState extends State<NotificationScreen> {
       child: ListView.builder(
         physics: const AlwaysScrollableScrollPhysics(),
         padding: const EdgeInsets.only(top: 8, bottom: 24),
-        itemCount: _teamReports.length,
+        itemCount: sortedReports.length,
         itemBuilder: (context, index) {
-          final report = _teamReports[index];
+          final report = sortedReports[index];
           return _buildTeamReportCard(report);
         },
       ),
@@ -1105,7 +1131,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
 
   Widget _buildSystemNotificationsBody() {
     const primaryBlue = Color(0xFF2563EB);
-    final notifications = _service.notifications;
+    final notifications = _getSortedNotifications();
 
     if (notifications.isEmpty) {
       return Center(
