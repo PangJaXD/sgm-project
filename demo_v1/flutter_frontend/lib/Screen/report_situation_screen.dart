@@ -217,6 +217,15 @@ class _ReportSituationScreenState extends State<ReportSituationScreen> {
           _selectedUrgency == 'ทั่วไป' &&
           _selectedCategory!.contains('ตรวจความเรียบร้อย');
 
+      final guardName = user.fullName.isNotEmpty
+          ? user.fullName
+          : (user.username.isNotEmpty ? user.username : 'เจ้าหน้าที่ รปภ.');
+      final eventName = widget.event.title.isNotEmpty
+          ? widget.event.title
+          : (widget.shift.title.isNotEmpty
+              ? widget.shift.title
+              : 'งานรักษาความปลอดภัย');
+
       await _reportService.submitReport(
         guardId: user.usersId,
         shiftId: widget.shift.shiftId,
@@ -227,6 +236,9 @@ class _ReportSituationScreenState extends State<ReportSituationScreen> {
         isNormal: isNormal,
         images: _attachedImages.map((e) => e.name).toList(),
         imageFiles: _attachedImages,
+        guardName: guardName,
+        guardPhone: user.phone,
+        eventName: eventName,
       );
 
       final imageNames = _attachedImages.map((e) => e.name).toList();
@@ -238,11 +250,9 @@ class _ReportSituationScreenState extends State<ReportSituationScreen> {
         urgency: _selectedUrgency,
         location: _locationController.text.trim(),
         description: _descriptionController.text.trim(),
-        guardName: user.fullName.isNotEmpty
-            ? user.fullName
-            : (user.username.isNotEmpty ? user.username : 'เจ้าหน้าที่ รปภ.'),
+        guardName: guardName,
         guardPhone: user.phone,
-        eventName: widget.event.title,
+        eventName: eventName,
         images: imageNames,
         localImages: localImagePaths,
         shiftId: widget.shift.shiftId,

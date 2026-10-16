@@ -6,6 +6,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import '../Model/notification_model.dart';
+import './user_service.dart';
 
 // Top-level background message handler required by FCM
 @pragma('vm:entry-point')
@@ -21,9 +22,7 @@ class NotificationService extends ChangeNotifier {
 
   factory NotificationService() => instance;
 
-  NotificationService._internal() {
-    _initializeDefaultMockNotifications();
-  }
+  NotificationService._internal();
 
   final FlutterLocalNotificationsPlugin _localNotifications =
       FlutterLocalNotificationsPlugin();
@@ -54,7 +53,7 @@ class NotificationService extends ChangeNotifier {
 
   int get unreadCount => _notifications.where((n) => !n.isRead).length;
 
-  void _initializeDefaultMockNotifications() {
+  void populateSampleNotifications() {
     final now = DateTime.now();
     _notifications.addAll([
       NotificationItem(
@@ -314,8 +313,15 @@ class NotificationService extends ChangeNotifier {
     final now = DateTime.now();
     final alertId = 'sos-${now.millisecondsSinceEpoch}';
     final title = '🚨 แจ้งเหตุฉุกเฉิน / SOS ด่วนที่สุด!';
-    final body = guardName != null && guardName.isNotEmpty
-        ? 'เจ้าหน้าที่ $guardName ส่งสัญญาณขอความช่วยเหลือฉุกเฉิน ณ จุดเกิดเหตุ: $location'
+    final resolvedGuardName = (guardName != null && guardName.trim().isNotEmpty)
+        ? guardName.trim()
+        : (UserService().currentUser.fullName.isNotEmpty
+            ? UserService().currentUser.fullName
+            : (UserService().currentUser.username.isNotEmpty
+                ? UserService().currentUser.username
+                : ''));
+    final body = resolvedGuardName.isNotEmpty
+        ? 'เจ้าหน้าที่ $resolvedGuardName ส่งสัญญาณขอความช่วยเหลือฉุกเฉิน ณ จุดเกิดเหตุ: $location'
         : 'มีการส่งสัญญาณขอความช่วยเหลือฉุกเฉิน ณ จุดเกิดเหตุ: $location';
 
     // 1. In-app notification item
@@ -330,6 +336,7 @@ class NotificationService extends ChangeNotifier {
         'location': location,
         'type': 'sos',
         'urgency': 'ด่วนมาก',
+        'guard_name': resolvedGuardName,
         'note': note ?? '',
       },
     );
@@ -471,16 +478,20 @@ class NotificationService extends ChangeNotifier {
     String location = 'ประตูทางเข้าหลัก ทิศตะวันออก (Gate 1)',
     String description =
         'พบบุคคลแต่งกายมิดชิดไม่มีป้ายแสดงตน พยายามเดินเข้าพื้นที่หวงห้ามหลังเวที ได้เข้าตักเตือนและเชิญออกนอกพื้นที่เรียบร้อยแล้ว',
-    String guardName = 'สมชาย ใจดี (รปภ.)',
+    String? guardName,
     List<String> images = const ['reports/sample_guard_patrol.jpg'],
   }) {
+    final user = UserService().currentUser;
+    final name = (guardName != null && guardName.isNotEmpty)
+        ? guardName
+        : (user.fullName.isNotEmpty ? user.fullName : 'เจ้าหน้าที่ รปภ.');
     addTeamReportNotification(
       reportType: reportType,
       urgency: urgency,
       location: location,
       description: description,
-      guardName: guardName,
-      guardPhone: '089-123-4567',
+      guardName: name,
+      guardPhone: user.phone.isNotEmpty ? user.phone : '089-123-4567',
       eventName: 'งานคอนเสิร์ต & เทศกาลอาหาร',
       images: images,
       isNormal: false,

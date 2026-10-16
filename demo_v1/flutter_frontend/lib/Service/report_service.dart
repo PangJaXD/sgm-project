@@ -127,6 +127,9 @@ class ReportService extends ChangeNotifier {
     required bool isNormal,
     List<String> images = const [],
     List<dynamic> imageFiles = const [], // List<XFile>
+    String? guardName,
+    String? guardPhone,
+    String? eventName,
   }) async {
     final now = DateTime.now();
     final timeStr =
@@ -188,6 +191,9 @@ class ReportService extends ChangeNotifier {
           isNormal: isNormal,
           reportTime: timeStr,
           images: [savedImg],
+          guardName: guardName,
+          guardPhone: guardPhone,
+          eventName: eventName,
         );
 
         _submittedReports.insert(0, reportItem);
@@ -210,6 +216,7 @@ class ReportService extends ChangeNotifier {
     required int guardId,
     required int shiftId,
     required String location,
+    String? guardName,
     String? note,
   }) async {
     final success = await submitReport(
@@ -222,12 +229,14 @@ class ReportService extends ChangeNotifier {
           note ??
           'ส่งสัญญาณแจ้งขอความช่วยเหลือฉุกเฉินทันทีจากตำแหน่งปฏิบัติการ ($location)',
       isNormal: false,
+      guardName: guardName,
     );
 
     if (success) {
       try {
         await NotificationService.instance.triggerSOSAlert(
           location: location,
+          guardName: guardName,
           note: note,
         );
       } catch (e) {

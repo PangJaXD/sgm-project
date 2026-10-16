@@ -112,21 +112,23 @@ class NotificationItem {
 
   List<String> get images {
     final List<String> list = [];
-    if (data['images'] is List) {
-      for (final item in data['images'] as List) {
-        if (item != null && item.toString().isNotEmpty) {
-          list.add(item.toString());
-        }
-      }
-    } else if (data['images'] is String && data['images'].toString().isNotEmpty) {
-      list.add(data['images'].toString());
-    }
-
     if (data['local_images'] is List) {
       for (final item in data['local_images'] as List) {
         if (item != null && item.toString().isNotEmpty && !list.contains(item.toString())) {
           list.add(item.toString());
         }
+      }
+    }
+
+    if (data['images'] is List) {
+      for (final item in data['images'] as List) {
+        if (item != null && item.toString().isNotEmpty && !list.contains(item.toString())) {
+          list.add(item.toString());
+        }
+      }
+    } else if (data['images'] is String && data['images'].toString().isNotEmpty) {
+      if (!list.contains(data['images'].toString())) {
+        list.add(data['images'].toString());
       }
     }
 
