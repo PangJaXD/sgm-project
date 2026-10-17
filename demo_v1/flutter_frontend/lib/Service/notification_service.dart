@@ -22,7 +22,9 @@ class NotificationService extends ChangeNotifier {
 
   factory NotificationService() => instance;
 
-  NotificationService._internal();
+  NotificationService._internal() {
+    populateSampleNotifications();
+  }
 
   final FlutterLocalNotificationsPlugin _localNotifications =
       FlutterLocalNotificationsPlugin();
@@ -54,13 +56,20 @@ class NotificationService extends ChangeNotifier {
   int get unreadCount => _notifications.where((n) => !n.isRead).length;
 
   void populateSampleNotifications() {
+    if (_notifications.isNotEmpty) return;
     final now = DateTime.now();
+    final user = UserService().currentUser;
+    final fallbackGuardName = user.fullName.isNotEmpty
+        ? user.fullName
+        : (user.username.isNotEmpty ? user.username : 'เจ้าหน้าที่ สมชาย ใจดี');
+    final fallbackPhone = user.phone.isNotEmpty ? user.phone : '089-123-4567';
+
     _notifications.addAll([
       NotificationItem(
         id: 'mock-team-1',
         title: '📋 รายงานจากทีม: พบบุคคลน่าสงสัย',
         body:
-            'เจ้าหน้าที่ สมชาย ใจดี รายงานสถานการณ์ "พบบุคคลน่าสงสัย" บริเวณ ประตูทางเข้าหลัก (Gate 1)',
+            'เจ้าหน้าที่ $fallbackGuardName รายงานสถานการณ์ "พบบุคคลน่าสงสัย" บริเวณ ประตูทางเข้าหลัก (Gate 1)',
         timestamp: now.subtract(const Duration(minutes: 5)),
         type: NotificationType.teamReport,
         isRead: false,
@@ -71,8 +80,8 @@ class NotificationService extends ChangeNotifier {
           'location': 'ประตูทางเข้าหลัก (Gate 1)',
           'description':
               'พบบุคคลต้องสงสัยไม่มีบัตรประจำตัวพยายามเข้าพื้นที่หวงห้าม เจ้าหน้าที่ได้เข้าตรวจสอบและเชิญออกนอกพื้นที่เรียบร้อยแล้ว อยู่ระหว่างเฝ้าระวังต่อเนื่อง',
-          'guard_name': 'สมชาย ใจดี',
-          'guard_phone': '089-123-4567',
+          'guard_name': fallbackGuardName,
+          'guard_phone': fallbackPhone,
           'event_name': 'งานดนตรีและอาหารประจำปี',
           'images': ['reports/sample_guard_patrol.jpg'],
           'is_normal': false,
@@ -107,6 +116,7 @@ class NotificationService extends ChangeNotifier {
         isRead: true,
       ),
     ]);
+    notifyListeners();
   }
 
   // Initialize Firebase and FCM listeners
