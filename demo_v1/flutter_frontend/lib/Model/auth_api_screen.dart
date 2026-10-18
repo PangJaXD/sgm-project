@@ -17,6 +17,7 @@ class AuthApiService {
           'http://10.10.13.129:8081/api',
           'http://192.168.20.97:8081/api',
           'http://10.100.61.151:8081/api',
+          'http://172.20.10.2:8081/api',
         ]
       : ['http://localhost:8081/api'];
 
