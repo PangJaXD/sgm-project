@@ -117,7 +117,7 @@ class ReportService extends ChangeNotifier {
   }
 
   /// Submit report to Spring Boot MySQL database: POST /api/report
-  Future<bool> submitReport({
+  Future<SituationReportItem?> submitReport({
     required int guardId,
     required int shiftId,
     required String reportType,
@@ -198,7 +198,7 @@ class ReportService extends ChangeNotifier {
 
         _submittedReports.insert(0, reportItem);
         notifyListeners();
-        return true;
+        return reportItem;
       }
     } on DioException catch (e) {
       debugPrint('[ReportService] submitReport Dio error: ${e.message}');
@@ -208,7 +208,7 @@ class ReportService extends ChangeNotifier {
       throw ApiException(message: 'ไม่สามารถบันทึกรายงานสถานการณ์ได้');
     }
 
-    return false;
+    return null;
   }
 
   /// Emergency SOS submission with high-priority notification trigger
@@ -219,7 +219,7 @@ class ReportService extends ChangeNotifier {
     String? guardName,
     String? note,
   }) async {
-    final success = await submitReport(
+    final savedReport = await submitReport(
       guardId: guardId,
       shiftId: shiftId,
       reportType: 'เหตุฉุกเฉิน / SOS',
@@ -232,7 +232,7 @@ class ReportService extends ChangeNotifier {
       guardName: guardName,
     );
 
-    if (success) {
+    if (savedReport != null) {
       try {
         await NotificationService.instance.triggerSOSAlert(
           location: location,
@@ -246,7 +246,7 @@ class ReportService extends ChangeNotifier {
       }
     }
 
-    return success;
+    return savedReport != null;
   }
 
   /// Fetch history of reports for this guard from backend: GET /api/report/guard/{guardId}

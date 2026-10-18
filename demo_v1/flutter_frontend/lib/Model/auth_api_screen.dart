@@ -10,6 +10,7 @@ class AuthApiService {
   // 3. 10.0.2.2:8081 (Default Android Studio AVD gateway)
   static final List<String> _candidateUrls = Platform.isAndroid
       ? [
+          'http://172.20.10.2:8081/api',
           'http://localhost:8081/api',
           'http://192.168.0.31:8081/api',
           'http://10.0.2.2:8081/api',
@@ -17,7 +18,6 @@ class AuthApiService {
           'http://10.10.13.129:8081/api',
           'http://192.168.20.97:8081/api',
           'http://10.100.61.151:8081/api',
-          'http://172.20.10.2:8081/api',
         ]
       : ['http://localhost:8081/api'];
 

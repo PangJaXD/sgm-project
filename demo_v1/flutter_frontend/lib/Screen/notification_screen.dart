@@ -1255,10 +1255,26 @@ class _NotificationScreenState extends State<NotificationScreen> {
   String _formatImageUrl(String raw) {
     if (raw.isEmpty || raw == 'default_report.jpg') return '';
     if (raw.startsWith('http://') || raw.startsWith('https://')) return raw;
+    // Don't treat a local path that failed _isLocalFile as a server URL
+    if (raw.startsWith('/') &&
+        (raw.contains('/data/') ||
+            raw.contains('/storage/') ||
+            raw.contains('/cache/'))) {
+      return '';
+    }
+    if (raw.contains('\\') || raw.contains(':\\')) {
+      return '';
+    }
     final root = AuthApiService.baseUrl.replaceAll('/api', '');
     if (raw.startsWith('/uploads/')) return '$root$raw';
     if (raw.startsWith('uploads/')) return '$root/$raw';
-    return '$root/uploads/$raw';
+    if (raw.startsWith('reports/') ||
+        raw.startsWith('events/') ||
+        raw.startsWith('profiles/')) {
+      return '$root/uploads/$raw';
+    }
+    // If it's a raw filename without directory prefix, default to reports/
+    return '$root/uploads/reports/$raw';
   }
 
   Widget _buildImagePlaceholder() {
@@ -1301,6 +1317,22 @@ class _NotificationScreenState extends State<NotificationScreen> {
         width: size,
         height: size,
         fit: BoxFit.cover,
+        loadingBuilder: (context, child, loadingProgress) {
+          if (loadingProgress == null) return child;
+          return Center(
+            child: SizedBox(
+              width: 20,
+              height: 20,
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                value: loadingProgress.expectedTotalBytes != null
+                    ? loadingProgress.cumulativeBytesLoaded /
+                        loadingProgress.expectedTotalBytes!
+                    : null,
+              ),
+            ),
+          );
+        },
         errorBuilder: (context, error, stackTrace) => _buildImagePlaceholder(),
       );
     }
@@ -1310,6 +1342,16 @@ class _NotificationScreenState extends State<NotificationScreen> {
   void _showFullImagePreview(String imagePathOrUrl) {
     final isLocal = _isLocalFile(imagePathOrUrl);
     final fullUrl = isLocal ? '' : _formatImageUrl(imagePathOrUrl);
+
+    if (!isLocal && fullUrl.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('ไม่สามารถระบุตำแหน่งรูปภาพได้'),
+          duration: Duration(seconds: 2),
+        ),
+      );
+      return;
+    }
 
     showDialog(
       context: context,
@@ -1334,6 +1376,14 @@ class _NotificationScreenState extends State<NotificationScreen> {
                     : Image.network(
                         fullUrl,
                         fit: BoxFit.contain,
+                        loadingBuilder: (context, child, loadingProgress) {
+                          if (loadingProgress == null) return child;
+                          return const Center(
+                            child: CircularProgressIndicator(
+                              color: Colors.white,
+                            ),
+                          );
+                        },
                         errorBuilder: (ctx, err, stack) =>
                             _buildErrorImageContainer(),
                       ),

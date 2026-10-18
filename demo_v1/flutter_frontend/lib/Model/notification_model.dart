@@ -112,31 +112,34 @@ class NotificationItem {
 
   List<String> get images {
     final List<String> list = [];
-    if (data['local_images'] is List) {
-      for (final item in data['local_images'] as List) {
-        if (item != null && item.toString().isNotEmpty && !list.contains(item.toString())) {
-          list.add(item.toString());
-        }
-      }
-    }
-
     if (data['images'] is List) {
       for (final item in data['images'] as List) {
-        if (item != null && item.toString().isNotEmpty && !list.contains(item.toString())) {
-          list.add(item.toString());
+        final str = item?.toString().trim() ?? '';
+        if (str.isNotEmpty && str != 'default_report.jpg' && !list.contains(str)) {
+          list.add(str);
         }
       }
-    } else if (data['images'] is String && data['images'].toString().isNotEmpty) {
-      if (!list.contains(data['images'].toString())) {
-        list.add(data['images'].toString());
+    } else if (data['images'] is String && data['images'].toString().trim().isNotEmpty) {
+      final str = data['images'].toString().trim();
+      if (str != 'default_report.jpg' && !list.contains(str)) {
+        list.add(str);
       }
     }
 
     if (data['report_img'] != null &&
-        data['report_img'].toString().isNotEmpty &&
-        !list.contains(data['report_img'].toString()) &&
-        data['report_img'] != 'default_report.jpg') {
-      list.add(data['report_img'].toString());
+        data['report_img'].toString().trim().isNotEmpty &&
+        data['report_img'].toString().trim() != 'default_report.jpg' &&
+        !list.contains(data['report_img'].toString().trim())) {
+      list.add(data['report_img'].toString().trim());
+    }
+
+    if (data['local_images'] is List) {
+      for (final item in data['local_images'] as List) {
+        final str = item?.toString().trim() ?? '';
+        if (str.isNotEmpty && !list.contains(str)) {
+          list.add(str);
+        }
+      }
     }
     return list;
   }

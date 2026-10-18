@@ -226,7 +226,7 @@ class _ReportSituationScreenState extends State<ReportSituationScreen> {
               ? widget.shift.title
               : 'งานรักษาความปลอดภัย');
 
-      await _reportService.submitReport(
+      final savedReport = await _reportService.submitReport(
         guardId: user.usersId,
         shiftId: widget.shift.shiftId,
         reportType: _selectedCategory!,
@@ -241,7 +241,9 @@ class _ReportSituationScreenState extends State<ReportSituationScreen> {
         eventName: eventName,
       );
 
-      final imageNames = _attachedImages.map((e) => e.name).toList();
+      final imageNames = (savedReport != null && savedReport.images.isNotEmpty)
+          ? savedReport.images
+          : _attachedImages.map((e) => e.name).toList();
       final localImagePaths = _attachedImages.map((e) => e.path).toList();
 
       // Send Team Report notification with full rich details (report type, images, description, location)
@@ -256,6 +258,7 @@ class _ReportSituationScreenState extends State<ReportSituationScreen> {
         images: imageNames,
         localImages: localImagePaths,
         shiftId: widget.shift.shiftId,
+        reportId: savedReport?.reportId,
         isNormal: isNormal,
       );
 
@@ -674,6 +677,13 @@ class _ReportSituationScreenState extends State<ReportSituationScreen> {
                                       : Image.file(
                                           File(file.path),
                                           fit: BoxFit.cover,
+                                          errorBuilder: (ctx, err, stack) =>
+                                              const Center(
+                                            child: Icon(
+                                              Icons.broken_image_outlined,
+                                              color: Colors.grey,
+                                            ),
+                                          ),
                                         ),
                                 ),
                               ),
