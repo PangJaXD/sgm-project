@@ -148,7 +148,9 @@ function AdminDashboard() {
           const finalOrderedList = [...newItems, ...regularItems];
 
           const formatted = finalOrderedList.map((c, index) => {
-            const isActive = c.quit_date === null;
+            const isActive =
+              c.quit_date === null &&
+              (!c.status || c.status === "ปฏิบัติงาน");
             const ordinalNumber = (index + 1).toString();
             return {
               id: `${ordinalNumber}`,
@@ -158,7 +160,7 @@ function AdminDashboard() {
               phone: c.phone || "-",
               address: c.address || "-",
               startDate: c.start_date ? c.start_date.split("T")[0] : "-",
-              status: isActive ? "ปฏิบัติงาน" : "พ้นสภาพ",
+              status: isActive ? "ปฏิบัติงาน" : "พักปฏิบัติงาน",
               active: isActive,
               raw: c,
             };
@@ -417,9 +419,15 @@ function AdminDashboard() {
       const compId = comp.rawId;
 
       const [hgRes, gRes, evRes] = await Promise.all([
-        axios.get("http://localhost:8081/api/headguard").catch(() => ({ data: [] })),
-        axios.get("http://localhost:8081/api/guard").catch(() => ({ data: [] })),
-        axios.get("http://localhost:8081/api/events").catch(() => ({ data: [] })),
+        axios
+          .get("http://localhost:8081/api/headguard")
+          .catch(() => ({ data: [] })),
+        axios
+          .get("http://localhost:8081/api/guard")
+          .catch(() => ({ data: [] })),
+        axios
+          .get("http://localhost:8081/api/events")
+          .catch(() => ({ data: [] })),
       ]);
 
       const hgList = Array.isArray(hgRes.data) ? hgRes.data : [];
@@ -466,7 +474,8 @@ function AdminDashboard() {
         return s !== "COMPLETED" && s !== "CANCELLED";
       });
 
-      const totalActiveEmployees = activeHeadGuards.length + activeGuards.length;
+      const totalActiveEmployees =
+        activeHeadGuards.length + activeGuards.length;
       const totalActiveEvents = activeEvents.length;
 
       if (totalActiveEmployees > 0 || totalActiveEvents > 0) {
@@ -495,9 +504,10 @@ function AdminDashboard() {
       setIsDeleting(true);
       await axios.delete(`http://localhost:8081/api/company/${editingId}`);
       if (newlyAddedCompanyIdsRef.current) {
-        newlyAddedCompanyIdsRef.current = newlyAddedCompanyIdsRef.current.filter(
-          (id) => Number(id) !== Number(editingId),
-        );
+        newlyAddedCompanyIdsRef.current =
+          newlyAddedCompanyIdsRef.current.filter(
+            (id) => Number(id) !== Number(editingId),
+          );
       }
       setIsDeleteModalOpen(false);
       setIsViewModalOpen(false);
@@ -749,20 +759,22 @@ function AdminDashboard() {
                         }}
                         placeholder="กรอกรหัสผ่านอีกครั้ง"
                         className={`flex-1 h-[30px] border rounded-full px-3 outline-none text-xs ${
-                          confirmPassword && formData.password !== confirmPassword
+                          confirmPassword &&
+                          formData.password !== confirmPassword
                             ? "border-red-500 focus:border-red-500"
                             : "border-gray-400 focus:border-blue-500"
                         }`}
                       />
                     </div>
-                    {confirmPassword && formData.password !== confirmPassword && (
-                      <div className="flex items-center mt-1">
-                        <span className="w-[130px]"></span>
-                        <span className="text-red-500 text-[11px] font-medium">
-                          รหัสผ่านไม่ตรงกัน
-                        </span>
-                      </div>
-                    )}
+                    {confirmPassword &&
+                      formData.password !== confirmPassword && (
+                        <div className="flex items-center mt-1">
+                          <span className="w-[130px]"></span>
+                          <span className="text-red-500 text-[11px] font-medium">
+                            รหัสผ่านไม่ตรงกัน
+                          </span>
+                        </div>
+                      )}
                   </div>
 
                   <div className="flex items-center">
@@ -1103,20 +1115,22 @@ function AdminDashboard() {
                         }}
                         placeholder="เว้นว่างหากไม่ต้องการเปลี่ยน"
                         className={`flex-1 h-[30px] border rounded-full px-3 outline-none text-xs ${
-                          confirmPassword && formData.password !== confirmPassword
+                          confirmPassword &&
+                          formData.password !== confirmPassword
                             ? "border-red-500 focus:border-red-500"
                             : "border-gray-400 focus:border-blue-500"
                         }`}
                       />
                     </div>
-                    {confirmPassword && formData.password !== confirmPassword && (
-                      <div className="flex items-center mt-1">
-                        <span className="w-[130px]"></span>
-                        <span className="text-red-500 text-[11px] font-medium">
-                          รหัสผ่านไม่ตรงกัน
-                        </span>
-                      </div>
-                    )}
+                    {confirmPassword &&
+                      formData.password !== confirmPassword && (
+                        <div className="flex items-center mt-1">
+                          <span className="w-[130px]"></span>
+                          <span className="text-red-500 text-[11px] font-medium">
+                            รหัสผ่านไม่ตรงกัน
+                          </span>
+                        </div>
+                      )}
                   </div>
 
                   <div className="flex items-center">
@@ -1196,8 +1210,7 @@ function AdminDashboard() {
                       className="flex-1 h-[30px] border border-gray-400 rounded-full px-3 bg-white outline-none focus:border-blue-500 text-xs cursor-pointer"
                     >
                       <option value="ปฏิบัติงาน">ปฏิบัติงาน</option>
-                      <option value="พักงาน">พักงาน (Suspended)</option>
-                      <option value="พ้นสภาพ">พ้นสภาพ (Fired)</option>
+                      <option value="พักปฏิบัติงาน">พักปฏิบัติงาน</option>
                     </select>
                   </div>
                 </div>
@@ -1261,7 +1274,8 @@ function AdminDashboard() {
 
                 <div className="text-sm text-gray-700 mb-6 bg-red-50 p-4 rounded-xl border border-red-200">
                   <p className="font-semibold text-red-700 mb-2">
-                    บริษัท "{selectedCompany?.companyName}" ยังมีรายการที่กำลังปฏิบัติงานหรือเปิดใช้งานอยู่ (Active):
+                    บริษัท "{selectedCompany?.companyName}"
+                    ยังมีรายการที่กำลังปฏิบัติงานหรือเปิดใช้งานอยู่ (Active):
                   </p>
                   <ul className="list-disc list-inside space-y-1.5 text-xs text-gray-700">
                     {deleteBlockReason.activeEmployees > 0 && (
@@ -1270,7 +1284,8 @@ function AdminDashboard() {
                         <span className="font-semibold text-red-600">
                           {deleteBlockReason.activeEmployees} คน
                         </span>{" "}
-                        (หัวหน้าชุด {deleteBlockReason.activeHeadGuards} คน, รปภ. {deleteBlockReason.activeGuards} คน)
+                        (หัวหน้าชุด {deleteBlockReason.activeHeadGuards} คน,
+                        รปภ. {deleteBlockReason.activeGuards} คน)
                       </li>
                     )}
                     {deleteBlockReason.activeEvents > 0 && (
@@ -1282,11 +1297,15 @@ function AdminDashboard() {
                       </li>
                     )}
                     {deleteBlockReason.error && (
-                      <li className="text-red-600">{deleteBlockReason.error}</li>
+                      <li className="text-red-600">
+                        {deleteBlockReason.error}
+                      </li>
                     )}
                   </ul>
                   <p className="mt-3 text-[11px] text-gray-500">
-                    * ระบบอนุญาตให้ลบได้เฉพาะบริษัทที่ไม่มีพนักงานและไม่มีงานอีเว้นท์ที่ยัง Active อยู่เท่านั้น
+                    *
+                    ระบบอนุญาตให้ลบได้เฉพาะบริษัทที่ไม่มีพนักงานและไม่มีงานอีเว้นท์ที่ยัง
+                    Active อยู่เท่านั้น
                   </p>
                 </div>
 
@@ -1318,7 +1337,8 @@ function AdminDashboard() {
                 </p>
 
                 <div className="mb-6 p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-xs text-emerald-800">
-                  ✓ บริษัทนี้ไม่มีพนักงานและไม่มีงานอีเว้นท์ที่ยัง Active อยู่ สามารถลบได้
+                  ✓ บริษัทนี้ไม่มีพนักงานและไม่มีงานอีเว้นท์ที่ยัง Active อยู่
+                  สามารถลบได้
                 </div>
 
                 <div className="flex items-center justify-end gap-3">
