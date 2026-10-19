@@ -81,25 +81,47 @@ class ShiftTimeModel {
     return '$startHour:$startMin - $endHour:$endMin น.';
   }
 
+  DateTime? get effectiveDateTime {
+    final baseDate = shiftDate ?? startTime;
+    if (baseDate == null) return null;
+    final ceYear = baseDate.year > 2400 ? baseDate.year - 543 : baseDate.year;
+    final sTime = startTime;
+    return DateTime(
+      ceYear,
+      baseDate.month,
+      baseDate.day,
+      sTime?.hour ?? baseDate.hour,
+      sTime?.minute ?? baseDate.minute,
+      sTime?.second ?? baseDate.second,
+    );
+  }
+
+  static const List<String> _thaiFullMonths = [
+    '',
+    'มกราคม',
+    'กุมภาพันธ์',
+    'มีนาคม',
+    'เมษายน',
+    'พฤษภาคม',
+    'มิถุนายน',
+    'กรกฎาคม',
+    'สิงหาคม',
+    'กันยายน',
+    'ตุลาคม',
+    'พฤศจิกายน',
+    'ธันวาคม',
+  ];
+
   String get formattedDateThai {
     final d = shiftDate ?? startTime ?? DateTime.now();
     final thaiYear = d.year > 2500 ? d.year : d.year + 543;
-    const months = [
-      '',
-      'มกราคม',
-      'กุมภาพันธ์',
-      'มีนาคม',
-      'เมษายน',
-      'พฤษภาคม',
-      'มิถุนายน',
-      'กรกฎาคม',
-      'สิงหาคม',
-      'กันยายน',
-      'ตุลาคม',
-      'พฤศจิกายน',
-      'ธันวาคม',
-    ];
-    return 'วันที่ ${d.day} ${months[d.month]} $thaiYear';
+    return 'วันที่ ${d.day} ${_thaiFullMonths[d.month]} $thaiYear';
+  }
+
+  String get monthGroupThai {
+    final d = shiftDate ?? startTime ?? DateTime.now();
+    final thaiYear = d.year > 2500 ? d.year : d.year + 543;
+    return '${_thaiFullMonths[d.month]} $thaiYear';
   }
 
   /// Check whether current time is within this shift's operating window
@@ -427,11 +449,15 @@ class EventService {
 
         // Sort latest first
         list.sort((a, b) {
-          final dtA = a.shiftDate ?? a.startTime;
-          final dtB = b.shiftDate ?? b.startTime;
+          final dtA = a.effectiveDateTime;
+          final dtB = b.effectiveDateTime;
           if (dtA != null && dtB != null) {
             final cmp = dtB.compareTo(dtA);
             if (cmp != 0) return cmp;
+          } else if (dtA == null && dtB != null) {
+            return 1;
+          } else if (dtA != null && dtB == null) {
+            return -1;
           }
           return b.shiftId.compareTo(a.shiftId);
         });

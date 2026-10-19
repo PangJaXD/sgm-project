@@ -76,23 +76,47 @@ class _EventShiftListScreenState extends State<EventShiftListScreen> {
   }
 
   DateTime? _getEffectiveDateTime(ShiftTimeModel shift) {
-    if (shift.shiftDate != null && shift.startTime != null) {
-      return DateTime(
-        shift.shiftDate!.year,
-        shift.shiftDate!.month,
-        shift.shiftDate!.day,
-        shift.startTime!.hour,
-        shift.startTime!.minute,
-        shift.startTime!.second,
-      );
+    final dt = shift.effectiveDateTime;
+    if (dt != null) return dt;
+    final fallback = widget.event.startDate;
+    if (fallback != null) {
+      final ceYear = fallback.year > 2400 ? fallback.year - 543 : fallback.year;
+      return DateTime(ceYear, fallback.month, fallback.day);
     }
-    return shift.shiftDate ?? shift.startTime;
+    return null;
+  }
+
+  String _getMonthGroupKey(ShiftTimeModel shift) {
+    if (shift.shiftDate == null &&
+        shift.startTime == null &&
+        widget.event.startDate != null) {
+      final d = widget.event.startDate!;
+      final thaiYear = d.year > 2500 ? d.year : d.year + 543;
+      const months = [
+        '',
+        'มกราคม',
+        'กุมภาพันธ์',
+        'มีนาคม',
+        'เมษายน',
+        'พฤษภาคม',
+        'มิถุนายน',
+        'กรกฎาคม',
+        'สิงหาคม',
+        'กันยายน',
+        'ตุลาคม',
+        'พฤศจิกายน',
+        'ธันวาคม',
+      ];
+      return '${months[d.month]} $thaiYear';
+    }
+    return shift.monthGroupThai;
   }
 
   Map<String, List<ShiftTimeModel>> get _groupedShifts {
     final Map<String, List<ShiftTimeModel>> groups = {};
-    for (var shift in _shifts) {
-      final key = shift.formattedDateThai;
+    final sortedShifts = _sortShiftsDesc(_shifts);
+    for (var shift in sortedShifts) {
+      final key = _getMonthGroupKey(shift);
       groups.putIfAbsent(key, () => []).add(shift);
     }
     return groups;
@@ -307,6 +331,27 @@ class _EventShiftListScreenState extends State<EventShiftListScreen> {
               ],
             ),
             const SizedBox(height: 10),
+
+            // Date row
+            Row(
+              children: [
+                const Icon(
+                  Icons.calendar_today_rounded,
+                  size: 16,
+                  color: Color(0xFF64748B),
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  shift.formattedDateThai,
+                  style: const TextStyle(
+                    fontSize: 14,
+                    color: Color(0xFF475569),
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
 
             // Time row
             Row(
