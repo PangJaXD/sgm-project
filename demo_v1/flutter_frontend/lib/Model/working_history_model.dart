@@ -81,6 +81,20 @@ class WorkingHistoryModel {
     'ธันวาคม'
   ];
 
+  DateTime get effectiveDateTime {
+    final ceYear = date.year > 2400 ? date.year - 543 : date.year;
+    int hour = date.hour;
+    int minute = date.minute;
+    if (hour == 0 && minute == 0) {
+      final match = RegExp(r'(\d{1,2}):(\d{2})').firstMatch(shiftTime);
+      if (match != null) {
+        hour = int.tryParse(match.group(1)!) ?? 0;
+        minute = int.tryParse(match.group(2)!) ?? 0;
+      }
+    }
+    return DateTime(ceYear, date.month, date.day, hour, minute, date.second);
+  }
+
   String get formattedDateThai {
     final thaiYear = date.year > 2500 ? date.year : date.year + 543;
     return '${date.day} ${thaiMonths[date.month]} $thaiYear';

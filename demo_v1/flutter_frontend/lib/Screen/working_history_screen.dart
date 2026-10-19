@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import '../Model/working_history_model.dart';
 import '../Service/event_service.dart';
 import '../Service/user_service.dart';
@@ -31,16 +31,27 @@ class _WorkingHistoryScreenState extends State<WorkingHistoryScreen> {
     final list = await _eventService.fetchWorkingHistory(user.usersId);
     if (mounted) {
       setState(() {
-        _histories = list;
+        _histories = _sortHistoriesDesc(list);
         _isLoading = false;
       });
     }
   }
 
-  // Group histories by month
+  List<WorkingHistoryModel> _sortHistoriesDesc(List<WorkingHistoryModel> list) {
+    final sorted = List<WorkingHistoryModel>.from(list);
+    sorted.sort((a, b) {
+      final cmp = b.effectiveDateTime.compareTo(a.effectiveDateTime);
+      if (cmp != 0) return cmp;
+      return b.historyId.compareTo(a.historyId);
+    });
+    return sorted;
+  }
+
+  // Group histories by month (sorted newest first)
   Map<String, List<WorkingHistoryModel>> get _groupedHistories {
     final Map<String, List<WorkingHistoryModel>> groups = {};
-    for (var item in _histories) {
+    final sortedHistories = _sortHistoriesDesc(_histories);
+    for (var item in sortedHistories) {
       final key = item.monthGroupThai;
       groups.putIfAbsent(key, () => []).add(item);
     }
