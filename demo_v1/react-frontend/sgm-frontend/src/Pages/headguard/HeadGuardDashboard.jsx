@@ -386,7 +386,11 @@ function HeadGuardDashboard() {
             time: displayTime,
             latitude: a.latitude,
             longitude: a.longitude,
-            description: a.description,
+            description:
+              a.description === "รอการมอบหมายจุดปฏิบัติการ" ||
+              a.description === "รอการมอบหมายจุดปฏิบัติการจากหัวหน้าชุด"
+                ? ""
+                : a.description || "",
           };
         });
         setAssignmentsList(formattedList);

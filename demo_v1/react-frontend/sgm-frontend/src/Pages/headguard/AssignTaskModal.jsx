@@ -165,9 +165,22 @@ export default function AssignTaskModal({
         setPosition([pLat, pLng]);
         setMapCenter([pLat, pLng]);
       }
-      if (previousAssignment.description) {
+      const prevDesc = (previousAssignment.description || "").trim();
+      if (
+        prevDesc &&
+        prevDesc !== "รอการมอบหมายจุดปฏิบัติการ" &&
+        prevDesc !== "รอการมอบหมายจุดปฏิบัติการจากหัวหน้าชุด"
+      ) {
         setDescription(previousAssignment.description);
       }
+    } else if (!checked) {
+      const rawDesc = (assignmentData?.description || "").trim();
+      const isDefaultPlaceholder =
+        rawDesc === "รอการมอบหมายจุดปฏิบัติการ" ||
+        rawDesc === "รอการมอบหมายจุดปฏิบัติการจากหัวหน้าชุด";
+      setDescription(
+        isDefaultPlaceholder ? "" : assignmentData?.description || "",
+      );
     }
   };
 
@@ -247,7 +260,13 @@ export default function AssignTaskModal({
   // เมื่อเปิด Modal ขึ้นมา: กำหนดค่าเริ่มต้นเป็นตำแหน่งปัจจุบัน
   useEffect(() => {
     if (isOpen) {
-      setDescription(assignmentData?.description || "");
+      const rawDesc = (assignmentData?.description || "").trim();
+      const isDefaultPlaceholder =
+        rawDesc === "รอการมอบหมายจุดปฏิบัติการ" ||
+        rawDesc === "รอการมอบหมายจุดปฏิบัติการจากหัวหน้าชุด";
+      setDescription(
+        isDefaultPlaceholder ? "" : assignmentData?.description || "",
+      );
       setSearchQuery("");
       setSearchResults([]);
       setSearchError("");

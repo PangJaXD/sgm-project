@@ -163,7 +163,7 @@ public class AssignmentController {
         newAssignment.setLatitude(request.getLatitude());
         newAssignment.setLongitude(request.getLongitude());
         newAssignment.setDescription(
-                request.getDescription() != null ? request.getDescription() : "รอการมอบหมายจุดปฏิบัติการ");
+                request.getDescription() != null ? request.getDescription() : "");
         newAssignment.setShift(shift);
         newAssignment.setGuard(guard);
         if (shift.getHeadGuard() != null) {
