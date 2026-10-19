@@ -557,7 +557,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
                         shiftId: activeAssign.shiftId,
                         title: activeAssign.shiftName.isNotEmpty
                             ? activeAssign.shiftName
-                            : 'กะการทำงาน',
+                            : activeAssign.eventName,
                         dutyLocation: activeAssign.dutyLocation,
                       );
                       Navigator.push(
@@ -626,7 +626,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
                         shiftId: activeAssign.shiftId,
                         title: activeAssign.shiftName.isNotEmpty
                             ? activeAssign.shiftName
-                            : 'กะการทำงาน',
+                            : activeAssign.eventName,
                         dutyLocation: activeAssign.dutyLocation,
                       );
                       Navigator.push(

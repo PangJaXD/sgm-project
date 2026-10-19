@@ -118,12 +118,6 @@ class _AssignmentDetailScreenState extends State<AssignmentDetailScreen> {
         ? _assignment.shiftTime
         : widget.shift.formattedTime;
 
-    final effectiveShiftTitle = _assignment.shiftName.isNotEmpty
-        ? _assignment.shiftName
-        : (widget.shift.title.isNotEmpty
-              ? widget.shift.title
-              : 'หน้าที่รักษาความปลอดภัย');
-
     // Determine coordinates dynamically
     LatLng? effectiveLatLng;
     if (_assignment.hasValidCoordinates) {
@@ -581,16 +575,6 @@ class _AssignmentDetailScreenState extends State<AssignmentDetailScreen> {
                               const Divider(),
                               const SizedBox(height: 12),
 
-                              // Dynamic Duty Title
-                              Text(
-                                effectiveShiftTitle,
-                                style: const TextStyle(
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.bold,
-                                  color: Color(0xFF1E293B),
-                                ),
-                              ),
-                              const SizedBox(height: 6),
                               Text(
                                 _assignment.description.isNotEmpty
                                     ? _assignment.description

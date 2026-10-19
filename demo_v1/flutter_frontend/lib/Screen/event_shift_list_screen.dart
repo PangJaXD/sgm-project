@@ -285,16 +285,22 @@ class _EventShiftListScreenState extends State<EventShiftListScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Title and Quota Tag
+            // Date row and Quota Tag
             Row(
               children: [
+                const Icon(
+                  Icons.calendar_today_rounded,
+                  size: 16,
+                  color: Color(0xFF64748B),
+                ),
+                const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    shift.title,
+                    shift.formattedDateThai,
                     style: const TextStyle(
-                      fontSize: 16.5,
-                      fontWeight: FontWeight.bold,
+                      fontSize: 15,
                       color: Color(0xFF0F172A),
+                      fontWeight: FontWeight.bold,
                     ),
                   ),
                 ),
@@ -326,27 +332,6 @@ class _EventShiftListScreenState extends State<EventShiftListScreen> {
                       fontSize: 12.5,
                       fontWeight: FontWeight.bold,
                     ),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 10),
-
-            // Date row
-            Row(
-              children: [
-                const Icon(
-                  Icons.calendar_today_rounded,
-                  size: 16,
-                  color: Color(0xFF64748B),
-                ),
-                const SizedBox(width: 8),
-                Text(
-                  shift.formattedDateThai,
-                  style: const TextStyle(
-                    fontSize: 14,
-                    color: Color(0xFF475569),
-                    fontWeight: FontWeight.w500,
                   ),
                 ),
               ],

@@ -22,7 +22,7 @@ class ShiftTimeModel {
   ShiftTimeModel({
     required this.shiftId,
     this.eventId = 0,
-    this.title = 'กะการทำงาน',
+    this.title = '',
     this.startTime,
     this.endTime,
     this.duration,
@@ -49,10 +49,14 @@ class ShiftTimeModel {
     final isAppliedVal = json['is_applied'] == true ||
         json['isApplied'] == true ||
         json['applied'] == true;
+    final rawTitle = (json['event_name'] ?? json['title'] ?? '').toString();
+    final cleanedTitle = rawTitle.startsWith('กะงานที่') || rawTitle == 'กะการทำงาน'
+        ? ''
+        : rawTitle;
     return ShiftTimeModel(
       shiftId: shiftIdVal,
       eventId: json['event_id'] ?? 0,
-      title: json['title'] ?? json['event_name'] ?? 'กะงานที่ $shiftIdVal',
+      title: cleanedTitle,
       startTime: sTime,
       endTime: eTime,
       duration: dur,

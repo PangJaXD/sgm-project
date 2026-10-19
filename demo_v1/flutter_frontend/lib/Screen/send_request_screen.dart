@@ -43,7 +43,7 @@ class _SendRequestScreenState extends State<SendRequestScreen> {
             id: 'req-${DateTime.now().millisecondsSinceEpoch}',
             title: 'อนุมัติคำร้องรับกะงาน',
             body:
-                'คำร้องเข้าทำงาน ${widget.shift.title} (${widget.shift.formattedTime}) ของคุณได้รับการอนุมัติเรียบร้อยแล้ว',
+                'คำร้องเข้าทำงาน ${widget.event.title} (${widget.shift.formattedTime}) ของคุณได้รับการอนุมัติเรียบร้อยแล้ว',
             timestamp: DateTime.now(),
             type: NotificationType.approval,
             isRead: false,
