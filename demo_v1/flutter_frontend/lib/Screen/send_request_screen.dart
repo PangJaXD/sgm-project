@@ -113,7 +113,9 @@ class _SendRequestScreenState extends State<SendRequestScreen> {
 
       if (successCount > 0 && mounted) {
         final isMulti = shiftsToSubmit.length > 1;
-        final firstShift = shiftsToSubmit.first;
+        final firstShift =
+            shiftsToSubmit.where((s) => s.isWithinShift()).firstOrNull ??
+            shiftsToSubmit.first;
 
         // Add realistic approval / acknowledgement notification
         NotificationService.instance.addNotification(

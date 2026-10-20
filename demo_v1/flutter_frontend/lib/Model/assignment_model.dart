@@ -215,40 +215,48 @@ class AssignmentModel {
   /// Check whether the current time is within this assignment's shift hours
   bool isWithinShift([DateTime? testNow]) {
     final now = testNow ?? DateTime.now();
-    final nowMinutes = now.hour * 60 + now.minute;
+    DateTime? sTime = startTime;
+    DateTime? eTime = endTime;
 
-    int? startMinutes;
-    int? endMinutes;
-
-    if (startTime != null && endTime != null) {
-      startMinutes = startTime!.hour * 60 + startTime!.minute;
-      endMinutes = endTime!.hour * 60 + endTime!.minute;
-    } else if (shiftTime.isNotEmpty) {
-      final match = RegExp(
-        r'(\d{1,2}):(\d{2})\s*-\s*(\d{1,2}):(\d{2})',
-      ).firstMatch(shiftTime);
-      if (match != null) {
-        final sH = int.tryParse(match.group(1)!) ?? 0;
-        final sM = int.tryParse(match.group(2)!) ?? 0;
-        final eH = int.tryParse(match.group(3)!) ?? 0;
-        final eM = int.tryParse(match.group(4)!) ?? 0;
-        startMinutes = sH * 60 + sM;
-        endMinutes = eH * 60 + eM;
-      }
-    }
-
-    if (startMinutes == null || endMinutes == null) {
+    if (sTime == null && eTime == null) {
       return true; // No time constraints defined
     }
 
-    if (startMinutes == endMinutes) {
-      return true;
-    } else if (startMinutes < endMinutes) {
-      return nowMinutes >= startMinutes && nowMinutes <= endMinutes;
-    } else {
-      // Overnight shift crossing midnight
-      return nowMinutes >= startMinutes || nowMinutes <= endMinutes;
+    if (shiftDate != null && sTime != null) {
+      final ceYear =
+          shiftDate!.year > 2400 ? shiftDate!.year - 543 : shiftDate!.year;
+      final baseDate = DateTime(ceYear, shiftDate!.month, shiftDate!.day);
+      sTime = DateTime(
+        baseDate.year,
+        baseDate.month,
+        baseDate.day,
+        sTime.hour,
+        sTime.minute,
+        sTime.second,
+      );
+      if (eTime != null) {
+        final crossDay = eTime.hour < sTime.hour ||
+            (eTime.hour == sTime.hour && eTime.minute < sTime.minute);
+        final endDay =
+            crossDay ? baseDate.add(const Duration(days: 1)) : baseDate;
+        eTime = DateTime(
+          endDay.year,
+          endDay.month,
+          endDay.day,
+          eTime.hour,
+          eTime.minute,
+          eTime.second,
+        );
+      }
     }
+
+    if (sTime != null && now.isBefore(sTime)) {
+      return false;
+    }
+    if (eTime != null && now.isAfter(eTime)) {
+      return false;
+    }
+    return true;
   }
 
   AssignmentModel copyWith({

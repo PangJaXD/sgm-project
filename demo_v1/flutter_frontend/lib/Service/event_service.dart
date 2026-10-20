@@ -133,31 +133,54 @@ class ShiftTimeModel {
     return '${_thaiFullMonths[d.month]} $thaiYear';
   }
 
-  /// Check whether current time is within this shift's operating window (time of day)
+  /// Check whether current time is within this shift's operating window
   bool isWithinShift([DateTime? testNow]) {
     final now = testNow ?? DateTime.now();
-    final DateTime? sTime = startTime;
-    final DateTime? eTime = endTime ??
+    DateTime? sTime = startTime;
+    DateTime? eTime = endTime ??
         (duration != null && sTime != null
             ? sTime.add(Duration(hours: duration!))
             : null);
 
-    if (sTime == null || eTime == null) {
+    if (sTime == null && eTime == null) {
       return true; // No time limits defined
     }
 
-    final nowMinutes = now.hour * 60 + now.minute;
-    final startMinutes = sTime.hour * 60 + sTime.minute;
-    final endMinutes = eTime.hour * 60 + eTime.minute;
-
-    if (startMinutes == endMinutes) {
-      return true;
-    } else if (startMinutes < endMinutes) {
-      return nowMinutes >= startMinutes && nowMinutes <= endMinutes;
-    } else {
-      // Overnight shift crossing midnight
-      return nowMinutes >= startMinutes || nowMinutes <= endMinutes;
+    if (shiftDate != null && sTime != null) {
+      final ceYear =
+          shiftDate!.year > 2400 ? shiftDate!.year - 543 : shiftDate!.year;
+      final baseDate = DateTime(ceYear, shiftDate!.month, shiftDate!.day);
+      sTime = DateTime(
+        baseDate.year,
+        baseDate.month,
+        baseDate.day,
+        sTime.hour,
+        sTime.minute,
+        sTime.second,
+      );
+      if (eTime != null) {
+        final crossDay = eTime.hour < sTime.hour ||
+            (eTime.hour == sTime.hour && eTime.minute < sTime.minute);
+        final endDay =
+            crossDay ? baseDate.add(const Duration(days: 1)) : baseDate;
+        eTime = DateTime(
+          endDay.year,
+          endDay.month,
+          endDay.day,
+          eTime.hour,
+          eTime.minute,
+          eTime.second,
+        );
+      }
     }
+
+    if (sTime != null && now.isBefore(sTime)) {
+      return false;
+    }
+    if (eTime != null && now.isAfter(eTime)) {
+      return false;
+    }
+    return true;
   }
 }
 
@@ -483,6 +506,27 @@ class EventService {
   /// 3. Fetch active assignment for guard: GET /api/assignment/guard/{guardId}/active
   Future<AssignmentModel?> fetchActiveAssignment(int guardId) async {
     try {
+      final listResp = await _createDio().get('/assignment/guard/$guardId');
+      if (listResp.statusCode == 200 && listResp.data is List) {
+        final assignments = (listResp.data as List)
+            .whereType<Map<String, dynamic>>()
+            .map(AssignmentModel.fromJson)
+            .where((a) => !a.isWithdrawn)
+            .toList();
+        if (assignments.isNotEmpty) {
+          assignments.sort((a, b) {
+            final aActive = a.isWithinShift();
+            final bActive = b.isWithinShift();
+            if (aActive && !bActive) return -1;
+            if (!aActive && bActive) return 1;
+            if (a.isActualMember && !b.isActualMember) return -1;
+            if (!a.isActualMember && b.isActualMember) return 1;
+            return b.assignmentId.compareTo(a.assignmentId);
+          });
+          return assignments.first;
+        }
+      }
+
       final response = await _createDio().get(
         '/assignment/guard/$guardId/active',
       );
