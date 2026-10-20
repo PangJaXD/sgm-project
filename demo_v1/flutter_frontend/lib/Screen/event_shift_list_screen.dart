@@ -18,11 +18,83 @@ class _EventShiftListScreenState extends State<EventShiftListScreen> {
   bool _isLoading = true;
   bool _hasChanged = false;
   List<ShiftTimeModel> _shifts = [];
+  final Set<int> _selectedShiftIds = {};
 
   @override
   void initState() {
     super.initState();
     _loadShifts();
+  }
+
+  bool _isShiftRequested(ShiftTimeModel shift) =>
+      _eventService.requestedShiftIds.contains(shift.shiftId) ||
+      shift.isApplied;
+
+  bool _isShiftAvailable(ShiftTimeModel shift) =>
+      !_isShiftRequested(shift) && !shift.isFull;
+
+  List<ShiftTimeModel> get _availableShifts =>
+      _shifts.where(_isShiftAvailable).toList();
+
+  bool get _isAllSelected =>
+      _availableShifts.isNotEmpty &&
+      _availableShifts.every((s) => _selectedShiftIds.contains(s.shiftId));
+
+  void _toggleSelectAll(bool? value) {
+    setState(() {
+      if (_isAllSelected) {
+        _selectedShiftIds.clear();
+      } else {
+        _selectedShiftIds
+          ..clear()
+          ..addAll(_availableShifts.map((s) => s.shiftId));
+      }
+    });
+  }
+
+  void _toggleShiftSelection(int shiftId) {
+    setState(() {
+      if (_selectedShiftIds.contains(shiftId)) {
+        _selectedShiftIds.remove(shiftId);
+      } else {
+        _selectedShiftIds.add(shiftId);
+      }
+    });
+  }
+
+  Future<void> _navigateToApplyShifts(
+    List<ShiftTimeModel> shiftsToApply,
+  ) async {
+    if (shiftsToApply.isEmpty) return;
+    if (UserService().isNotStartedYet) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'ยังไม่ถึงเวลาเริ่มงาน ไม่สามารถสมัครกะงานได้',
+          ),
+          backgroundColor: Color(0xFFEF4444),
+        ),
+      );
+      return;
+    }
+    final requested = await Navigator.push<bool>(
+      context,
+      MaterialPageRoute(
+        builder: (context) => SendRequestScreen(
+          event: widget.event,
+          shift: shiftsToApply.first,
+          initialSelectedShifts: shiftsToApply,
+          availableShifts: _availableShifts,
+        ),
+      ),
+    );
+    if (requested == true) {
+      _hasChanged = true;
+      _selectedShiftIds.clear();
+    }
+    if (mounted) {
+      _loadShifts();
+    }
   }
 
   Future<void> _loadShifts() async {
@@ -42,6 +114,9 @@ class _EventShiftListScreenState extends State<EventShiftListScreen> {
           _shifts = _sortShiftsDesc(
             shifts.isNotEmpty ? shifts : widget.event.shiftTimes,
           );
+          final availableIds =
+              _shifts.where(_isShiftAvailable).map((s) => s.shiftId).toSet();
+          _selectedShiftIds.removeWhere((id) => !availableIds.contains(id));
           _isLoading = false;
         });
       }
@@ -49,6 +124,9 @@ class _EventShiftListScreenState extends State<EventShiftListScreen> {
       if (mounted) {
         setState(() {
           _shifts = _sortShiftsDesc(widget.event.shiftTimes);
+          final availableIds =
+              _shifts.where(_isShiftAvailable).map((s) => s.shiftId).toSet();
+          _selectedShiftIds.removeWhere((id) => !availableIds.contains(id));
           _isLoading = false;
         });
       }
@@ -231,32 +309,226 @@ class _EventShiftListScreenState extends State<EventShiftListScreen> {
                           horizontal: 16,
                           vertical: 16,
                         ),
-                        children: _groupedShifts.entries.map((entry) {
-                          return Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Padding(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 4,
-                                  vertical: 10,
-                                ),
-                                child: Text(
-                                  entry.key,
-                                  style: const TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.bold,
-                                    color: Color(0xFF1E293B),
+                        children: [
+                          if (_availableShifts.isNotEmpty)
+                            _buildSelectAllBanner(),
+                          ..._groupedShifts.entries.map((entry) {
+                            return Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 4,
+                                    vertical: 10,
+                                  ),
+                                  child: Text(
+                                    entry.key,
+                                    style: const TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold,
+                                      color: Color(0xFF1E293B),
+                                    ),
                                   ),
                                 ),
-                              ),
-                              ...entry.value.map((shift) => _buildShiftCard(shift)),
-                            ],
-                          );
-                        }).toList(),
+                                ...entry.value.map(
+                                  (shift) => _buildShiftCard(shift),
+                                ),
+                              ],
+                            );
+                          }),
+                        ],
                       ),
                     ),
             ),
+
+            // Bottom Action Bar when 1 or more shifts are selected
+            if (!_isLoading && _selectedShiftIds.isNotEmpty)
+              Container(
+                width: double.infinity,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.08),
+                      blurRadius: 16,
+                      offset: const Offset(0, -4),
+                    ),
+                  ],
+                ),
+                child: SafeArea(
+                  top: false,
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(20, 14, 20, 16),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                'เลือกแล้ว ${_selectedShiftIds.length} กะงาน',
+                                style: const TextStyle(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.bold,
+                                  color: Color(0xFF0F172A),
+                                ),
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                _isAllSelected
+                                    ? 'เลือกครบทุกกะงานที่ว่างแล้ว'
+                                    : 'จากทั้งหมด ${_availableShifts.length} กะงานที่ว่าง',
+                                style: const TextStyle(
+                                  fontSize: 12.5,
+                                  color: Color(0xFF64748B),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        SizedBox(
+                          height: 48,
+                          child: ElevatedButton.icon(
+                            onPressed: () {
+                              final selected = _availableShifts
+                                  .where(
+                                    (s) =>
+                                        _selectedShiftIds.contains(s.shiftId),
+                                  )
+                                  .toList();
+                              _navigateToApplyShifts(selected);
+                            },
+                            icon: const Icon(
+                              Icons.check_circle_rounded,
+                              color: Colors.white,
+                              size: 20,
+                            ),
+                            label: Text(
+                              _isAllSelected && _availableShifts.length > 1
+                                  ? 'สมัครทั้งหมด (${_selectedShiftIds.length} กะ)'
+                                  : 'สมัครที่เลือก (${_selectedShiftIds.length} กะ)',
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 14.5,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: primaryBlue,
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 18,
+                              ),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(14),
+                              ),
+                              elevation: 0,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSelectAllBanner() {
+    const primaryBlue = Color(0xFF2563EB);
+    final availableCount = _availableShifts.length;
+    final selectedCount = _selectedShiftIds.length;
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 8),
+      decoration: BoxDecoration(
+        color: _isAllSelected ? const Color(0xFFEFF6FF) : Colors.white,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(
+          color: _isAllSelected ? primaryBlue : const Color(0xFFCBD5E1),
+          width: _isAllSelected ? 1.5 : 1.0,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.03),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: () => _toggleSelectAll(!_isAllSelected),
+          borderRadius: BorderRadius.circular(18),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+            child: Row(
+              children: [
+                SizedBox(
+                  width: 24,
+                  height: 24,
+                  child: Checkbox(
+                    value: _isAllSelected,
+                    activeColor: primaryBlue,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    onChanged: _toggleSelectAll,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'เลือกสมัครกะงานทั้งหมด ($availableCount กะ)',
+                        style: const TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF0F172A),
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        selectedCount > 0
+                            ? 'เลือกแล้ว $selectedCount จาก $availableCount กะงานที่ว่าง'
+                            : 'ติ๊กเพื่อเลือกสมัครทุกกะงานที่ว่างในครั้งเดียว',
+                        style: const TextStyle(
+                          fontSize: 12.5,
+                          color: Color(0xFF64748B),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                if (selectedCount > 0)
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 4,
+                    ),
+                    decoration: BoxDecoration(
+                      color: primaryBlue,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Text(
+                      '$selectedCount/$availableCount',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          ),
         ),
       ),
     );
@@ -264,14 +536,20 @@ class _EventShiftListScreenState extends State<EventShiftListScreen> {
 
   Widget _buildShiftCard(ShiftTimeModel shift) {
     const primaryBlue = Color(0xFF2563EB);
-    final isRequested = _eventService.requestedShiftIds.contains(shift.shiftId) || shift.isApplied;
+    final isRequested = _isShiftRequested(shift);
     final isFull = shift.isFull && !isRequested;
+    final isAvailable = !isRequested && !isFull;
+    final isSelected = isAvailable && _selectedShiftIds.contains(shift.shiftId);
 
     return Container(
       margin: const EdgeInsets.only(bottom: 14),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isSelected ? const Color(0xFFF8FAFC) : Colors.white,
         borderRadius: BorderRadius.circular(22),
+        border: Border.all(
+          color: isSelected ? primaryBlue : Colors.transparent,
+          width: 1.5,
+        ),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.04),
@@ -285,9 +563,24 @@ class _EventShiftListScreenState extends State<EventShiftListScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Date row and Quota Tag
+            // Date row, Checkbox (if available), and Quota Tag
             Row(
               children: [
+                if (isAvailable) ...[
+                  SizedBox(
+                    width: 24,
+                    height: 24,
+                    child: Checkbox(
+                      value: isSelected,
+                      activeColor: primaryBlue,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      onChanged: (_) => _toggleShiftSelection(shift.shiftId),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                ],
                 const Icon(
                   Icons.calendar_today_rounded,
                   size: 16,
@@ -295,12 +588,17 @@ class _EventShiftListScreenState extends State<EventShiftListScreen> {
                 ),
                 const SizedBox(width: 8),
                 Expanded(
-                  child: Text(
-                    shift.formattedDateThai,
-                    style: const TextStyle(
-                      fontSize: 15,
-                      color: Color(0xFF0F172A),
-                      fontWeight: FontWeight.bold,
+                  child: GestureDetector(
+                    onTap: isAvailable
+                        ? () => _toggleShiftSelection(shift.shiftId)
+                        : null,
+                    child: Text(
+                      shift.formattedDateThai,
+                      style: const TextStyle(
+                        fontSize: 15,
+                        color: Color(0xFF0F172A),
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ),
                 ),
@@ -440,43 +738,19 @@ class _EventShiftListScreenState extends State<EventShiftListScreen> {
                       ),
                     )
                   : OutlinedButton(
-                      onPressed: () async {
-                        if (UserService().isNotStartedYet) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text(
-                                'ยังไม่ถึงเวลาเริ่มงาน ไม่สามารถสมัครกะงานได้',
-                              ),
-                              backgroundColor: Color(0xFFEF4444),
-                            ),
-                          );
-                          return;
-                        }
-                        final requested = await Navigator.push<bool>(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => SendRequestScreen(
-                              event: widget.event,
-                              shift: shift,
-                            ),
-                          ),
-                        );
-                        if (requested == true) {
-                          _hasChanged = true;
-                        }
-                        if (mounted) {
-                          _loadShifts();
-                        }
-                      },
+                      onPressed: () => _navigateToApplyShifts([shift]),
                       style: OutlinedButton.styleFrom(
+                        backgroundColor: isSelected
+                            ? const Color(0xFFEFF6FF)
+                            : Colors.transparent,
                         side: const BorderSide(color: primaryBlue, width: 1.5),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(14),
                         ),
                       ),
-                      child: const Text(
-                        'สมัครกะนี้',
-                        style: TextStyle(
+                      child: Text(
+                        isSelected ? 'เลือกไว้แล้ว • สมัครกะนี้ทันที' : 'สมัครกะนี้',
+                        style: const TextStyle(
                           color: primaryBlue,
                           fontSize: 14.5,
                           fontWeight: FontWeight.bold,
