@@ -538,15 +538,15 @@ function AdminDashboard() {
       <aside className="w-[170px] min-h-screen bg-gray-200 border-r border-gray-300 flex flex-col">
         <div className="h-[70px] flex items-center justify-center border-b border-gray-300">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center text-white font-bold text-sm shadow">
+            <div className="w-8 h-8 rounded-lg bg-red-600 flex items-center justify-center text-white font-bold text-sm shadow">
               <Shield size={18} />
             </div>
-            <span className="text-[20px] font-bold text-blue-600">Admin</span>
+            <span className="text-[20px] font-bold text-red-600">Admin</span>
           </div>
         </div>
 
         <nav className="flex-1 pt-6 px-3">
-          <button className="w-full h-[40px] mb-2.5 rounded-xl flex items-center justify-start gap-2.5 px-3.5 text-[13px] font-medium bg-blue-600 text-white shadow-sm cursor-pointer">
+          <button className="w-full h-[40px] mb-2.5 rounded-xl flex items-center justify-start gap-2.5 px-3.5 text-[13px] font-medium bg-red-600 hover:bg-red-700 text-white shadow-sm transition cursor-pointer">
             <Building2 size={17} />
             <span className="whitespace-nowrap">บริษัท รปภ.</span>
           </button>
@@ -581,7 +581,7 @@ function AdminDashboard() {
               </p>
               <p className="text-[11px] text-gray-500">ผู้ดูแลระบบ (Admin)</p>
             </div>
-            <div className="w-9 h-9 rounded-full bg-blue-600 flex items-center justify-center text-white font-bold shadow-sm">
+            <div className="w-9 h-9 rounded-full bg-red-600 flex items-center justify-center text-white font-bold shadow-sm">
               {adminName.charAt(0).toUpperCase()}
             </div>
           </div>
@@ -603,7 +603,7 @@ function AdminDashboard() {
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                   placeholder="ค้นหาบริษัทรักษาความปลอดภัย"
-                  className="w-full h-[38px] border border-gray-400 rounded-xl pl-10 pr-4 text-sm outline-none focus:border-blue-500 bg-white shadow-sm"
+                  className="w-full h-[38px] border border-gray-400 rounded-xl pl-10 pr-4 text-sm outline-none focus:border-red-600 focus:ring-2 focus:ring-red-100 bg-white shadow-sm transition"
                 />
               </div>
 
@@ -617,7 +617,7 @@ function AdminDashboard() {
 
             {/* Table (Matching Fig 3.127) */}
             <div className="w-full border border-gray-400 rounded-xl overflow-hidden bg-white/90 shadow-sm">
-              <div className="grid grid-cols-[100px_2fr_1.5fr_1.2fr_1.2fr_80px] h-[44px] bg-blue-500 text-white items-center text-[13px] font-semibold px-5">
+              <div className="grid grid-cols-[100px_2fr_1.5fr_1.2fr_1.2fr_80px] h-[44px] bg-red-600 text-white items-center text-[13px] font-semibold px-5">
                 <div className="text-center">ลำดับที่</div>
                 <div>บริษัทรักษาความปลอดภัย</div>
                 <div>เบอร์โทรศัพท์</div>
@@ -639,7 +639,7 @@ function AdminDashboard() {
                 filteredCompanies.map((comp) => (
                   <div
                     key={comp.id}
-                    className="grid grid-cols-[100px_2fr_1.5fr_1.2fr_1.2fr_80px] min-h-[48px] items-center border-t border-gray-300 text-[13px] px-5 hover:bg-blue-50/40 transition"
+                    className="grid grid-cols-[100px_2fr_1.5fr_1.2fr_1.2fr_80px] min-h-[48px] items-center border-t border-gray-300 text-[13px] px-5 hover:bg-red-50/40 transition"
                   >
                     <div className="text-center font-medium text-gray-700 bg-gray-200/60 py-1 px-2.5 rounded-lg w-16 mx-auto">
                       {comp.id}
@@ -663,7 +663,7 @@ function AdminDashboard() {
                       <button
                         type="button"
                         onClick={() => handleOpenViewModal(comp)}
-                        className="text-gray-500 hover:text-blue-600 p-1.5 rounded-lg hover:bg-gray-100 transition cursor-pointer"
+                        className="text-gray-500 hover:text-red-600 p-1.5 rounded-lg hover:bg-red-50 transition cursor-pointer"
                         title="ดูรายละเอียด"
                       >
                         <Eye size={18} />
@@ -726,7 +726,7 @@ function AdminDashboard() {
                       value={formData.username}
                       onChange={handleInputChange}
                       placeholder="8-20 ตัวอักษร/ตัวเลข"
-                      className="flex-1 h-[30px] border border-gray-400 rounded-full px-3 outline-none focus:border-blue-500 text-xs"
+                      className="flex-1 h-[30px] border border-gray-400 rounded-full px-3 outline-none focus:border-red-600 text-xs"
                     />
                   </div>
 
@@ -740,7 +740,7 @@ function AdminDashboard() {
                       value={formData.password}
                       onChange={handleInputChange}
                       placeholder="8-16 ตัว รวม [ !#_. ]"
-                      className="flex-1 h-[30px] border border-gray-400 rounded-full px-3 outline-none focus:border-blue-500 text-xs"
+                      className="flex-1 h-[30px] border border-gray-400 rounded-full px-3 outline-none focus:border-red-600 text-xs"
                     />
                   </div>
 
@@ -762,7 +762,7 @@ function AdminDashboard() {
                           confirmPassword &&
                           formData.password !== confirmPassword
                             ? "border-red-500 focus:border-red-500"
-                            : "border-gray-400 focus:border-blue-500"
+                            : "border-gray-400 focus:border-red-600"
                         }`}
                       />
                     </div>
@@ -787,7 +787,7 @@ function AdminDashboard() {
                       value={formData.companyName}
                       onChange={handleInputChange}
                       placeholder="ชื่อบริษัทรักษาความปลอดภัย"
-                      className="flex-1 h-[30px] border border-gray-400 rounded-full px-3 outline-none focus:border-blue-500 text-xs"
+                      className="flex-1 h-[30px] border border-gray-400 rounded-full px-3 outline-none focus:border-red-600 text-xs"
                     />
                   </div>
 
@@ -806,7 +806,7 @@ function AdminDashboard() {
                       }}
                       maxLength="10"
                       placeholder="เช่น 0812345678"
-                      className="flex-1 h-[30px] border border-gray-400 rounded-full px-3 outline-none focus:border-blue-500 text-xs"
+                      className="flex-1 h-[30px] border border-gray-400 rounded-full px-3 outline-none focus:border-red-600 text-xs"
                     />
                   </div>
 
@@ -820,7 +820,7 @@ function AdminDashboard() {
                       value={formData.email}
                       onChange={handleInputChange}
                       placeholder="company@email.com"
-                      className="flex-1 h-[30px] border border-gray-400 rounded-full px-3 text-center outline-none focus:border-blue-500 text-xs"
+                      className="flex-1 h-[30px] border border-gray-400 rounded-full px-3 text-center outline-none focus:border-red-600 text-xs"
                     />
                   </div> */}
 
@@ -841,7 +841,7 @@ function AdminDashboard() {
                         allowInput: true,
                       }}
                       placeholder="วว/ดด/ปปปป"
-                      className="flex-1 h-[30px] border border-gray-400 rounded-full px-3 text-center outline-none focus:border-blue-500 text-xs bg-white text-gray-700"
+                      className="flex-1 h-[30px] border border-gray-400 rounded-full px-3 text-center outline-none focus:border-red-600 text-xs bg-white text-gray-700"
                     />
                   </div>
                 </div>
@@ -867,7 +867,7 @@ function AdminDashboard() {
                   onChange={handleInputChange}
                   rows="2"
                   placeholder="ที่อยู่สำนักงาน / บริษัท"
-                  className="flex-1 border border-gray-400 rounded-xl p-2.5 outline-none focus:border-blue-500 resize-none text-xs"
+                  className="flex-1 border border-gray-400 rounded-xl p-2.5 outline-none focus:border-red-600 resize-none text-xs"
                 />
               </div>
 
@@ -887,9 +887,9 @@ function AdminDashboard() {
       {/* ================= MODAL: ดูข้อมูลบริษัท (VIEW - Fig 3.130) ================= */}
       {isViewModalOpen && selectedCompany && (
         <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50">
-          <div className="bg-white rounded-[24px] w-[620px] overflow-hidden shadow-2xl relative border-2 border-blue-500">
+          <div className="bg-white rounded-[24px] w-[620px] overflow-hidden shadow-2xl relative border-2 border-red-600">
             {/* Modal Header */}
-            <div className="bg-blue-600 h-[52px] flex items-center justify-between px-6 text-white">
+            <div className="bg-red-600 h-[52px] flex items-center justify-between px-6 text-white">
               <div className="flex items-center gap-2.5">
                 <Eye size={20} />
                 <h2 className="font-semibold text-[16px]">
@@ -1082,7 +1082,7 @@ function AdminDashboard() {
                       name="username"
                       value={formData.username}
                       onChange={handleInputChange}
-                      className="flex-1 h-[30px] border border-gray-400 rounded-full px-3 outline-none focus:border-blue-500 text-xs"
+                      className="flex-1 h-[30px] border border-gray-400 rounded-full px-3 outline-none focus:border-red-600 text-xs"
                     />
                   </div>
 
@@ -1096,7 +1096,7 @@ function AdminDashboard() {
                       value={formData.password}
                       onChange={handleInputChange}
                       placeholder="เว้นว่างหากไม่ต้องการเปลี่ยน"
-                      className="flex-1 h-[30px] border border-gray-400 rounded-full px-3 outline-none focus:border-blue-500 text-xs"
+                      className="flex-1 h-[30px] border border-gray-400 rounded-full px-3 outline-none focus:border-red-600 text-xs"
                     />
                   </div>
 
@@ -1118,7 +1118,7 @@ function AdminDashboard() {
                           confirmPassword &&
                           formData.password !== confirmPassword
                             ? "border-red-500 focus:border-red-500"
-                            : "border-gray-400 focus:border-blue-500"
+                            : "border-gray-400 focus:border-red-600"
                         }`}
                       />
                     </div>
@@ -1142,7 +1142,7 @@ function AdminDashboard() {
                       name="companyName"
                       value={formData.companyName}
                       onChange={handleInputChange}
-                      className="flex-1 h-[30px] border border-gray-400 rounded-full px-3 outline-none focus:border-blue-500 text-xs"
+                      className="flex-1 h-[30px] border border-gray-400 rounded-full px-3 outline-none focus:border-red-600 text-xs"
                     />
                   </div>
 
@@ -1161,7 +1161,7 @@ function AdminDashboard() {
                       }}
                       maxLength="10"
                       placeholder="เช่น 0812345678"
-                      className="flex-1 h-[30px] border border-gray-400 rounded-full px-3 outline-none focus:border-blue-500 text-xs"
+                      className="flex-1 h-[30px] border border-gray-400 rounded-full px-3 outline-none focus:border-red-600 text-xs"
                     />
                   </div>
 
@@ -1174,7 +1174,7 @@ function AdminDashboard() {
                       name="email"
                       value={formData.email}
                       onChange={handleInputChange}
-                      className="flex-1 h-[30px] border border-gray-400 rounded-full px-3 outline-none focus:border-blue-500 text-xs"
+                      className="flex-1 h-[30px] border border-gray-400 rounded-full px-3 outline-none focus:border-red-600 text-xs"
                     />
                   </div> */}
 
@@ -1195,7 +1195,7 @@ function AdminDashboard() {
                         allowInput: true,
                       }}
                       placeholder="วว/ดด/ปปปป"
-                      className="flex-1 h-[30px] border border-gray-400 rounded-full px-3 outline-none focus:border-blue-500 text-xs bg-white text-gray-700"
+                      className="flex-1 h-[30px] border border-gray-400 rounded-full px-3 outline-none focus:border-red-600 text-xs bg-white text-gray-700"
                     />
                   </div>
 
@@ -1207,7 +1207,7 @@ function AdminDashboard() {
                       name="status"
                       value={formData.status}
                       onChange={handleInputChange}
-                      className="flex-1 h-[30px] border border-gray-400 rounded-full px-3 bg-white outline-none focus:border-blue-500 text-xs cursor-pointer"
+                      className="flex-1 h-[30px] border border-gray-400 rounded-full px-3 bg-white outline-none focus:border-red-600 text-xs cursor-pointer"
                     >
                       <option value="ปฏิบัติงาน">ปฏิบัติงาน</option>
                       <option value="พักปฏิบัติงาน">พักปฏิบัติงาน</option>
@@ -1235,7 +1235,7 @@ function AdminDashboard() {
                   value={formData.address}
                   onChange={handleInputChange}
                   rows="2"
-                  className="flex-1 border border-gray-400 rounded-xl p-2.5 outline-none focus:border-blue-500 resize-none text-xs"
+                  className="flex-1 border border-gray-400 rounded-xl p-2.5 outline-none focus:border-red-600 resize-none text-xs"
                 />
               </div>
 
@@ -1258,7 +1258,7 @@ function AdminDashboard() {
           <div className="bg-white rounded-2xl w-[480px] overflow-hidden shadow-2xl p-6 border border-red-300">
             {isCheckingDelete ? (
               <div className="py-8 flex flex-col items-center justify-center gap-3">
-                <div className="w-8 h-8 border-3 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+                <div className="w-8 h-8 border-3 border-red-600 border-t-transparent rounded-full animate-spin"></div>
                 <p className="text-sm text-gray-600 font-medium">
                   กำลังตรวจสอบสถานะพนักงานและงานอีเว้นท์ของบริษัท...
                 </p>
