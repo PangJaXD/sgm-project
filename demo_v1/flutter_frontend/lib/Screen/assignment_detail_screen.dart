@@ -32,11 +32,47 @@ class _AssignmentDetailScreenState extends State<AssignmentDetailScreen> {
   @override
   void initState() {
     super.initState();
+    _assignment = widget.assignment ?? _buildFallbackAssignment();
     if (widget.assignment != null) {
-      _assignment = widget.assignment!;
       _isLoading = false;
     }
     _loadAssignment();
+  }
+
+  AssignmentModel _buildFallbackAssignment() {
+    final user = _userService.currentUser;
+    final eventLat = double.tryParse(widget.event.latitude ?? '') ?? 0.0;
+    final eventLng = double.tryParse(widget.event.longitude ?? '') ?? 0.0;
+
+    return AssignmentModel(
+      assignmentId: 0,
+      guardId: user.usersId,
+      shiftId: widget.shift.shiftId,
+      eventId: widget.event.id,
+      assignmentStatus: widget.shift.status.isNotEmpty
+          ? widget.shift.status
+          : 'ASSIGNED',
+      description: widget.event.description.isNotEmpty
+          ? widget.event.description
+          : 'ปฏิบัติหน้าที่รักษาความปลอดภัย ณ ${widget.shift.dutyLocation}',
+      eventName: widget.event.title,
+      dutyLocation: widget.shift.dutyLocation.isNotEmpty
+          ? widget.shift.dutyLocation
+          : widget.event.location,
+      shiftName: widget.shift.title,
+      shiftTime: widget.shift.formattedTime,
+      startTime: widget.shift.startTime,
+      endTime: widget.shift.endTime,
+      shiftDate: widget.shift.shiftDate,
+      latitude: eventLat,
+      longitude: eventLng,
+      requiredTools: widget.event.requiredTools,
+      providedTools: widget.event.providedTools,
+      supervisorName: user.headName,
+      supervisorNote: widget.event.contractor.isNotEmpty
+          ? 'ผู้ประสานงาน: ${widget.event.contractor} (${widget.event.contact})'
+          : 'สังเกตบุคคลและสิ่งผิดปกติเป็นพิเศษ และบันทึกรายงานสถานการณ์อย่างสม่ำเสมอ',
+    );
   }
 
   Future<void> _loadAssignment() async {
@@ -50,55 +86,48 @@ class _AssignmentDetailScreenState extends State<AssignmentDetailScreen> {
         shiftId: widget.shift.shiftId,
       );
       if (mounted) {
+        final eventLat = double.tryParse(widget.event.latitude ?? '') ?? 0.0;
+        final eventLng = double.tryParse(widget.event.longitude ?? '') ?? 0.0;
+        final resolvedLat = assign.latitude != 0.0
+            ? assign.latitude
+            : (widget.assignment?.latitude != null &&
+                      widget.assignment!.latitude != 0.0
+                  ? widget.assignment!.latitude
+                  : eventLat);
+        final resolvedLng = assign.longitude != 0.0
+            ? assign.longitude
+            : (widget.assignment?.longitude != null &&
+                      widget.assignment!.longitude != 0.0
+                  ? widget.assignment!.longitude
+                  : eventLng);
+
         setState(() {
-          _assignment = assign.copyWith(
-            startTime: assign.startTime ?? widget.shift.startTime,
-            endTime: assign.endTime ?? widget.shift.endTime,
-            shiftDate: assign.shiftDate ?? widget.shift.shiftDate,
-            shiftTime: assign.shiftTime.isNotEmpty && assign.shiftTime != '-'
-                ? assign.shiftTime
-                : widget.shift.formattedTime,
-          );
+          if (assign.assignmentId == 0 && widget.assignment != null) {
+            _assignment = widget.assignment!.copyWith(
+              latitude: resolvedLat,
+              longitude: resolvedLng,
+            );
+          } else if (assign.assignmentId == 0) {
+            _assignment = _buildFallbackAssignment();
+          } else {
+            _assignment = assign.copyWith(
+              latitude: resolvedLat,
+              longitude: resolvedLng,
+              startTime: assign.startTime ?? widget.shift.startTime,
+              endTime: assign.endTime ?? widget.shift.endTime,
+              shiftDate: assign.shiftDate ?? widget.shift.shiftDate,
+              shiftTime: assign.shiftTime.isNotEmpty && assign.shiftTime != '-'
+                  ? assign.shiftTime
+                  : widget.shift.formattedTime,
+            );
+          }
           _isLoading = false;
         });
       }
     } catch (_) {
       if (mounted) {
-        final eventLat = double.tryParse(widget.event.latitude ?? '') ?? 0.0;
-        final eventLng = double.tryParse(widget.event.longitude ?? '') ?? 0.0;
-
         setState(() {
-          _assignment =
-              widget.assignment ??
-              AssignmentModel(
-                assignmentId: 0,
-                guardId: user.usersId,
-                shiftId: widget.shift.shiftId,
-                eventId: widget.event.id,
-                assignmentStatus: widget.shift.status.isNotEmpty
-                    ? widget.shift.status
-                    : 'ASSIGNED',
-                description: widget.event.description.isNotEmpty
-                    ? widget.event.description
-                    : 'ปฏิบัติหน้าที่รักษาความปลอดภัย ณ ${widget.shift.dutyLocation}',
-                eventName: widget.event.title,
-                dutyLocation: widget.shift.dutyLocation.isNotEmpty
-                    ? widget.shift.dutyLocation
-                    : widget.event.location,
-                shiftName: widget.shift.title,
-                shiftTime: widget.shift.formattedTime,
-                startTime: widget.shift.startTime,
-                endTime: widget.shift.endTime,
-                shiftDate: widget.shift.shiftDate,
-                latitude: eventLat,
-                longitude: eventLng,
-                requiredTools: widget.event.requiredTools,
-                providedTools: widget.event.providedTools,
-                supervisorName: user.headName,
-                supervisorNote: widget.event.contractor.isNotEmpty
-                    ? 'ผู้ประสานงาน: ${widget.event.contractor} (${widget.event.contact})'
-                    : 'สังเกตบุคคลและสิ่งผิดปกติเป็นพิเศษ และบันทึกรายงานสถานการณ์อย่างสม่ำเสมอ',
-              );
+          _assignment = widget.assignment ?? _buildFallbackAssignment();
           _isLoading = false;
         });
       }
@@ -303,6 +332,9 @@ class _AssignmentDetailScreenState extends State<AssignmentDetailScreen> {
                                       borderRadius: BorderRadius.circular(16),
                                     ),
                                     child: FlutterMap(
+                                      key: ValueKey(
+                                        '${effectiveLatLng.latitude}_${effectiveLatLng.longitude}',
+                                      ),
                                       options: MapOptions(
                                         initialCenter: effectiveLatLng,
                                         initialZoom: 15.5,
@@ -316,9 +348,16 @@ class _AssignmentDetailScreenState extends State<AssignmentDetailScreen> {
                                       children: [
                                         TileLayer(
                                           urlTemplate:
-                                              'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                                              'https://tile.openstreetmap.de/{z}/{x}/{y}.png',
+                                          fallbackUrl:
+                                              'https://a.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png',
                                           userAgentPackageName:
-                                              'com.example.flutter_frontend',
+                                              'org.sgm_project.flutter_frontend',
+                                          tileProvider: NetworkTileProvider(
+                                            cachingProvider:
+                                                const DisabledMapCachingProvider(),
+                                            silenceExceptions: true,
+                                          ),
                                         ),
                                         MarkerLayer(
                                           markers: [

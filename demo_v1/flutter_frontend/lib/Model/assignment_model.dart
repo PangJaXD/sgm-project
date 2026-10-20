@@ -151,14 +151,16 @@ class AssignmentModel {
               : 'สังเกตบุคคลและสิ่งผิดปกติเป็นพิเศษ และบันทึกรายงานสถานการณ์อย่างสม่ำเสมอ');
 
     // Parse coordinates, checking assignment coords first, then event fallback
-    final lat =
-        double.tryParse(json['latitude']?.toString() ?? '') ??
-        double.tryParse(json['event_latitude']?.toString() ?? '') ??
-        0.0;
-    final lng =
-        double.tryParse(json['longitude']?.toString() ?? '') ??
-        double.tryParse(json['event_longitude']?.toString() ?? '') ??
-        0.0;
+    double parseCoordinate(dynamic primary, dynamic fallback) {
+      final p = double.tryParse(primary?.toString() ?? '');
+      if (p != null && p != 0.0) return p;
+      final f = double.tryParse(fallback?.toString() ?? '');
+      if (f != null && f != 0.0) return f;
+      return 0.0;
+    }
+
+    final lat = parseCoordinate(json['latitude'], json['event_latitude']);
+    final lng = parseCoordinate(json['longitude'], json['event_longitude']);
 
     return AssignmentModel(
       assignmentId: json['assignment_id'] ?? json['id'] ?? 0,

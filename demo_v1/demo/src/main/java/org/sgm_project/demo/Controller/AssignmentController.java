@@ -64,6 +64,14 @@ public class AssignmentController {
                 map.put("event_id", event.getEvent_id());
                 map.put("event_name", event.getEvent_name());
                 map.put("location", event.getLocation());
+                map.put("event_latitude", event.getLatitude());
+                map.put("event_longitude", event.getLongitude());
+                if ((a.getLatitude() == null || a.getLatitude().trim().isEmpty()) && event.getLatitude() != null) {
+                    map.put("latitude", event.getLatitude());
+                }
+                if ((a.getLongitude() == null || a.getLongitude().trim().isEmpty()) && event.getLongitude() != null) {
+                    map.put("longitude", event.getLongitude());
+                }
                 map.put("contractor", event.getContractor());
                 map.put("contact_phone", event.getContact_phone());
                 map.put("contact_email", event.getContact_email());

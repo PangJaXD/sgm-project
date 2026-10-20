@@ -559,9 +559,13 @@ class EventService {
       if (response.statusCode == 200 && response.data is List) {
         final list = (response.data as List);
         if (list.isNotEmpty) {
-          if (shiftId != null) {
+          if (shiftId != null && shiftId > 0) {
             final match = list
-                .where((item) => item['shift_id'] == shiftId)
+                .where(
+                  (item) =>
+                      (item['shift_id'] ?? item['shiftId'])?.toString() ==
+                      shiftId.toString(),
+                )
                 .firstOrNull;
             if (match != null) {
               return AssignmentModel.fromJson(match as Map<String, dynamic>);
