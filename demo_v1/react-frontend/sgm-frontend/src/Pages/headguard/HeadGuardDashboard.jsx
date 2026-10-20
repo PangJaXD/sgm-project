@@ -228,22 +228,32 @@ function HeadGuardDashboard() {
         }
       });
 
-      const mergedShifts = (shiftsRes.data || []).map((sh) => {
-        const matchedEvent =
-          shiftToEventMap.get(sh.shiftId) ||
-          (sh.eventId ? eventByIdMap.get(sh.eventId) : null);
-        return {
-          ...sh,
-          eventId: sh.eventId || matchedEvent?.event_id,
-          guard_visible:
-            sh.guard_visible !== undefined
-              ? sh.guard_visible
-              : matchedEvent
-                ? Boolean(matchedEvent.guard_visible)
-                : false,
-          eventData: matchedEvent || null,
-        };
-      });
+      const mergedShifts = (shiftsRes.data || [])
+        .map((sh) => {
+          const matchedEvent =
+            shiftToEventMap.get(sh.shiftId) ||
+            (sh.eventId ? eventByIdMap.get(sh.eventId) : null);
+          return {
+            ...sh,
+            eventId: sh.eventId || matchedEvent?.event_id,
+            guard_visible:
+              sh.guard_visible !== undefined
+                ? sh.guard_visible
+                : matchedEvent
+                  ? Boolean(matchedEvent.guard_visible)
+                  : false,
+            eventData: matchedEvent || null,
+          };
+        })
+        .sort((a, b) => {
+          const shiftIdB = Number(b.shiftId ?? b.shift_id ?? 0);
+          const shiftIdA = Number(a.shiftId ?? a.shift_id ?? 0);
+          if (shiftIdB !== shiftIdA) return shiftIdB - shiftIdA;
+          return (
+            Number(b.eventId ?? b.event_id ?? 0) -
+            Number(a.eventId ?? a.event_id ?? 0)
+          );
+        });
 
       setShifts(mergedShifts);
       setSelectedShiftDetail((prev) => {

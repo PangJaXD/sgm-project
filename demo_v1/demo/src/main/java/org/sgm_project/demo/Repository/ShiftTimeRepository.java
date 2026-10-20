@@ -8,6 +8,6 @@ import org.springframework.data.repository.query.Param;
 import java.util.List;
 
 public interface ShiftTimeRepository extends JpaRepository<ShiftTime, Integer> {
-    @Query("SELECT s FROM ShiftTime s WHERE s.headGuard.users_id = :headGuardId ORDER BY s.shift_date ASC")
+    @Query("SELECT s FROM ShiftTime s WHERE s.headGuard.users_id = :headGuardId ORDER BY s.shift_id DESC")
     List<ShiftTime> findByHeadGuardId(@Param("headGuardId") Integer headGuardId);
 }
