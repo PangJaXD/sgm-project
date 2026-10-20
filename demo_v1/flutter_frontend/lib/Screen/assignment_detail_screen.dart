@@ -51,7 +51,14 @@ class _AssignmentDetailScreenState extends State<AssignmentDetailScreen> {
       );
       if (mounted) {
         setState(() {
-          _assignment = assign;
+          _assignment = assign.copyWith(
+            startTime: assign.startTime ?? widget.shift.startTime,
+            endTime: assign.endTime ?? widget.shift.endTime,
+            shiftDate: assign.shiftDate ?? widget.shift.shiftDate,
+            shiftTime: assign.shiftTime.isNotEmpty && assign.shiftTime != '-'
+                ? assign.shiftTime
+                : widget.shift.formattedTime,
+          );
           _isLoading = false;
         });
       }
@@ -80,6 +87,9 @@ class _AssignmentDetailScreenState extends State<AssignmentDetailScreen> {
                     : widget.event.location,
                 shiftName: widget.shift.title,
                 shiftTime: widget.shift.formattedTime,
+                startTime: widget.shift.startTime,
+                endTime: widget.shift.endTime,
+                shiftDate: widget.shift.shiftDate,
                 latitude: eventLat,
                 longitude: eventLng,
                 requiredTools: widget.event.requiredTools,

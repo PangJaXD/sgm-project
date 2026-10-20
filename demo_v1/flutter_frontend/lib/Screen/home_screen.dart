@@ -112,8 +112,14 @@ class _HomeScreenState extends State<HomeScreen> {
   ShiftTimeModel _getShiftForAssignment(AssignmentModel assign) {
     return ShiftTimeModel(
       shiftId: assign.shiftId,
+      eventId: assign.eventId ?? 0,
       title: assign.shiftName,
+      startTime: assign.startTime,
+      endTime: assign.endTime,
+      shiftDate: assign.shiftDate,
       dutyLocation: assign.dutyLocation,
+      status: assign.assignmentStatus,
+      isApplied: true,
     );
   }
 

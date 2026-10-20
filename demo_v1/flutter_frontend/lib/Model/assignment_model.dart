@@ -54,9 +54,15 @@ class AssignmentModel {
     final parsedStartTime = json['start_time'] != null
         ? DateTime.tryParse(json['start_time'].toString())
         : null;
-    final parsedEndTime = json['end_time'] != null
+    final dur = json['duration'] != null
+        ? int.tryParse(json['duration'].toString())
+        : null;
+    DateTime? parsedEndTime = json['end_time'] != null
         ? DateTime.tryParse(json['end_time'].toString())
         : null;
+    if (parsedEndTime == null && parsedStartTime != null && dur != null) {
+      parsedEndTime = parsedStartTime.add(Duration(hours: dur));
+    }
     final parsedShiftDate = json['shift_date'] != null
         ? DateTime.tryParse(json['shift_date'].toString())
         : null;
@@ -209,44 +215,40 @@ class AssignmentModel {
   /// Check whether the current time is within this assignment's shift hours
   bool isWithinShift([DateTime? testNow]) {
     final now = testNow ?? DateTime.now();
-    DateTime? sTime = startTime;
-    DateTime? eTime = endTime;
+    final nowMinutes = now.hour * 60 + now.minute;
 
-    if (sTime == null && eTime == null) {
-      return true; // No time constraints defined
-    }
+    int? startMinutes;
+    int? endMinutes;
 
-    if (shiftDate != null && sTime != null) {
-      sTime = DateTime(
-        shiftDate!.year,
-        shiftDate!.month,
-        shiftDate!.day,
-        sTime.hour,
-        sTime.minute,
-        sTime.second,
-      );
-      if (eTime != null) {
-        final crossDay = eTime.hour < sTime.hour ||
-            (eTime.hour == sTime.hour && eTime.minute < sTime.minute);
-        final endDay = crossDay ? shiftDate!.add(const Duration(days: 1)) : shiftDate!;
-        eTime = DateTime(
-          endDay.year,
-          endDay.month,
-          endDay.day,
-          eTime.hour,
-          eTime.minute,
-          eTime.second,
-        );
+    if (startTime != null && endTime != null) {
+      startMinutes = startTime!.hour * 60 + startTime!.minute;
+      endMinutes = endTime!.hour * 60 + endTime!.minute;
+    } else if (shiftTime.isNotEmpty) {
+      final match = RegExp(
+        r'(\d{1,2}):(\d{2})\s*-\s*(\d{1,2}):(\d{2})',
+      ).firstMatch(shiftTime);
+      if (match != null) {
+        final sH = int.tryParse(match.group(1)!) ?? 0;
+        final sM = int.tryParse(match.group(2)!) ?? 0;
+        final eH = int.tryParse(match.group(3)!) ?? 0;
+        final eM = int.tryParse(match.group(4)!) ?? 0;
+        startMinutes = sH * 60 + sM;
+        endMinutes = eH * 60 + eM;
       }
     }
 
-    if (sTime != null && now.isBefore(sTime)) {
-      return false;
+    if (startMinutes == null || endMinutes == null) {
+      return true; // No time constraints defined
     }
-    if (eTime != null && now.isAfter(eTime)) {
-      return false;
+
+    if (startMinutes == endMinutes) {
+      return true;
+    } else if (startMinutes < endMinutes) {
+      return nowMinutes >= startMinutes && nowMinutes <= endMinutes;
+    } else {
+      // Overnight shift crossing midnight
+      return nowMinutes >= startMinutes || nowMinutes <= endMinutes;
     }
-    return true;
   }
 
   AssignmentModel copyWith({

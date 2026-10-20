@@ -29,14 +29,16 @@ class ShiftTimeModel {
     this.shiftDate,
     this.maximumGuards = 10,
     this.currentGuards = 0,
-    this.dutyLocation = 'à¸ˆà¸¸à¸”à¸•à¸£à¸§à¸ˆà¸«à¸¥à¸±à¸',
+    this.dutyLocation = 'จุดตรวจหลัก',
     this.status = 'OPEN',
     this.isApplied = false,
   });
 
   factory ShiftTimeModel.fromJson(Map<String, dynamic> json) {
     final shiftIdVal = json['shift_id'] ?? json['id'] ?? 0;
-    final dur = json['duration'] != null ? int.tryParse(json['duration'].toString()) : null;
+    final dur = json['duration'] != null
+        ? int.tryParse(json['duration'].toString())
+        : null;
     final sTime = json['start_time'] != null
         ? DateTime.tryParse(json['start_time'].toString())
         : null;
@@ -50,9 +52,10 @@ class ShiftTimeModel {
         json['isApplied'] == true ||
         json['applied'] == true;
     final rawTitle = (json['event_name'] ?? json['title'] ?? '').toString();
-    final cleanedTitle = rawTitle.startsWith('à¸à¸°à¸‡à¸²à¸™à¸—à¸µà¹ˆ') || rawTitle == 'à¸à¸°à¸à¸²à¸£à¸—à¸³à¸‡à¸²à¸™'
-        ? ''
-        : rawTitle;
+    final cleanedTitle =
+        rawTitle.startsWith('กะงานที่') || rawTitle == 'กะการทำงาน'
+            ? ''
+            : rawTitle;
     return ShiftTimeModel(
       shiftId: shiftIdVal,
       eventId: json['event_id'] ?? 0,
@@ -65,7 +68,8 @@ class ShiftTimeModel {
           : null,
       maximumGuards: json['maximum_guards'] ?? 10,
       currentGuards: json['current_guards'] ?? 0,
-      dutyLocation: json['duty_location'] ?? json['location'] ?? 'à¸ˆà¸¸à¸”à¸•à¸£à¸§à¸ˆà¸«à¸¥à¸±à¸',
+      dutyLocation:
+          json['duty_location'] ?? json['location'] ?? 'จุดตรวจหลัก',
       status: json['status'] ?? 'OPEN',
       isApplied: isAppliedVal,
     );
@@ -75,14 +79,15 @@ class ShiftTimeModel {
   bool get isFull => availableSlots <= 0 || status.toUpperCase() == 'FULL';
 
   String get formattedTime {
-    if (startTime == null) return '08:00 - 16:00 à¸™.';
-    final effectiveEndTime = endTime ?? (duration != null ? startTime!.add(Duration(hours: duration!)) : null);
-    if (effectiveEndTime == null) return '08:00 - 16:00 à¸™.';
+    if (startTime == null) return '08:00 - 16:00 น.';
+    final effectiveEndTime = endTime ??
+        (duration != null ? startTime!.add(Duration(hours: duration!)) : null);
+    if (effectiveEndTime == null) return '08:00 - 16:00 น.';
     final startHour = startTime!.hour.toString().padLeft(2, '0');
     final startMin = startTime!.minute.toString().padLeft(2, '0');
     final endHour = effectiveEndTime.hour.toString().padLeft(2, '0');
     final endMin = effectiveEndTime.minute.toString().padLeft(2, '0');
-    return '$startHour:$startMin - $endHour:$endMin à¸™.';
+    return '$startHour:$startMin - $endHour:$endMin น.';
   }
 
   DateTime? get effectiveDateTime {
@@ -102,24 +107,24 @@ class ShiftTimeModel {
 
   static const List<String> _thaiFullMonths = [
     '',
-    'à¸¡à¸à¸£à¸²à¸„à¸¡',
-    'à¸à¸¸à¸¡à¸ à¸²à¸žà¸±à¸™à¸˜à¹Œ',
-    'à¸¡à¸µà¸™à¸²à¸„à¸¡',
-    'à¹€à¸¡à¸©à¸²à¸¢à¸™',
-    'à¸žà¸¤à¸©à¸ à¸²à¸„à¸¡',
-    'à¸¡à¸´à¸–à¸¸à¸™à¸²à¸¢à¸™',
-    'à¸à¸£à¸à¸Žà¸²à¸„à¸¡',
-    'à¸ªà¸´à¸‡à¸«à¸²à¸„à¸¡',
-    'à¸à¸±à¸™à¸¢à¸²à¸¢à¸™',
-    'à¸•à¸¸à¸¥à¸²à¸„à¸¡',
-    'à¸žà¸¤à¸¨à¸ˆà¸´à¸à¸²à¸¢à¸™',
-    'à¸˜à¸±à¸™à¸§à¸²à¸„à¸¡',
+    'มกราคม',
+    'กุมภาพันธ์',
+    'มีนาคม',
+    'เมษายน',
+    'พฤษภาคม',
+    'มิถุนายน',
+    'กรกฎาคม',
+    'สิงหาคม',
+    'กันยายน',
+    'ตุลาคม',
+    'พฤศจิกายน',
+    'ธันวาคม',
   ];
 
   String get formattedDateThai {
     final d = shiftDate ?? startTime ?? DateTime.now();
     final thaiYear = d.year > 2500 ? d.year : d.year + 543;
-    return 'à¸§à¸±à¸™à¸—à¸µà¹ˆ ${d.day} ${_thaiFullMonths[d.month]} $thaiYear';
+    return 'วันที่ ${d.day} ${_thaiFullMonths[d.month]} $thaiYear';
   }
 
   String get monthGroupThai {
@@ -128,47 +133,31 @@ class ShiftTimeModel {
     return '${_thaiFullMonths[d.month]} $thaiYear';
   }
 
-  /// Check whether current time is within this shift's operating window
+  /// Check whether current time is within this shift's operating window (time of day)
   bool isWithinShift([DateTime? testNow]) {
     final now = testNow ?? DateTime.now();
-    DateTime? sTime = startTime;
-    DateTime? eTime = endTime ?? (duration != null && sTime != null ? sTime.add(Duration(hours: duration!)) : null);
+    final DateTime? sTime = startTime;
+    final DateTime? eTime = endTime ??
+        (duration != null && sTime != null
+            ? sTime.add(Duration(hours: duration!))
+            : null);
 
-    if (sTime == null && eTime == null) {
+    if (sTime == null || eTime == null) {
       return true; // No time limits defined
     }
 
-    if (shiftDate != null && sTime != null) {
-      sTime = DateTime(
-        shiftDate!.year,
-        shiftDate!.month,
-        shiftDate!.day,
-        sTime.hour,
-        sTime.minute,
-        sTime.second,
-      );
-      if (eTime != null) {
-        final crossDay = eTime.hour < sTime.hour ||
-            (eTime.hour == sTime.hour && eTime.minute < sTime.minute);
-        final endDay = crossDay ? shiftDate!.add(const Duration(days: 1)) : shiftDate!;
-        eTime = DateTime(
-          endDay.year,
-          endDay.month,
-          endDay.day,
-          eTime.hour,
-          eTime.minute,
-          eTime.second,
-        );
-      }
-    }
+    final nowMinutes = now.hour * 60 + now.minute;
+    final startMinutes = sTime.hour * 60 + sTime.minute;
+    final endMinutes = eTime.hour * 60 + eTime.minute;
 
-    if (sTime != null && now.isBefore(sTime)) {
-      return false;
+    if (startMinutes == endMinutes) {
+      return true;
+    } else if (startMinutes < endMinutes) {
+      return nowMinutes >= startMinutes && nowMinutes <= endMinutes;
+    } else {
+      // Overnight shift crossing midnight
+      return nowMinutes >= startMinutes || nowMinutes <= endMinutes;
     }
-    if (eTime != null && now.isAfter(eTime)) {
-      return false;
-    }
-    return true;
   }
 }
 
@@ -236,8 +225,8 @@ class EventModel {
 
     return EventModel(
       id: eventId,
-      title: json['event_name'] ?? json['title'] ?? 'à¹„à¸¡à¹ˆà¸¡à¸µà¸Šà¸·à¹ˆà¸­à¸à¸´à¸ˆà¸à¸£à¸£à¸¡',
-      location: json['location'] ?? 'à¹„à¸¡à¹ˆà¸£à¸°à¸šà¸¸à¸ªà¸–à¸²à¸™à¸—à¸µà¹ˆ',
+      title: json['event_name'] ?? json['title'] ?? 'ไม่มีชื่อกิจกรรม',
+      location: json['location'] ?? 'ไม่ระบุสถานที่',
       startTime: parsedStart,
       endTime: parsedEnd,
       latitude: json['latitude']?.toString(),
@@ -268,12 +257,12 @@ class EventModel {
     if (startDate != null && endDate != null && startDate != endDate) {
       return true;
     }
-    return title.contains('à¸­à¸µà¹€à¸§à¸™à¸•à¹Œ') ||
-        title.contains('à¸‡à¸²à¸™') ||
-        title.contains('à¸¡à¸«à¸²à¸§à¸´à¸—à¸¢à¸²à¸¥à¸±à¸¢');
+    return title.contains('อีเวนต์') ||
+        title.contains('งาน') ||
+        title.contains('มหาวิทยาลัย');
   }
 
-  String get jobType => isSpecialEvent ? 'à¸‡à¸²à¸™à¸­à¸µà¹€à¸§à¸™à¸•à¹Œà¸žà¸´à¹€à¸¨à¸©' : 'à¸‡à¸²à¸™à¸›à¸£à¸°à¸ˆà¸³';
+  String get jobType => isSpecialEvent ? 'งานอีเวนต์พิเศษ' : 'งานประจำ';
 
   Color get tagBgColor =>
       isSpecialEvent ? const Color(0xFFFEF3C7) : const Color(0xFFDBEAFE);
@@ -302,7 +291,7 @@ class EventModel {
     if (shiftTimes.isNotEmpty) {
       return shiftTimes.map((s) => s.formattedTime).join(', ');
     }
-    return '08:00 - 17:00 à¸™.';
+    return '08:00 - 17:00 น.';
   }
 }
 
@@ -351,7 +340,9 @@ class EventService {
         }
       }
     } on DioException catch (e) {
-      debugPrint('[EventService] syncGuardAppliedShifts Dio error: ${e.message}');
+      debugPrint(
+        '[EventService] syncGuardAppliedShifts Dio error: ${e.message}',
+      );
     } catch (e) {
       debugPrint('[EventService] syncGuardAppliedShifts error: $e');
     }
@@ -409,7 +400,7 @@ class EventService {
       throw ApiException.fromDioException(e);
     } catch (e) {
       debugPrint('[EventService] fetchEvents general error: $e');
-      throw ApiException(message: 'à¹„à¸¡à¹ˆà¸ªà¸²à¸¡à¸²à¸£à¸–à¸”à¸¶à¸‡à¸‚à¹‰à¸­à¸¡à¸¹à¸¥à¸‡à¸²à¸™à¸­à¸µà¹€à¸§à¸™à¸•à¹Œà¹„à¸”à¹‰');
+      throw ApiException(message: 'ไม่สามารถดึงข้อมูลงานอีเวนต์ได้');
     }
     return [];
   }
@@ -437,19 +428,13 @@ class EventService {
         queryParameters: queryParams.isNotEmpty ? queryParams : null,
       );
       if (response.statusCode == 200 && response.data is List) {
-        final list = (response.data as List)
-            .map(
-              (json) {
-                final shift = ShiftTimeModel.fromJson(
-                  json as Map<String, dynamic>,
-                );
-                if (shift.isApplied) {
-                  requestedShiftIds.add(shift.shiftId);
-                }
-                return shift;
-              },
-            )
-            .toList();
+        final list = (response.data as List).map((json) {
+          final shift = ShiftTimeModel.fromJson(json as Map<String, dynamic>);
+          if (shift.isApplied) {
+            requestedShiftIds.add(shift.shiftId);
+          }
+          return shift;
+        }).toList();
 
         // Sort latest first
         list.sort((a, b) {
@@ -473,7 +458,7 @@ class EventService {
       throw ApiException.fromDioException(e);
     } catch (e) {
       debugPrint('[EventService] fetchEventShifts error: $e');
-      throw ApiException(message: 'à¹„à¸¡à¹ˆà¸ªà¸²à¸¡à¸²à¸£à¸–à¸”à¸¶à¸‡à¸‚à¹‰à¸­à¸¡à¸¹à¸¥à¸à¸°à¸‡à¸²à¸™à¹„à¸”à¹‰');
+      throw ApiException(message: 'ไม่สามารถดึงข้อมูลกะงานได้');
     }
     return [];
   }
@@ -547,7 +532,7 @@ class EventService {
       throw ApiException.fromDioException(e);
     } catch (e) {
       debugPrint('[EventService] fetchGuardAssignment error: $e');
-      throw ApiException(message: 'à¹„à¸¡à¹ˆà¸ªà¸²à¸¡à¸²à¸£à¸–à¸”à¸¶à¸‡à¸‚à¹‰à¸­à¸¡à¸¹à¸¥à¸«à¸™à¹‰à¸²à¸—à¸µà¹ˆà¸£à¸±à¸šà¸œà¸´à¸”à¸Šà¸­à¸šà¹„à¸”à¹‰');
+      throw ApiException(message: 'ไม่สามารถดึงข้อมูลหน้าที่รับผิดชอบได้');
     }
 
     // Default empty assignment fallback if no DB records found
@@ -555,10 +540,10 @@ class EventService {
       assignmentId: 0,
       guardId: guardId,
       shiftId: shiftId ?? 0,
-      assignmentStatus: 'à¸¢à¸±à¸‡à¹„à¸¡à¹ˆà¸¡à¸µà¸‡à¸²à¸™',
-      description: 'à¸¢à¸±à¸‡à¹„à¸¡à¹ˆà¹„à¸”à¹‰à¸£à¸±à¸šà¸¡à¸­à¸šà¸«à¸¡à¸²à¸¢à¸«à¸™à¹‰à¸²à¸—à¸µà¹ˆ',
-      dutyLocation: 'à¹„à¸¡à¹ˆà¸£à¸°à¸šà¸¸',
-      eventName: 'à¹„à¸¡à¹ˆà¸¡à¸µà¸à¸°à¸‡à¸²à¸™',
+      assignmentStatus: 'ยังไม่มีงาน',
+      description: 'ยังไม่ได้รับมอบหมายหน้าที่',
+      dutyLocation: 'ไม่ระบุ',
+      eventName: 'ไม่มีกะงาน',
       shiftName: '-',
       shiftTime: '-',
     );
@@ -584,7 +569,7 @@ class EventService {
       throw ApiException.fromDioException(e);
     } catch (e) {
       debugPrint('[EventService] sendShiftRequest error: $e');
-      throw ApiException(message: 'à¹„à¸¡à¹ˆà¸ªà¸²à¸¡à¸²à¸£à¸–à¸ªà¹ˆà¸‡à¸„à¸³à¸‚à¸­à¹€à¸‚à¹‰à¸²à¸—à¸³à¸‡à¸²à¸™à¹„à¸”à¹‰');
+      throw ApiException(message: 'ไม่สามารถส่งคำขอเข้าทำงานได้');
     }
     return false;
   }
@@ -622,11 +607,13 @@ class EventService {
         return true;
       }
     } on DioException catch (e) {
-      debugPrint('[EventService] withdrawShiftRequest Dio error: ${e.message}');
+      debugPrint(
+        '[EventService] withdrawShiftRequest Dio error: ${e.message}',
+      );
       throw ApiException.fromDioException(e);
     } catch (e) {
       debugPrint('[EventService] withdrawShiftRequest error: $e');
-      throw ApiException(message: 'à¹„à¸¡à¹ˆà¸ªà¸²à¸¡à¸²à¸£à¸–à¸ªà¹ˆà¸‡à¸„à¸³à¸£à¹‰à¸­à¸‡à¸–à¸­à¸™à¸•à¸±à¸§à¹„à¸”à¹‰');
+      throw ApiException(message: 'ไม่สามารถส่งคำร้องถอนตัวได้');
     }
     return false;
   }
@@ -657,7 +644,7 @@ class EventService {
       throw ApiException.fromDioException(e);
     } catch (e) {
       debugPrint('[EventService] fetchWorkingHistory error: $e');
-      throw ApiException(message: 'à¹„à¸¡à¹ˆà¸ªà¸²à¸¡à¸²à¸£à¸–à¸”à¸¶à¸‡à¸›à¸£à¸°à¸§à¸±à¸•à¸´à¸à¸²à¸£à¸—à¸³à¸‡à¸²à¸™à¹„à¸”à¹‰');
+      throw ApiException(message: 'ไม่สามารถดึงประวัติการทำงานได้');
     }
     return [];
   }
