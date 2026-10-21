@@ -1255,13 +1255,20 @@ function HeadGuardDashboard() {
                                         : "bg-[#ffd700] text-gray-900"
                                 }`}
                               >
-                                {shift.status === "ONGOING"
+                                {shift.status === "ONGOING" ||
+                                shift.status === "กำลังดำเนินการ"
                                   ? "กำลังดำเนินการ"
-                                  : shift.status === "COMPLETED"
+                                  : shift.status === "COMPLETED" ||
+                                      shift.status === "เสร็จสิ้น"
                                     ? "เสร็จสิ้น"
-                                    : shift.status === "CANCELLED"
+                                    : shift.status === "CANCELLED" ||
+                                        shift.status === "ยกเลิก"
                                       ? "ยกเลิก"
-                                      : shift.status || "รอดำเนินการ"}
+                                      : shift.status === "PENDING" ||
+                                          shift.status === "pending" ||
+                                          !shift.status
+                                        ? "รอดำเนินการ"
+                                        : shift.status}
                               </span>
                             </div>
 
