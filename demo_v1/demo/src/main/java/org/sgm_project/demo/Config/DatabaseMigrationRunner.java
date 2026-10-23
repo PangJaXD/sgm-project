@@ -32,6 +32,29 @@ public class DatabaseMigrationRunner implements ApplicationRunner {
                 log.debug("Fallback migration for user_detail skipped: {}", ex.getMessage());
             }
         }
+
+        try {
+            // Fix any legacy shift_time and users rows that were shifted by -7 hours due to serverTimezone=UTC
+            int fixedShifts = jdbcTemplate.update(
+                "UPDATE shift_time SET shift_date = DATE_ADD(shift_date, INTERVAL 7 HOUR), " +
+                "start_time = DATE_ADD(start_time, INTERVAL 7 HOUR), " +
+                "end_time = DATE_ADD(end_time, INTERVAL 7 HOUR) " +
+                "WHERE HOUR(shift_date) = 17"
+            );
+            if (fixedShifts > 0) {
+                log.info("Migration check: corrected {} shift_time rows affected by UTC timezone offset.", fixedShifts);
+            }
+
+            int fixedUsers = jdbcTemplate.update(
+                "UPDATE users SET start_date = DATE_ADD(start_date, INTERVAL 7 HOUR) " +
+                "WHERE HOUR(start_date) = 17 AND MINUTE(start_date) = 0 AND SECOND(start_date) = 0"
+            );
+            if (fixedUsers > 0) {
+                log.info("Migration check: corrected {} users start_date rows affected by UTC timezone offset.", fixedUsers);
+            }
+        } catch (Exception e) {
+            log.warn("Could not run timezone offset migration: {}", e.getMessage());
+        }
     }
 }
 
