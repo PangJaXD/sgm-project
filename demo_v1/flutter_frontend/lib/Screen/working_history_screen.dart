@@ -62,135 +62,153 @@ class _WorkingHistoryScreenState extends State<WorkingHistoryScreen> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
+      useSafeArea: true,
       backgroundColor: Colors.transparent,
       builder: (context) => Container(
-        padding: const EdgeInsets.fromLTRB(24, 16, 24, 32),
+        constraints: BoxConstraints(
+          maxHeight: MediaQuery.of(context).size.height * 0.9,
+        ),
+        padding: const EdgeInsets.fromLTRB(24, 16, 24, 24),
         decoration: const BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
         ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            Container(
-              width: 44,
-              height: 5,
-              decoration: BoxDecoration(
-                color: Colors.grey.shade300,
-                borderRadius: BorderRadius.circular(3),
-              ),
-            ),
-            const SizedBox(height: 20),
-
-            // Header title
-            Row(
-              children: [
-                IconButton(
-                  onPressed: () => Navigator.pop(context),
-                  icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
+        child: SafeArea(
+          top: false,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Container(
+                width: 44,
+                height: 5,
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade300,
+                  borderRadius: BorderRadius.circular(3),
                 ),
-                const Expanded(
-                  child: Center(
-                    child: Text(
-                      'รายละเอียดประวัติงาน',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF1E293B),
+              ),
+              const SizedBox(height: 12),
+
+              // Header title
+              Row(
+                children: [
+                  IconButton(
+                    onPressed: () => Navigator.pop(context),
+                    icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
+                  ),
+                  const Expanded(
+                    child: Center(
+                      child: Text(
+                        'รายละเอียดประวัติงาน',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF1E293B),
+                        ),
                       ),
                     ),
                   ),
-                ),
-                const SizedBox(width: 44),
-              ],
-            ),
-            const SizedBox(height: 16),
-
-            // Success Check Icon Badge
-            Container(
-              width: 64,
-              height: 64,
-              decoration: const BoxDecoration(
-                color: Color(0xFFDCFCE7),
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(
-                Icons.check_rounded,
-                color: Color(0xFF16A34A),
-                size: 38,
-              ),
-            ),
-            const SizedBox(height: 12),
-            Text(
-              item.status,
-              style: const TextStyle(
-                fontSize: 19,
-                fontWeight: FontWeight.bold,
-                color: Color(0xFF16A34A),
-              ),
-            ),
-            const SizedBox(height: 24),
-
-            // Details Table / Card
-            Container(
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: const Color(0xFFF8FAFC),
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: const Color(0xFFE2E8F0)),
-              ),
-              child: Column(
-                children: [
-                  _buildDetailRow('ชื่องาน', item.eventName),
-                  const Divider(height: 20),
-                  _buildDetailRow('สถานที่', item.location),
-                  const Divider(height: 20),
-                  _buildDetailRow('วันที่ทำงาน', item.formattedDateThai),
-                  const Divider(height: 20),
-                  _buildDetailRow('เวลากะ', item.shiftTime),
-                  const Divider(height: 20),
-                  _buildDetailRow('สถานะการเช็คอิน', item.checkInTime),
-                  if (item.reportSummary != null) ...[
-                    const Divider(height: 20),
-                    _buildDetailRow('รายงาน', item.reportSummary!),
-                  ],
+                  const SizedBox(width: 44),
                 ],
               ),
-            ),
-            const SizedBox(height: 24),
+              const SizedBox(height: 8),
 
-            // Contact HR button (matching Figure 3.97)
-            SizedBox(
-              width: double.infinity,
-              height: 48,
-              child: OutlinedButton(
-                onPressed: () {
-                  Navigator.pop(context);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('ส่งข้อความติดต่อฝ่ายบุคคลเรียบร้อยแล้ว'),
-                      backgroundColor: Color(0xFF2563EB),
-                    ),
-                  );
-                },
-                style: OutlinedButton.styleFrom(
-                  side: const BorderSide(color: Color(0xFF2563EB), width: 1.5),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(14),
-                  ),
-                ),
-                child: const Text(
-                  'ติดต่อฝ่ายบุคคลเกี่ยวกับงานนี้',
-                  style: TextStyle(
-                    color: Color(0xFF2563EB),
-                    fontSize: 15.5,
-                    fontWeight: FontWeight.bold,
+              Flexible(
+                child: SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      const SizedBox(height: 4),
+                      // Success Check Icon Badge
+                      Container(
+                        width: 60,
+                        height: 60,
+                        decoration: const BoxDecoration(
+                          color: Color(0xFFDCFCE7),
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(
+                          Icons.check_rounded,
+                          color: Color(0xFF16A34A),
+                          size: 36,
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                      Text(
+                        item.status,
+                        style: const TextStyle(
+                          fontSize: 19,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF16A34A),
+                        ),
+                      ),
+                      const SizedBox(height: 18),
+
+                      // Details Table / Card
+                      Container(
+                        padding: const EdgeInsets.all(18),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFF8FAFC),
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(color: const Color(0xFFE2E8F0)),
+                        ),
+                        child: Column(
+                          children: [
+                            _buildDetailRow('ชื่องาน', item.eventName),
+                            const Divider(height: 16),
+                            _buildDetailRow('สถานที่', item.location),
+                            const Divider(height: 16),
+                            _buildDetailRow('วันที่ทำงาน', item.formattedDateThai),
+                            const Divider(height: 16),
+                            _buildDetailRow('เวลากะ', item.shiftTime),
+                            const Divider(height: 16),
+                            _buildDetailRow('สถานะการเช็คอิน', item.checkInTime),
+                            if (item.reportSummary != null) ...[
+                              const Divider(height: 16),
+                              _buildDetailRow('รายงาน', item.reportSummary!),
+                            ],
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+
+                      // Contact HR button (matching Figure 3.97)
+                      SizedBox(
+                        width: double.infinity,
+                        height: 48,
+                        child: OutlinedButton(
+                          onPressed: () {
+                            Navigator.pop(context);
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('ส่งข้อความติดต่อฝ่ายบุคคลเรียบร้อยแล้ว'),
+                                backgroundColor: Color(0xFF2563EB),
+                              ),
+                            );
+                          },
+                          style: OutlinedButton.styleFrom(
+                            side: const BorderSide(color: Color(0xFF2563EB), width: 1.5),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(14),
+                            ),
+                          ),
+                          child: const Text(
+                            'ติดต่อฝ่ายบุคคลเกี่ยวกับงานนี้',
+                            style: TextStyle(
+                              color: Color(0xFF2563EB),
+                              fontSize: 15.5,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
